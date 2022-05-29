@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "engine": { "node": "10.x" },
-  "start": {"start": "node index.js"},
+  "scripts": {
+    "start": "nodemon index.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
