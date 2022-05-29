@@ -42,7 +42,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.get('/', async (req, res, next) => {
-      res.send("Welcome to Fofo-App");
+      res.status(200).send("Welcome to Fofo-App");
 });
 
 app.post('/api/payment', async (req, res, next) => {
