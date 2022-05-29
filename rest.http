@@ -1,0 +1,57 @@
+### Landing page
+GET http://localhost:2000
+
+
+### Register page
+POST http://localhost:2000/api/auth/register
+Content-Type: application/json
+
+{   "username": "Olawumi Olusegun",
+    "email": "olawumi.olusegun@gmail.com",
+    "password": "password123"
+}
+
+### Login page
+POST http://localhost:2000/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "olawumi.olusegun@gmail.com",
+    "password": "password123"
+}
+
+### RefreshToken page
+POST http://localhost:2000/api/auth/refresh-token
+Content-Type: application/json
+
+{
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NDU0MjQyNTMsImV4cCI6MTY0NTQyNTE1MywiYXVkIjoiNjIxMmZhZmI3NTE4NjMzOWU5NGMyYzE1IiwiaXNzIjoieW91cndlYnNpdGVuYW1lLmNvbSJ9.Yuem6evnGymCLV6kYIC0XkwKlGq7g9kLBQbIzULdgvA"
+}
+
+### Register page
+POST http://localhost:2000/api/auth/logout
+Content-Type: application/json
+
+{
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
+}
+
+### Update User
+PUT http://localhost:2000/api/auth/update-user/627901f68ce0606b5c9904d6
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Ik9sYXd1bWkgT2x1c2VndW4iLCJlbWFpbCI6Im9sYXd1bWkub2x1c2VndW5AZ21haWwuY29tIiwicm9sZXMiOlsidXNlciJdLCJpYXQiOjE2NTIwOTc1MjYsImV4cCI6MTY1MjEwMTEyNiwiYXVkIjoiNjI3OTAxZjY4Y2UwNjA2YjVjOTkwNGQ2IiwiaXNzIjoieW91cndlYnNpdGVuYW1lLmNvbSJ9.rYBGlYHIOEj5xpyPnB2l9f83gDausNXHGYEb1zQKP14
+Content-Type: application/json
+
+{
+    "username": "Olawumi Olusegun",
+    "email": "olawumi.olusegun@gmail.com",
+    "roles": "admin"
+}
+
+### Delete User
+DELETE http://localhost:2000/api/auth/delete-user/6278fd242469e7d445345315
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Ik9sYXd1bWkgT2x1c2VndW4iLCJlbWFpbCI6Im9sYXd1bWkub2x1c2VndW5AZ21haWwuY29tIiwicm9sZXMiOlsidXNlciJdLCJpYXQiOjE2NTIwOTYyOTIsImV4cCI6MTY1MjA5OTg5MiwiYXVkIjoiNjI3OGZkMjQyNDY5ZTdkNDQ1MzQ1MzE1IiwiaXNzIjoieW91cndlYnNpdGVuYW1lLmNvbSJ9.bzw5VXEy1E7V6sXp5-WFp3ajtrCnI23BJ8nNlscGz0A
+Content-Type: application/json
+
+{
+    "email": "olawumi.olusegun@gmail.com"
+}
