@@ -31,7 +31,7 @@ const MyLibraryRoutes = require('./routes/MyLibraryRoutes');
 const PodcastRoutes = require('./routes/PodcastRoutes');
 const ProductRoutes = require('./routes/ProductRoutes');
 const JobRoutes = require('./routes/jobRoutes');
-const MembershipRoutes = require('./routes/MembershipRoutes');
+const MembershipRoutes = require('./routes/membershipRoutes');
 const AdminDashboardRoutes = require('./routes/AdminDashboardRoutes');
 
 require('./helpers/initRedis');
