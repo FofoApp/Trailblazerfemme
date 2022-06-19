@@ -3,22 +3,22 @@ const mongoose = require('mongoose');
 
 const ProductModel = require('./../models/ProductModel');
 module.exports = {
-      createNewProduct: async (req, res, next) => {
-            try{
-                  const { name, price } = req.body;
-                  const newProduct = new ProductModel({name, price});
-                  const result = await newProduct.save();
-                  console.log(result);
-                  return res.status(200).json(result);
-            } catch(error) {
-                  console.log(error.message)
-                  if(error.name === 'ValidationError') {
-                        next(createError(422, error.message));
-                        return;
-                  }
-                  next(error);
-            }
-      },
+      // createNewProduct: async (req, res, next) => {
+      //       try{
+      //             const { name, price } = req.body;
+      //             const newProduct = new ProductModel({name, price});
+      //             const result = await newProduct.save();
+      //             console.log(result);
+      //             return res.status(200).json(result);
+      //       } catch(error) {
+      //             console.log(error.message)
+      //             if(error.name === 'ValidationError') {
+      //                   next(createError(422, error.message));
+      //                   return;
+      //             }
+      //             next(error);
+      //       }
+      // },
 
       getAllProducts: async (req, res, next) => {
             try {

@@ -5,10 +5,20 @@ const jobSchema = new mongoose.Schema({
     company_name: { type: String, required: true },
     image: { type: [String], default: [] },
     description: { type: String, required: true },
+    jobType: { type: String, required: true },
+    jobField: { type: String, required: true },
+
+    jobImagePath: { type: String, required: true },
+    jobImageCloudinaryPublicId: { type: String, required: true },
+
     position: { type: [String], required: true },
     qualification: { type: [String], required: true },
     categoryId: [{type: mongoose.Schema.Types.ObjectId, ref: 'JobCategory'}],
+
+    createdBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+
     userId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    
 }, { timestamps: true });
 
 const Job = mongoose.model('Job', jobSchema);

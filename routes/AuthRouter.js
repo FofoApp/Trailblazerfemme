@@ -2,8 +2,11 @@
 const express = require('express');
 
 const AuthController = require('./../controllers/AuthController');
+const AdminUserController = require('./../controllers/adminController/AdminUserController');
 const { registerSchema } = require('./../validations/userSchema');
+
 const { validate } = require('./../validations/validationMiddleware');
+
 const { permissions } = require('./../middlewares/permissionsMiddleware');
  
 const { verifyAccessToken } = require('./../helpers/jwtHelper');
@@ -18,9 +21,14 @@ router.post('/register', AuthController.register);
 
 router.post('/login', AuthController.login);
 
+router.get('/dashboard-list-users', AdminUserController.dashboardListUsers);
+
+router.get('/dashboard-membership', AdminUserController.memberShip);
+
 router.post('/refresh-token', verifyAccessToken, AuthController.refreshToken);
 
 router.post('/reset-password', AuthController.resetPassword);
+
 router.get('/reset-password/:id/:token', AuthController.getResetPasswordToken);
 
 router.patch('/reset-password/:id/:token', AuthController.postResetPasswordToken);

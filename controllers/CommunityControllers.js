@@ -10,8 +10,8 @@ const joinCommunity = async (req, res, next) => {
     //http://localhost:2000/api/community/communityId/join
     //http://localhost:2000/api/community/628f256391763d00e9be6c7a/join
 
-    // const userId =  req.user.id; //628695d03cf50a6e1a34e27b
-    const userId =  "628695d03cf50a6e1a34e27b"; //628695d03cf50a6e1a34e27b
+    const userId =  req.user.id;
+    // const userId =  "628695d03cf50a6e1a34e27b"; //628695d03cf50a6e1a34e27b
     const communityId = req.params.communityId; //628f256391763d00e9be6c7a
 
     try {

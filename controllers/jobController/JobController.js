@@ -149,7 +149,7 @@ const uploadCoverLetterAndResumee = async (req, res, next) => {
 
              for(let item of req.files) fs.unlinkSync(item.path);
         
-            return res.status(401).send({message: "Documents uploaded successfully"});
+            return res.status(200).send({message: "Documents uploaded successfully"});
 
     } catch (error) {
         return res.status(500).send({ message: error.message });
@@ -179,7 +179,7 @@ const updateCoverLetterAndResumee = async (req, res, next) => {
 
         //Upload Image to cloudinary
         //DELETE FILE FROM CLOUDINARY IF EXIST
-        if(req.file.resumee) {
+        if(req?.file?.resumee) {
             let uploaderResponse = await cloudinary.uploader.destroy(checkIfUserAlreadyAppliedForSameJob.resumeePublicId);        
             if(!uploaderResponse) {
                 //Reject if unable to upload image
@@ -209,7 +209,7 @@ const updateCoverLetterAndResumee = async (req, res, next) => {
         const updateApplication = await JobApplicationModel.updateOne({userId: currenUser, jobId: jobId},
             {   $set:  uploadData}, {new: true});
         
-        return res.status(401).send({message: "Documents updated successfully"});
+        return res.status(200).send({message: "Documents updated successfully"});
 
     } catch (error) {
         return res.status(500).send({ message: error.message });
@@ -250,7 +250,7 @@ const updateJobApplication = async (req, res, next) => {
 
         const updateApplication = await JobApplicationModel.updateOne({userId: currenUser, jobId: jobId}, {$set: result}, {new: true});
 
-        return res.status(401).send({message: "User data saved successfully"});
+        return res.status(200).send({message: "User data saved successfully"});
 
     } catch (error) {
         return res.status(500).send({ message: error.message });
@@ -290,22 +290,26 @@ const createNewJob = async (req, res, next) => {
 const listJobs = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/jobs/lists
+    
     try {
         const jobs = await JobModel.find({});
         if(!jobs) {
             return res.status(200).send({ message: "No job found", jobs: []});
         }
-        return res.status(401).send(jobs);
+        return res.status(200).send(jobs);
     } catch (error) {
         return res.status(500).send({ message: error.message });
     }
 }
 
 const findJobById  = async (req, res, next) => {
-        //GET REQUEST
+
+    //GET REQUEST
     //http://localhost:2000/api/jobs/jobId/get
     //http://localhost:2000/api/jobs/62902e117ecadf9305054e1a/get
+
     const jobId = req.params.jobId;
+
     try {
         if(!mongoose.Types.ObjectId.isValid(jobId)) {
             return res.status(200).send({ message: "Unknown job parameter"});
@@ -314,7 +318,7 @@ const findJobById  = async (req, res, next) => {
         if(!job) {
             return res.status(200).send({ message: "No job found"});
         }
-        return res.status(401).send(job);
+        return res.status(200).send(job);
     } catch (error) {
         return res.status(500).send({ message: error.message });
     }
@@ -331,7 +335,7 @@ const updateJobById  = async (req, res, next) => {
         if(!job) {
             return res.status(200).send({ message: "Unable to update job"});
         }
-        return res.status(401).send({ message: "Job updated successfully"});
+        return res.status(200).send({ message: "Job updated successfully"});
     } catch (error) {
         return res.status(500).send({ message: error.message });
     }
@@ -347,7 +351,7 @@ const deleteJobById  = async (req, res, next) => {
         if(!job) {
             return res.status(200).send({ message: "No job found"});
         }
-        return res.status(401).send({ message: "Job deleted successfully"});
+        return res.status(200).send({ message: "Job deleted successfully"});
     } catch (error) {
         return res.status(500).send({ message: error.message });
     }

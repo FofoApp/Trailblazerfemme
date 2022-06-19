@@ -8,6 +8,8 @@ const userSchema = new Schema({
     email: { type: String, required: true, lowercase: true, unique: true },
     phonenumber: { type: String, required: true },
     field: { type: String, required: true },
+    membership: { type: String, default: null },
+    membershipId: { type: String, default: null },
     password: { type: String, required: true },
     about: { type: String, default: null },
     profileImageCloudinaryPublicId: { type: String, default: null },

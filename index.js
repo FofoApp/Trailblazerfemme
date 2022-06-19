@@ -9,6 +9,7 @@ const createError = require('http-errors');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 
+
 const PORT = process.env.PORT || 2000;
 
 global.publicPath = `${__dirname}/public`;
@@ -30,6 +31,8 @@ const MyLibraryRoutes = require('./routes/MyLibraryRoutes');
 const PodcastRoutes = require('./routes/PodcastRoutes');
 const ProductRoutes = require('./routes/ProductRoutes');
 const JobRoutes = require('./routes/jobRoutes');
+const MembershipRoutes = require('./routes/MembershipRoutes');
+const AdminDashboardRoutes = require('./routes/AdminDashboardRoutes');
 
 require('./helpers/initRedis');
 
@@ -39,10 +42,13 @@ app.use(morgan('tiny'));
 
 app.use(cors())
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
+
+
+
 
 app.get('/', async (req, res, next) => {
-      res.status(200).send("Welcome to Fofo-App");
+      return res.status(200).send("Welcome to Fofo-App");
 });
 
 app.post('/api/payment', async (req, res, next) => {
@@ -79,6 +85,8 @@ app.use('/api/blog', BlogCommentRoutes);
 app.use('/api/product', ProductRoutes);
 app.use('/api/posts', PostRoutes);
 app.use('/api/jobs', JobRoutes);
+app.use('/api/membership', MembershipRoutes);
+app.use('/api/dashboard', AdminDashboardRoutes);
 // app.use('/api/library', BookLibraryRoutes);
 app.use('/api/books', BookRoutes);
 

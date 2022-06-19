@@ -13,9 +13,9 @@ const productSchema = new mongoose.Schema({
     }],
     colour: { type: [String], default: [] },
     images: [{ 
-        image1: { type: String, default: "default.jpg"}, 
-        image2: { type: String, default: "default.jpg"}, 
-        image3: { type: String, default: "default.jpg"}, 
+        image1: { type: String, default: null},
+        image2: { type: String, default: null},
+        image3: { type: String, default: null},
     }],
     quantity: { type: Number, default: 0 },
     ratings: [{ type: Number, default: 0 }],

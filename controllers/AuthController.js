@@ -61,9 +61,14 @@ const register = async (req, res, next) => {
 
         const otpCode = generateFourDigitsOTP();
 
-        const otp = sendSMS(otpCode);        
+        const otp = sendSMS(otpCode);
+        const sentSms  = sendGridMail(user.email, otpCode);
 
-        if(!otp) return res.status(500).send({message: "Unable to send otp"});
+        // if(!sentSms) {
+        //     if(!otp) res.status(500).send({message: "Unable to send otp code via mail"});
+        // }
+
+        // if(!otp) res.status(500).send({message: "Unable to send otp"});
 
         // console.log("otp:", otp)
 
@@ -73,9 +78,9 @@ const register = async (req, res, next) => {
         otp: otpCode
         });
 
-        if(!newOtp) {
-            return res.status(500).send({message: "Unable to send otp"});
-        }
+        // if(!newOtp) {
+        //     return res.status(500).send({message: "Unable to send otp"});
+        // }
 
         const { email, roles, username, field, profileImagePath } = savedUser;
 
@@ -97,7 +102,7 @@ const register = async (req, res, next) => {
         
         await refreshAccessToken.save();
 
-        return res.status(200).send({accessToken, refreshToken, message: "Otp has been sent to your phone"});
+        return res.status(200).send({accessToken, refreshToken, otp:otpCode, message: "Otp has been sent to your phone"});
 
        
     } catch (error) {
@@ -217,17 +222,94 @@ const logout = async (req, res, next) => {
 
 
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         next(error);
     }
 }
+
+
+// ///ADMIN DASHBOARD LAYOUT
+// const dashboardListUsers = async (req, res, next) => {
+//     //DASHBOARD USER
+//     //GET REQUEST
+//     //http://localhost:2000/api/auth/dashboard-list-users
+//     try {
+//         const adminArray = [];
+//         const paidArray = [];
+
+//         const users = await User.find({}).select(`-password -__v -updatedAt -following -followers -recentlySearchedBook 
+//         -recentlyPlayedPodcast -booksRead -library `).limit(5);
+        
+//         users.map((user) => {
+//             if(user.roles[0] === 'admin') adminArray.push(user.roles[0]);
+
+//             if(user.isPaid) paidArray.push(user.isPaid);
+//         });
+
+//         const adminData = {
+//             userCounts: users.length,
+//             adminCounts: adminArray.length,
+//             paidUserCounts: paidArray.length,
+//             userLists: users
+//         }
+
+//         return res.status(200).send(adminData)
+        
+//     } catch (error) {
+//         return res.status(500).send({ message: error.message });
+//     }
+// }
+
+// const memberShip = async (req, res, next) => {
+//     //DASHBOARD MEMBERSHIP
+//     //GET REQUEST
+//     //http://localhost:2000/api/auth/dashboard-membership
+
+//     try {
+
+//         const goldPlan = [];
+//         const silverPlan = [];
+
+//         const users = await User.find({}).select(`-password -__v -updatedAt -following -followers -recentlySearchedBook 
+//         -recentlyPlayedPodcast -booksRead -library `).limit(5);
+
+//         const membership2 = await User.find({});
+
+//         membership2.map((member) => {
+
+//             if(member.membershipPlan === "goldPlan") {
+//                 goldPlan.push(member.membershipPlan);
+//             }
+
+//             if(member.membershipPlan === "silverPlan") {
+//                 silverPlan.push(member.membershipPlan);
+//             }
+
+//         });
+
+//         const adminData = {
+//             goldMemberCounts: goldPlan.length,
+//             silverMemberCount: silverPlan.length,
+//             totalMembershipCount: membership2.length,
+//             membershipRevenue: '',
+//             users
+//         }
+
+//         return res.status(200).send(adminData);
+
+//     } catch (error) {
+//         return res.status(500).send({ message: error.message });
+//     }
+// }
 
 const updateUser = async (req, res, next) => {
     //PATCH REQUEST
     //http://localhost:2000/api/auth/user/:userId/update
     //http://localhost:2000/api/auth/user/62902e117ecadf9305054e1a/update
     const userId = req.user.id;
+
     try {
+
         let user  = await User.findById(req.user.aud).select('-__v -_id -socialLinks -isPaid -password').lean();
     
         if(!user) throw createError.Conflict(`User with ${user.email} does not exist`);
@@ -478,5 +560,7 @@ module.exports = {
     postResetPasswordToken,
     // otpPage,
     verifyOtp,
-    uploadProfilePicture
+    uploadProfilePicture,
+    // dashboardListUsers,
+    // memberShip
 }

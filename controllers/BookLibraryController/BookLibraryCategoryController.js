@@ -4,6 +4,7 @@ const BookCategoryModel = require('./../../models/bookLibraryModel/BookCategoryM
 
 const createNewBookCategory = async (req, res, next) => {
  //Notes:: REMEMBER TO VALIDATE USER INPUTS
+ 
     try {
         const categoryExist = await BookCategoryModel.findOne({ title: req.body.title });
 

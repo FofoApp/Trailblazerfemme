@@ -4,17 +4,23 @@ const router = express.Router();
 const ProductController = require('../controllers/productController/ProductController');
 const productCategoryController = require('../controllers/productController/productCategoryController');
 const cartController = require('../controllers/productController/cartController');
+const { verifyAccessToken } = require('./../helpers/jwtHelper');
 
-
+const { permissions } = require('./../middlewares/permissionsMiddleware');
+const upload = require('./../helpers/multer');
+const uploadCv = require('./../helpers/multerCVupload');
 
 //PRODUCT ROUTES
 router.get('/', ProductController.shop);
-router.post('/create', ProductController.createNewProduct);
 router.get('/lists', ProductController.listProducts);
 router.get('/:categoryId', ProductController.getProductsByCategory);
 router.get('/:productId/product', ProductController.getProductById);
-router.patch('/:productId/update', ProductController.updateProductById);
-router.delete('/:productId/delete', ProductController.deleteProductById);
+
+
+//ADMIN PRODUCT ROUTES
+router.post('/create', verifyAccessToken, permissions(["admin"]), upload.array(['image1, image2, image3']), ProductController.createNewProduct);
+router.patch('/:productId/update', verifyAccessToken, permissions(["admin"]), ProductController.updateProductById);
+router.delete('/:productId/delete', verifyAccessToken, permissions(["admin"]), ProductController.deleteProductById);
 
 
 
