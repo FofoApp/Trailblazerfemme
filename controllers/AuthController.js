@@ -364,7 +364,7 @@ const uploadProfilePicture = async (req, res, next) => {
         const updatedProfileImage = await User.updateOne({_id:currentUser}, {$set: 
             { 
                 profileImageCloudinaryPublicId: uploaderResponse.public_id,  
-                profileImagePath: uploaderResponse.secure_url
+                profileImage: uploaderResponse.secure_url
             }
         
         }, { new: true });
