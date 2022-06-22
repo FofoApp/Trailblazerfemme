@@ -49,6 +49,7 @@ const registerSchema = (userInput, field = null) => {
         email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).lowercase().required(),
         phonenumber: Joi.string().required(),
         field: Joi.string().required(),
+        membership: Joi.string().required(),
         roles: Joi.string().valid("user", "admin", "superAdmin"),
         password: Joi.string().min(3).required().strict(),
         profileImage: Joi.string(),
