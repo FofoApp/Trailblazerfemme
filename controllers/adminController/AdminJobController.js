@@ -77,7 +77,7 @@ exports.createNewJob = async (req, res, next) => {
      * {
         "title": "Job one",
         "company_name": "Ricz Tech",
-        "image": "Images",
+        "jobImage": "Images",
         "jobType": "Full Time",
         "jobField": "Human Resource",
         "description": "decription",
@@ -97,7 +97,7 @@ exports.createNewJob = async (req, res, next) => {
             //Reject if unable to upload image
             return res.status(404).send({ message: "Unable to upload image please try again"});
         }
-
+    
         const jobData  = {
             ...req.body,
             createdBy: req.user.id,

@@ -23,7 +23,12 @@ router.post('/login', AuthController.login);
 
 router.get('/dashboard-list-users', AdminUserController.dashboardListUsers);
 
-router.get('/dashboard-membership', AdminUserController.memberShip);
+
+//Blocked user routes
+router.patch('/block-user', verifyAccessToken, permissions(["admin"]), AdminUserController.blockUser);
+router.patch('/unblock-user', verifyAccessToken, permissions(["admin"]), AdminUserController.unblockUser);
+router.get('/list-block-users', verifyAccessToken, permissions(["admin"]), AdminUserController.listblockedUsers);
+router.get('/show-blocked-user', verifyAccessToken, permissions(["admin"]), AdminUserController.showblockedUser);
 
 router.post('/refresh-token', verifyAccessToken, AuthController.refreshToken);
 

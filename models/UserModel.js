@@ -8,6 +8,7 @@ const userSchema = new Schema({
     email: { type: String, required: true, lowercase: true, unique: true },
     phonenumber: { type: String, required: true },
     field: { type: String, required: true },
+    blocked: { type: Boolean, default: true },
     membership: { type: String, default: null },
     membershipId: { type: String, default: null },
     password: { type: String, required: true },
