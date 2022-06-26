@@ -30,6 +30,10 @@ router.patch('/unblock-user', verifyAccessToken, permissions(["admin"]), AdminUs
 router.get('/list-block-users', verifyAccessToken, permissions(["admin"]), AdminUserController.listblockedUsers);
 router.get('/show-blocked-user', verifyAccessToken, permissions(["admin"]), AdminUserController.showblockedUser);
 
+//FIND A USER 
+router.get('/users', verifyAccessToken, permissions(["admin"]), AdminUserController.allUsers);
+router.get('/user/find', verifyAccessToken, permissions(["admin"]), AdminUserController.findUser);
+
 router.post('/refresh-token', verifyAccessToken, AuthController.refreshToken);
 
 router.post('/reset-password', AuthController.resetPassword);

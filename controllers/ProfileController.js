@@ -128,7 +128,7 @@ const uploadProfileImage = async (req, res, next) => {
 }
 
 const updateProfileImage = async (req, res, next) => {
-    const { id } = req.params;
+    const { id } = req.params; 
 
     try {
        //Find user and ensure user with the speicifed id exist

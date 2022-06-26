@@ -151,3 +151,39 @@ exports.showblockedUser = async (req, res, next) => {
         return res.status(500).json({ error: error.message })
     }
 }
+
+exports.findUser = async (req, res, next) => {
+    const userId = req.body.userId;
+
+    try {
+        if(!mongoose.Types.ObjectId(userId)){
+            return res.status(400).json({ error: "Invalid user ID"})
+        }
+        const findUser = await UserModel.findById(userId).select("_id fullname email phonenumber createdAt ");
+        if(!findUser) {
+            return res.status(400).json({ error: "User not found"});
+        }
+        return res.status(200).json(findUser);
+    
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+}
+
+exports.allUsers = async (req, res, next) => {
+    const userId = req.body.userId;
+
+    try {
+        if(!mongoose.Types.ObjectId(userId)){
+            return res.status(400).json({ error: "Invalid user ID"})
+        }
+        const findUsers = await UserModel.find({}).select("_id fullname email phonenumber createdAt ");
+        if(!findUsers) {
+            return res.status(400).json({ error: "No user(s) found"});
+        }
+        return res.status(200).json(findUsers);
+    
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+}
