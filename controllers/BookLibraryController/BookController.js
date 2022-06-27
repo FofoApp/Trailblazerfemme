@@ -50,7 +50,7 @@ const createNewBook = async (req, res, next) => {
             createdBy: currentUser
         });
 
-        const createdBook = await createNewBook.save();
+         await createNewBook.save();
 
         // let query = [
         //     {
