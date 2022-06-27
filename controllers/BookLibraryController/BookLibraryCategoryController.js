@@ -6,6 +6,7 @@ const createNewBookCategory = async (req, res, next) => {
  //Notes:: REMEMBER TO VALIDATE USER INPUTS
  
     try {
+
         const categoryExist = await BookCategoryModel.findOne({ title: req.body.title });
 
         if(categoryExist) {
@@ -19,7 +20,7 @@ const createNewBookCategory = async (req, res, next) => {
         return res.status(200).send({ message: "Category created successfully", category: createdCategory });
 
     } catch (error) {
-        return res.status(500).send(error.message);
+        return res.status(500).send({ error: error.message});
     }
 }
 
@@ -28,18 +29,18 @@ const fetchBookCategories = async (req, res, next) => {
         const categories = await BookCategoryModel.find({});
 
         if(!categories) {
-            return res.status(404).send({ message: "Category not found"});
+            return res.status(404).send({ message: "No category found"});
         }
         return res.status(200).send({ message: "Categories found", categories });
     } catch (error) {
-        return res.status(500).send(error.message);
+        return res.status(500).send({ error: error.message});
     }
 }
 
 
 const fetchBookCategoryById = async (req, res, next) => {
     try {
-        const categoryId = req.params.id;
+        const categoryId = req.params.categoryId;
         if(!mongoose.Types.ObjectId.isValid(categoryId)) {
 
             return res.status(404).send({ message: "Invalid category"});
@@ -51,35 +52,40 @@ const fetchBookCategoryById = async (req, res, next) => {
         }
         return res.status(200).send({ message: "Categories found", category });
     } catch (error) {
-        return res.status(500).send(error.message);
+        return res.status(500).send({ error: error.message});
     }
 }
 
 
 const updateBookCategoryById = async (req, res, next) => {
     try {
-        const categoryId = req.params.id;
+
+        const categoryId = req.params.categoryId;
+
         if(!mongoose.Types.ObjectId.isValid(categoryId)) {
             
             return res.status(404).send({ message: "Invalid category"});
         }
+
         const category = await BookCategoryModel.findById(categoryId);
 
         if(!category) {
             return res.status(404).send({ message: "Category not found"});
         }
-         await BookCategoryModel.updateOne({ _id: categoryId }, {$set: { ...req.body } })
+
+        await BookCategoryModel.updateOne({ _id: categoryId }, {$set: { ...req.body } });
         
         return res.status(200).send({ message: "Category updated successfully" });
+
     } catch (error) {
-        return res.status(500).send(error.message);
+        return res.status(500).send({ error: error.message});
     }
 }
 
 
 const deleteBookCategoryById = async (req, res, next) => {
     try {
-        const categoryId = req.params.id;
+        const categoryId = req.params.categoryId;
         if(!mongoose.Types.ObjectId.isValid(categoryId)) {
             
             return res.status(404).send({ message: "Invalid category"});
@@ -93,7 +99,7 @@ const deleteBookCategoryById = async (req, res, next) => {
         
         return res.status(200).send({ message: "Category deleted successfully" });
     } catch (error) {
-        return res.status(500).send(error.message);
+        return res.status(500).send({error: error.message});
     }
 }
 

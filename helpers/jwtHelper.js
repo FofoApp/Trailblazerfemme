@@ -99,7 +99,9 @@ module.exports = {
             if(err) {
                 if(err.name === 'JsonWebTokenError') {
                     return next(createError.Unauthorized());
-                } else {
+                }else if(err.message === "jwt expired"){
+                    return next(createError.Unauthorized("Access Timeout!"));
+                }else {
                     return next(createError.Unauthorized(err.message));
                 }
             }

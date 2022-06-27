@@ -2,6 +2,9 @@ require('dotenv').config();
 const path = require('path');
 
 const express = require('express');
+const mongoSanitize = require("express-mongo-sanitize");
+const xss = require('xss-clean');
+const hpp = require("hpp");
 const morgan = require('morgan');
 const cors = require('cors');
 // const limitter = require('express-rate-limiter');
@@ -14,9 +17,10 @@ const PORT = process.env.PORT || 2000;
 
 global.publicPath = `${__dirname}/public`;
 
+//INITIALIZE DATABASE
 require('./initDB')();
 
-// const ProductRoute = require('./routes/ProductRouter');
+
 const FollowersAndFollowingRoutes = require('./routes/followersAndFollowingRoutes');
 const CommunityRoutes = require('./routes/CommunityRoutes');
 const PlanRoute = require('./routes/PlanRoutes');
@@ -25,14 +29,13 @@ const AuthRoute = require('./routes/AuthRouter');
 const BlogRoutes = require('./routes/BlogRoutes');
 const PostRoutes = require('./routes/PostRoutes');
 const BlogCommentRoutes = require('./routes/BlogCommentRoutes');
-const BookLibraryRoutes = require('./routes/BookLibraryRoutes');
-const BookRoutes = require('./routes/BookRoutes');
 const MyLibraryRoutes = require('./routes/MyLibraryRoutes');
 const PodcastRoutes = require('./routes/PodcastRoutes');
 const ProductRoutes = require('./routes/ProductRoutes');
 const JobRoutes = require('./routes/jobRoutes');
 const MembershipRoutes = require('./routes/membershipRoutes');
 const AdminDashboardRoutes = require('./routes/AdminDashboardRoutes');
+// const BookRoutes = require('./routes/BookRoutes');
 
 require('./helpers/initRedis');
 
@@ -41,9 +44,11 @@ app.use(morgan('tiny'));
 
 
 app.use(cors())
+app.use(mongoSanitize());
+app.use(xss());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.use(hpp());
 
 
 
@@ -77,7 +82,6 @@ app.post('/api/payment', async (req, res, next) => {
 });
 
 
-// app.use('/api/products', ProductRoute);
 app.use('/api/blog', BlogRoutes);
 app.use('/api/library', MyLibraryRoutes);
 app.use('/api/podcast', PodcastRoutes);
@@ -87,15 +91,13 @@ app.use('/api/posts', PostRoutes);
 app.use('/api/jobs', JobRoutes);
 app.use('/api/membership', MembershipRoutes);
 app.use('/api/dashboard', AdminDashboardRoutes);
-// app.use('/api/library', BookLibraryRoutes);
-app.use('/api/books', BookRoutes);
-
-// app.use('/api', FollowersAndFollowingRoutes);
 app.use('/api/community', CommunityRoutes);
-
 app.use('/api/plan', PlanRoute);
 app.use('/api/profile', ProfileRoutes);
 app.use('/api/auth', AuthRoute);
+
+// app.use('/api/books', BookRoutes);
+// app.use('/api', FollowersAndFollowingRoutes);
 
 //404 request handler and pass to error handler
 app.use(async (req, res, next) => {

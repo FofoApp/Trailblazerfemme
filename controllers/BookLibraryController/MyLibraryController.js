@@ -4,13 +4,14 @@ const BookCategoryModel = require('./../../models/bookLibraryModel/BookCategoryM
 const BookModel = require('./../../models/bookLibraryModel/BookModel')
 const UserModel = require('./../../models/UserModel')
 
-const addBookToMyLibrary = async (req, res, next) => {
+exports.addBookToMyLibrary = async (req, res, next) => {
     //POST REQUEST 
     //http://localhost:2000/api/library/category/create
-
+    const userId = req.user.id;
+    const bookId = req.params.bookId;
     //ADD A BOOK TO MY LIBRARY
     try {
-        const addBook = new MyLibraryModel({ userId: req.user.id, bookId: req.params.bookId });
+        const addBook = new MyLibraryModel({ userId, bookId });
         const addedBook = await addBook.save();
         return res.status(200).send({ message: "Book added to library", addedBook });
     } catch (error) {
@@ -18,10 +19,10 @@ const addBookToMyLibrary = async (req, res, next) => {
     }
     
 }
-const fetchAllBooksInLibrary = async (req, res, next) => {
+exports.fetchAllBooksInLibrary = async (req, res, next) => {
     //FOR AUTHENTICATED USERS
     //GET REQUEST
-    //http://localhost:2000/api/library/lists
+    //http://localhost:2000/api/library
 
 
     try {
@@ -115,7 +116,7 @@ const fetchAllBooksInLibrary = async (req, res, next) => {
     }
 }
 
-const searchBookInLibrary = async (req, res, next) => {
+exports.searchBookInLibrary = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/library/search
     const searchKeyword = req.body.searchKeyword;
@@ -148,7 +149,7 @@ const searchBookInLibrary = async (req, res, next) => {
     }
 }
 
-const searchBookInLibraryById = async (req, res, next) => {
+exports.searchBookInLibraryById = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/library/:bookId/book
     //http://localhost:2000/api/library/62882d1a3760d3ad2c20612c/book
@@ -181,43 +182,57 @@ const searchBookInLibraryById = async (req, res, next) => {
     }
 }
 
-const readBook = async (req, res, next) => {
+exports.userReadBook = async (req, res, next) => {
     //PATCH REQUEST
     //http://localhost:2000/api/library/:bookId/read
     //http://localhost:2000/api/library/628800b0de57eb226b1ef22b/read
+
+    const bookId = req.params.bookId;
+    const userId = req.user.id;
+
     try {
-        if(!mongoose.Types.ObjectId.isValid(req.params.bookId)) {
-            return res.status(404).send({ message: "Unknown book parameter "});
+
+        if(!mongoose.Types.ObjectId.isValid(bookId)) {
+            return res.status(404).send({ error: "Unknown book id"});
         }
 
-        //FIND BOOK BY SEARCH KEYWORD: req.params.bookId
-
-        // const findSearchKeyword =  await BookModel.find({ _id: req.params.bookId}).select('-trendingId -recentSearch -cloudinaryPublicId -createdAt -updatedAt -__v');
-
-        const updateBookRead = await BookModel.updateOne({ _id: req.params.bookId }, {$set: {whoRead: req.user.id }}, { new: true });
-        if(!updateBookRead) {
-            return res.status(401).send({ message: "Unable to process reading request"});
-        }  
-
-        //UPDATE BOOK MODEL AND SET CURRENT USER TO READ A BOOK
-        const  updateUserReadBook = await UserModel.updateOne({ _id: req.user.id }, {$set: { booksRead: req.params.bookId }}, { new: true });
+        const  updateUserReadBook = await UserModel.updateOne({ _id: userId }, 
+            {$addToSet: { booksRead: bookId }}, { new: true });
 
         if(!updateUserReadBook) {
-            return res.status(401).send({ message: "Unable to process reading request"});
+            return res.status(401).send({ error: "Unable to process reading request"});
         }
-
-      
-        return res.status(401).send({ message: "Read book" });
+        
+        next();
 
     } catch (error) {
-        return res.status(500).send({ message: error.message });
+        return res.status(500).send({ error: error.message });
     }
 }
 
-module.exports = {
-    addBookToMyLibrary,
-    fetchAllBooksInLibrary,
-    searchBookInLibrary,
-    searchBookInLibraryById,
-    readBook
+exports.readBook = async (req, res, next) => {
+    //PATCH REQUEST
+    //http://localhost:2000/api/library/:bookId/read
+    //http://localhost:2000/api/library/628800b0de57eb226b1ef22b/read
+
+    const bookId = req.params.bookId;
+    const userId = req.user.id;
+
+    try {
+
+        if(!mongoose.Types.ObjectId.isValid(bookId)) {
+            return res.status(404).send({ error: "Unknown book id"});
+        }
+
+        const updateBookRead = await BookModel.findByIdAndUpdate(bookId, {$addToSet: {readers: userId }}, { new: true }).select("_id title ratings bookImage price store bookCategoryId");
+        
+        if(!updateBookRead) {
+            return res.status(401).send({ error: "Unable to process reading request"});
+        }
+
+        return res.status(200).send(updateBookRead);
+
+    } catch (error) {
+        return res.status(500).send({ error: error.message });
+    }
 }
