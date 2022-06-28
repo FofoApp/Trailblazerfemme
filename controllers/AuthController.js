@@ -88,26 +88,15 @@ exports.register = async (req, res, next) => {
              
 
               request(options, function (error, response) {
-                if (error) {
-                    smsError = error;
-                    throw new Error(error);
-                }
 
-                smsRes = response.body;
-                console.log(response.body);
-              });
+                if (error) throw new Error(error);
 
-            const otpIsSet = await Otpmodel.findByIdAndDelete(savedUser._id);
+                const otpIsSet = await Otpmodel.findByIdAndDelete(savedUser._id);
         
-            const newOtp = await Otpmodel.create({ 
-            userId: savedUser._id,
-            phonenumber: savedUser.phonenumber,
-            otp: otpCode
-            });
-
-        // if(!newOtp) {
-        //     return res.status(500).send({message: "Unable to send otp"});
-        // }
+                const newOtp = await Otpmodel.create({ 
+                userId: savedUser._id,  phonenumber: savedUser.phonenumber,  otp: otpCode  });    
+                // console.log(response.body);
+              });
 
         const { email, roles, username, field, profileImagePath } = savedUser;
 
@@ -129,7 +118,7 @@ exports.register = async (req, res, next) => {
         
         await refreshAccessToken.save();
 
-        return res.status(200).send({accessToken, refreshToken, smsError, smsRes, message: "Otp has been sent to your phone"});
+        return res.status(200).send({accessToken, refreshToken, message: "Otp has been sent to your phone"});
 
        
     } catch (error) {
