@@ -145,7 +145,7 @@ function passwordOnlySchema(userInput, field = null) {
 
 const otpValidation = (otp) => {
     const schema = Joi.object().keys({
-        otp: Joi.number().trim().min(4).max(4).required()
+        otp: Joi.string().min(4).max(4).required()
       
     }).options({ abortEarly: true});
 

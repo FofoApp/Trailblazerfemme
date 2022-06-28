@@ -12,6 +12,7 @@
   "dependencies": {
     "@hapi/joi": "^17.1.1",
     "@sendgrid/mail": "^7.6.2",
+    "api": "^4.5.1",
     "axios": "^0.27.2",
     "bcrypt": "^5.0.0",
     "cloudinary": "^1.29.1",

@@ -40,8 +40,8 @@ router.delete('/category/:categoryId/delete', verifyAccessToken, permissions(["a
 
 //BOOK
 //USERS AND ADMIN ACCESS ROUTES ONLY
-router.post('/book/create', verifyAccessToken, permissions(["admin"]), upload.single('bookImage'), BookController.createNewBook);
 router.get('/books', verifyAccessToken, permissions(["user","admin"]), BookController.fetchBooks);
+router.post('/book/create', verifyAccessToken, permissions(["admin"]), upload.single('bookImage'), BookController.createNewBook);
 router.post('/book/trending', verifyAccessToken, permissions(["user","admin"]), BookController.trendingBooks);
 router.get('/book/search', verifyAccessToken, permissions(["user","admin"]), BookController.searchBook);
 router.get('/book/:bookId/get', verifyAccessToken, permissions(["user","admin"]), BookController.fetchBookById);

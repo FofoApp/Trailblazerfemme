@@ -3,7 +3,7 @@ const createError = require('http-errors');
 const bcrypt = require('bcrypt');
 const JWT = require('jsonwebtoken');
 const { cloudinary } = require('./../helpers/cloudinary');
-
+const sdk = require('api')('@sendchamp/v1.0#1v843jkyvjm1me');
 
 const { registerSchema, 
     loginSchema, 
@@ -27,7 +27,7 @@ const {calculateNextPayment}  = require('./../helpers/billing');
 const runCron = require('../runCron')
 const moment = require('moment');
 runCron();
-const register = async (req, res, next) => {
+exports.register = async (req, res, next) => {
     //POST REQUEST
     //http://localhost:2000/api/auth/register
     /**
@@ -64,6 +64,15 @@ const register = async (req, res, next) => {
         const otp = sendSMS(otpCode);
         const sentSms  = sendGridMail(user.email, otpCode);
 
+        // sdk['https://api.sendchamp.com/api/v1']({
+        //     to: ['+2347065066382'],
+        //     message: `Your otp code is ${otp}`,
+        //     sender_name: `${savedUser.name}`,
+        //     route: 'international'
+        //   }, {Authorization: 'Bearer null'})
+        //     .then(res => console.log(res))
+        //     .catch(err => console.error(err));
+
         // if(!sentSms) {
         //     if(!otp) res.status(500).send({message: "Unable to send otp code via mail"});
         // }
@@ -72,8 +81,10 @@ const register = async (req, res, next) => {
 
         // console.log("otp:", otp)
 
+        const otpIsSet = await Otpmodel.findByIdAndDelete(savedUser._id);
+        
         const newOtp = await Otpmodel.create({ 
-        userId: savedUser.id,
+        userId: savedUser._id,
         phonenumber: savedUser.phonenumber,
         otp: otpCode
         });
@@ -116,7 +127,7 @@ const register = async (req, res, next) => {
 }
 
 
-const login = async (req, res, next) => {
+exports.login = async (req, res, next) => {
     // taskScheduler.start()
 
     //POST REQUEST
@@ -171,10 +182,10 @@ const login = async (req, res, next) => {
 }
 
 
-const refreshToken = async (req, res, next) => {
+exports.refreshToken = async (req, res, next) => {
     
     try {
-        const refreshToken = req.body;
+        const {refreshToken} = req.body;
         if(!refreshToken) {
             throw createError.BadRequest();
         }
@@ -187,7 +198,7 @@ const refreshToken = async (req, res, next) => {
     }
 }
 
-const logout = async (req, res, next) => {
+exports.logout = async (req, res, next) => {
     //DELETE REQUEST
     //http://localhost:2000/api/auth/delete-user/userId
     //http://localhost:2000/api/auth/delete-user/627fbadbc81d6b5315941f67
@@ -229,7 +240,7 @@ const logout = async (req, res, next) => {
 
 
 // ///ADMIN DASHBOARD LAYOUT
-// const dashboardListUsers = async (req, res, next) => {
+// exports.dashboardListUsers = async (req, res, next) => {
 //     //DASHBOARD USER
 //     //GET REQUEST
 //     //http://localhost:2000/api/auth/dashboard-list-users
@@ -260,7 +271,7 @@ const logout = async (req, res, next) => {
 //     }
 // }
 
-// const memberShip = async (req, res, next) => {
+// exports.memberShip = async (req, res, next) => {
 //     //DASHBOARD MEMBERSHIP
 //     //GET REQUEST
 //     //http://localhost:2000/api/auth/dashboard-membership
@@ -302,7 +313,7 @@ const logout = async (req, res, next) => {
 //     }
 // }
 
-const updateUser = async (req, res, next) => {
+exports.updateUser = async (req, res, next) => {
     //PATCH REQUEST
     //http://localhost:2000/api/auth/user/:userId/update
     //http://localhost:2000/api/auth/user/62902e117ecadf9305054e1a/update
@@ -333,7 +344,7 @@ const updateUser = async (req, res, next) => {
        
 }
 
-const uploadProfilePicture = async (req, res, next) => {
+exports.uploadProfilePicture = async (req, res, next) => {
     //PATCH REQUEST
     //http://localhost:2000/api/auth/upload-profile-picture/:userId/upload
     //http://localhost:2000/api/auth/upload-profile-picture/62902e117ecadf9305054e1a/upload
@@ -387,7 +398,7 @@ const uploadProfilePicture = async (req, res, next) => {
 
 
 
-const deleteUser = async (req, res, next) => {
+exports.deleteUser = async (req, res, next) => {
     //DELETE REQUEST
     //http://localhost:2000/api/auth/user/:userId/delete
     //http://localhost:2000/api/auth/user/62902e117ecadf9305054e1a/delete
@@ -418,7 +429,7 @@ const deleteUser = async (req, res, next) => {
 
 
 
-const resetPassword = async (req, res, next) => {
+exports.resetPassword = async (req, res, next) => {
     const { email } = req.body;
     try {
         const result = await resetPasswordSchema.validateAsync(req.body);
@@ -443,7 +454,7 @@ const resetPassword = async (req, res, next) => {
     }
 }
 
-const getResetPasswordToken = async (req, res, next) => {
+exports.getResetPasswordToken = async (req, res, next) => {
     const { id, token } = req.params;
     try {
         if(!id && !token) {
@@ -475,7 +486,7 @@ const getResetPasswordToken = async (req, res, next) => {
     }
 }
 
-const postResetPasswordToken = async (req, res, next) => {
+exports.postResetPasswordToken = async (req, res, next) => {
     const { id, token } = req.params;
     const { password, confirmPassword } = req.body;
 
@@ -517,7 +528,7 @@ const postResetPasswordToken = async (req, res, next) => {
     }
 }
 
-// const otpPage = async (req, res, next) => {
+// exports.otpPage = async (req, res, next) => {
     
 //     try {
 //         const otpExist = await Otpmodel.findOne({userId: req.params.id});
@@ -529,38 +540,33 @@ const postResetPasswordToken = async (req, res, next) => {
 //     }
     
 // }
-const verifyOtp = async (req, res, next) => {
+exports.verifyOtp = async (req, res, next) => {
     
     try {
-        const otp = await otpValidation(Number(req.body.otp));
         
-        const isOtpFound = await Otpmodel.findOne({otp: Number(otp)});
+        // const otp = await otpValidation({otp: req.body.otp});
+        const otp = req.body.otp;
+        if(otp.length < 4 || otp.length > 4 ) return res.status(200).send({ error: 'Input valid 4 digit otp code'})
+        
+        const isOtpFound = await Otpmodel.findOne({otp: otp});
 
         if(!isOtpFound) {
-            return res.status(200).send({ message: 'Otp not found'});
+            return res.status(200).send({ error: 'Invalid otp'})
         }
-
-        return res.status(200).send({ message: 'Otp verified'});
+        
+        const verified = await User.findByIdAndUpdate(isOtpFound.userId, {$set: { accountVerified: true }}, { new: true});
+       
+        
+        if(verified) {
+            await Otpmodel.findByIdAndDelete(isOtpFound._id)
+            
+        }
+        return res.status(200).send("Otp verified");
 
     } catch (error) {
+        console.log(error)
         next(error)
     }
     
 }
 
-module.exports = {
-    register,
-    login,
-    refreshToken,
-    logout,
-    updateUser,
-    deleteUser,
-    resetPassword,
-    getResetPasswordToken,
-    postResetPasswordToken,
-    // otpPage,
-    verifyOtp,
-    uploadProfilePicture,
-    // dashboardListUsers,
-    // memberShip
-}

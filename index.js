@@ -10,8 +10,8 @@ const cors = require('cors');
 // const limitter = require('express-rate-limiter');
 const createError = require('http-errors');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
-
+const otpGenerate = require('otp-generator')
+const sdk = require('api')('@sendchamp/v1.0#abgrgkyvjmnhz');
 
 const PORT = process.env.PORT || 2000;
 
@@ -53,7 +53,11 @@ app.use(hpp());
 
 
 app.get('/', async (req, res, next) => {
-      return res.status(200).send("Welcome to Fofo-App");
+      try {
+            return res.status(200).send(`Welcome to Fofo-App`);
+      } catch (error) {
+            return res.status(500).send(`${error.message}`);
+      }
 });
 
 app.post('/api/payment', async (req, res, next) => {

@@ -5,7 +5,7 @@ const UserModel = require('./../../models/UserModel');
 const TrendingBookModel = require('./../../models/bookLibraryModel/TrendingBookModel');
 const { cloudinary } = require('./../../helpers/cloudinary');
 
-const createNewBook = async (req, res, next) => {
+exports.createNewBook = async (req, res, next) => {
     //NOTE: REMEMBER TO VALIDATE USER INPUTS 
     const currentUser = req.user.id;
     const bookCategoryId = req.body.bookCategoryId;
@@ -109,24 +109,72 @@ const createNewBook = async (req, res, next) => {
     }
 }
 
-const searchBook = async (req, res, next) => {
+exports.searchAllBooks = async (req, res, next) => {
+    
+    try {
+        const { searchKeyword } = req.body;
+
+        if(!searchKeyword || searchKeyword === "") {
+            return res.status(400).send({ error: "Please provide a search keyword" });
+        }
+
+        const searched = await BookModel.find({
+            $or: [
+                { title : { $regex: '.*' + searchKeyword + '.*',  $options: 'i' }  },
+                { author : { $regex: '.*' + searchKeyword + '.*',  $options: 'i' }  },
+            ]
+        }).select( "_id title imagePath author price ratings store").limit(20)
+
+       
+         if(searched.length === 0) {
+            return res.status(400).send({ error: "No match found" });
+         }
+
+         return res.status(200).send(searched);
+
+    } catch (error) {
+        return res.status(500).send({ error: error.message });
+    }
+}
+
+exports.searchBook = async (req, res, next) => {
     //NOTE: REMEMBER TO VALIDATE USER INPUTS 
   
     try {
-        const searchKeyword = req.body.keyword;
+        const { searchKeyword } = req.body;
 
-        let query=[
+        if(!searchKeyword || searchKeyword === "") {
+            return res.status(400).send({ error: "Please provide a search keyword" });
+        }
+
+        const searched = await BookModel.find({
+            $or: [
+                { title : { $regex: '.*' + searchKeyword + '.*',  $options: 'i' }  },
+                { author : { $regex: '.*' + searchKeyword + '.*',  $options: 'i' }  },
+            ]
+        }).select( "_id title imagePath author price ratings store").limit(20)
+
+       
+         if(searched.length === 0) {
+            return res.status(400).send({ error: "No match found" });
+         }
+
+         return res.status(200).send(searched);
+
+         
+
+        // let query=[
 			// {
 			// 	$lookup: { from: "users", localField: "userId", foreignField: "_id", as: "creator" },
                 
 			// },
             // {$unwind: '$creator'},
 
-            { $lookup: { from: "bookcategories", localField: "bookCategoryId", foreignField: "_id", as: "book_category_details" },
-			},
-            {
-                $group: { _id: "$book_category"}
-            }
+            // { $lookup: { from: "bookcategories", localField: "bookCategoryId", foreignField: "_id", as: "book_category_details" },
+			// },
+            // {
+            //     $group: { _id: "$book_category"}
+            // },
 
 			// {$unwind: '$book_category_details'},
             // { 
@@ -148,7 +196,7 @@ const searchBook = async (req, res, next) => {
             //     "likes_count":{$size:{"$ifNull":["$blog_likes",[]]}}
             //     } 
             // }
-        ];
+        // ];
 
         // if(searchKeyword && searchKeyword !=''){ 
 		// 	query.push({
@@ -162,25 +210,25 @@ const searchBook = async (req, res, next) => {
 		// 	});
 		// }
 
-        const findBookExist = await BookModel.aggregate(query);
+        // const findBookExist = await BookModel.aggregate(query);
 
-        if(!findBookExist) {
-            return res.status(401).send({ error: "Books not found" });
-        }
+        // if(!findBookExist) {
+        //     return res.status(401).send({ error: "Books not found" });
+        // }
         // return  res.status(404).send(findBookExist[0]);
 
-        const updateRecentBookSearch = await BookModel.updateOne({_id: findBookExist[0]._id }, 
-            { $addToSet : { recentSearch: findBookExist[0]._id } });
+        // const updateRecentBookSearch = await BookModel.updateOne({_id: findBookExist[0]._id }, 
+        //     { $addToSet : { recentSearch: findBookExist[0]._id } });
 
-        return res.status(200).send(updateRecentBookSearch);
+        // return res.status(200).send(updateRecentBookSearch);
     } catch (error) {
-        console.log(error)
+ 
         return res.status(500).send({ error: error.message });
     }
 }
 
 
-const fetchBooks = async (req, res, next) => {
+exports.fetchBooks = async (req, res, next) => {
     //NOTE: REMEMBER TO VALIDATE USER INPUTS 
     try {
         const findBookExist = await BookModel.find({});
@@ -242,19 +290,22 @@ const fetchBooks = async (req, res, next) => {
     }
 }
 
-const fetchBookById = async (req, res, next) => {
+exports.fetchBookById = async (req, res, next) => {
     //NOTE: REMEMBER TO VALIDATE USER INPUTS 
     try {
         const bookId = req.params.bookId;
+
         if(!mongoose.Types.ObjectId.isValid(bookId)) {
             return res.status(401).send({ error: "Invalid book"})
         }
         const findBookExist = await BookModel.findById(bookId)
         .populate("bookCategoryId", "_id title")
         .select("_id title bookImage author price ratings store bookCategoryId");
+
         if(!findBookExist) {
             return res.status(404).send({ error: "Book not found"})
         }
+        
         return res.status(200).send(findBookExist);
 
     } catch (error) {
@@ -263,7 +314,7 @@ const fetchBookById = async (req, res, next) => {
 }
 
 
-const updateBookById = async (req, res, next) => {
+exports.updateBookById = async (req, res, next) => {
     //NOTE: REMEMBER TO VALIDATE USER INPUTS 
     try {
         const bookId = req.params.bookId;
@@ -282,7 +333,7 @@ const updateBookById = async (req, res, next) => {
     }
 }
 
-const deleteBookById = async (req, res, next) => {
+exports.deleteBookById = async (req, res, next) => {
     //NOTE: REMEMBER TO VALIDATE USER INPUTS 
     try {
         const bookId = req.params.bookId;
@@ -301,7 +352,7 @@ const deleteBookById = async (req, res, next) => {
     }
 }
 
-const trendingBooks = async (req, res, next) => {
+exports.trendingBooks = async (req, res, next) => {
     //NOTE: REMEMBER TO VALIDATE USER INPUTS 
     try {
       
@@ -347,12 +398,3 @@ const trendingBooks = async (req, res, next) => {
     }
 }
 
-module.exports = {
-    createNewBook,
-    fetchBooks,
-    fetchBookById,
-    updateBookById,
-    deleteBookById,
-    searchBook,
-    trendingBooks
-}

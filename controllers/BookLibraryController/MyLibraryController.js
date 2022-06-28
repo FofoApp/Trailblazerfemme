@@ -34,10 +34,10 @@ exports.fetchAllBooksInLibrary = async (req, res, next) => {
         const topAuthors = await BookModel.aggregate(
             [
                 { $group : { _id : "$author", name: { $addToSet: "$author" }, books: { $push: "$title" }, totalBooksWritten: { $sum: 1} } }
-              ]
+            ]
          );
 
-         console.log(topAuthors)
+        //  console.log(topAuthors)
 
         //ALL BOOKS IN MY LIBRARY
         let query=[
@@ -143,7 +143,7 @@ exports.searchBookInLibrary = async (req, res, next) => {
         let total = findSearchKeyword ? findSearchKeyword.length : 0;
 
         let paginationData = { totalRecords:total, currentPage:page, perPage:perPage, totalPages:Math.ceil(total/perPage) }
-        return res.status(200).send({ message: "Book found", searchedBooks:findSearchKeyword, paginationData})
+        return res.status(200).send({ searchedBooks:findSearchKeyword, paginationData})
     } catch (error) {
         return res.status(500).send({ message: error.message });
     }
