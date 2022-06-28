@@ -1,4 +1,6 @@
 const fs = require('fs');
+require('dotenv').config();
+var request = require('request');
 const createError = require('http-errors');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
@@ -61,33 +63,38 @@ exports.register = async (req, res, next) => {
 
         const otpCode = generateFourDigitsOTP();
 
-        const otp = sendSMS(otpCode);
-        const sentSms  = sendGridMail(user.email, otpCode);
+        // const otp = sendSMS(otpCode);
+        // const sentSms  = sendGridMail(user.email, otpCode);
 
-        // sdk['https://api.sendchamp.com/api/v1']({
-        //     to: ['+2347065066382'],
-        //     message: `Your otp code is ${otp}`,
-        //     sender_name: `${savedUser.name}`,
-        //     route: 'international'
-        //   }, {Authorization: 'Bearer null'})
-        //     .then(res => console.log(res))
-        //     .catch(err => console.error(err));
+            var options = {
+                'method': 'POST',
+                'url': `${process.env.SENDCHAMP_BASE_URL}`,
+                'headers': {
+                  'Accept': 'application/json',
+                  'Authorization': `Bearer ${process.env.SENDCHAMP_PUBLIC_KEY}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    "to":[`${savedUser.phonenumber}`],
+                    "message": `Your otp code is ${otpCode}`,
+                    "sender_name":"Sendchamp", 
+                    "route":"international"
+                })
+              
+              }
 
-        // if(!sentSms) {
-        //     if(!otp) res.status(500).send({message: "Unable to send otp code via mail"});
-        // }
+              request(options, function (error, response) {
+                if (error) throw new Error(error);
+                console.log(response.body);
+              });
 
-        // if(!otp) res.status(500).send({message: "Unable to send otp"});
-
-        // console.log("otp:", otp)
-
-        const otpIsSet = await Otpmodel.findByIdAndDelete(savedUser._id);
+            const otpIsSet = await Otpmodel.findByIdAndDelete(savedUser._id);
         
-        const newOtp = await Otpmodel.create({ 
-        userId: savedUser._id,
-        phonenumber: savedUser.phonenumber,
-        otp: otpCode
-        });
+            const newOtp = await Otpmodel.create({ 
+            userId: savedUser._id,
+            phonenumber: savedUser.phonenumber,
+            otp: otpCode
+            });
 
         // if(!newOtp) {
         //     return res.status(500).send({message: "Unable to send otp"});
@@ -113,7 +120,7 @@ exports.register = async (req, res, next) => {
         
         await refreshAccessToken.save();
 
-        return res.status(200).send({accessToken, refreshToken, otp:otpCode, message: "Otp has been sent to your phone"});
+        return res.status(200).send({accessToken, refreshToken, message: "Otp has been sent to your phone"});
 
        
     } catch (error) {
@@ -540,7 +547,7 @@ exports.updatePassword = async (req, res, next) => {
         if(!user) return res.status(404).send({error: "User not found"});
 
         const salt = await bcrypt.genSalt(10);
-        
+
         const hashedPassword = await bcrypt.hash(password, salt);
 
         const updatePassword = await User.findByIdAndUpdate(user._id, {$set: { password: hashedPassword }});
