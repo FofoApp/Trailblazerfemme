@@ -1,12 +1,12 @@
 const fs = require('fs');
 const createError = require('http-errors');
+const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const JWT = require('jsonwebtoken');
 const { cloudinary } = require('./../helpers/cloudinary');
 const sdk = require('api')('@sendchamp/v1.0#1v843jkyvjm1me');
-
-const { registerSchema, 
-    loginSchema, 
+const { registerValidation, 
+    loginValidation, 
     resetPasswordSchema, 
     passwordOnlySchema, 
     otpValidation } = require('../validations/userValidationSchema');
@@ -48,7 +48,7 @@ exports.register = async (req, res, next) => {
     try {
         // if(!email || !password) throw createError.BadRequest();
 
-        const result = await registerSchema(req.body);
+        const result = await registerValidation(req.body);
 
         const doesExist = await User.findOne({ email: result.email });
         const date = calculateNextPayment(annually, moment().format());
@@ -141,7 +141,7 @@ exports.login = async (req, res, next) => {
      */
     
     try {
-        const result = await loginSchema.validateAsync(req.body);
+        const result = await loginValidation(req.body);
         
         const user = await User.findOne({ email: result.email });
        
@@ -430,26 +430,26 @@ exports.deleteUser = async (req, res, next) => {
 
 
 exports.resetPassword = async (req, res, next) => {
+
     const { email } = req.body;
+
     try {
-        const result = await resetPasswordSchema.validateAsync(req.body);
+
+        const result = await resetPasswordSchema.validateAsync({email});
 
         const doesExist = await User.findOne({ email: result.email });
 
         if(!doesExist) throw createError.Conflict(`${result.email} does not exist`);
 
-        const resetToken = await resetPasswordToken(doesExist)
+        const resetToken = await resetPasswordToken(doesExist);
         
-        const sendPage = `http://localhost:2000/api/auth/reset-password/${doesExist._id}/${resetToken}`;
-        //SEND sendPage to email address
-        console.log(resetToken);
-        return res.status(200).send({
-            sendPage: sendPage,
-            resetToken: resetToken
-        })
+        const sendPage = `https://fofoapp.herokuapp.com/api/auth/reset-password/${doesExist._id}/${resetToken}`;
+        
+        // SEND sendPage to email address
+        //
+        return res.status(200).send({ sendPage: sendPage, resetToken: resetToken });
 
     } catch (error) {
-        console.log(error)
         return res.status(200).send(error)
     }
 }
@@ -481,7 +481,6 @@ exports.getResetPasswordToken = async (req, res, next) => {
         return res.status(200).send({message: 'User verified'})
 
     } catch (error) {
-        console.log(error)
         return res.status(200).send(error)
     }
 }
@@ -528,18 +527,98 @@ exports.postResetPasswordToken = async (req, res, next) => {
     }
 }
 
-// exports.otpPage = async (req, res, next) => {
+exports.updatePassword = async (req, res, next) => {
+
+    const userId = req.params.userId;
+    const { password } = req.body;
+    try {
+
+        if(!mongoose.Types.ObjectId.isValid(userId)) return res.status(401).send({ error: 'Invalid user id'});
+
+        const user = await User.findOne({_id: userId});
+        
+        if(!user) return res.status(404).send({error: "User not found"});
+
+        const salt = await bcrypt.genSalt(10);
+        
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const updatePassword = await User.findByIdAndUpdate(user._id, {$set: { password: hashedPassword }});
+        
+        // const accessToken = await signInAccessToken(user);
+        // const refreshToken = await signInRefreshToken(user);
+
+        // //if Refresh tokenn is set
+        // const isRefreshTokenSet = await RefreshAccessToken.findOne({userId: user.id});
+       
+        // if(isRefreshTokenSet) isRefreshTokenSet.remove();
+
+        // const refreshAccessToken = new RefreshAccessToken({
+        //     userId: user.id,
+        //     accessToken:accessToken,
+        //     refreshToken:refreshToken
+        // });
+
+        // const savedRefreshAccessToken = await refreshAccessToken.save();
+
+        if(!updatePassword) return res.status(400).send({error: "Unable to update password"});
+
+        return res.status(200).send("Password updated successfully");
+
+    } catch (error) {
+        return res.status(500).send({ error: error.message });
+    }
+}
+
+exports.otpPage = async (req, res, next) => {
+    const { email } = req.body;
+
+    try {
+
+        const user = await User.findOne({ email: email });
+
+        if(!user) return res.status(404).send({ error: "User not found" });
+
+
+        const otpCode = generateFourDigitsOTP();
+
+        // const otp = sendSMS(otpCode);
+        // const sentSms  = sendGridMail(user.email, otpCode);
+
+        // sdk['https://api.sendchamp.com/api/v1']({
+        //     to: ['+2347065066382'],
+        //     message: `Your otp code is ${otp}`,
+        //     sender_name: `${savedUser.name}`,
+        //     route: 'international'
+        //   }, {Authorization: 'Bearer null'})
+        //     .then(res => console.log(res))
+        //     .catch(err => console.error(err));
+
+        // if(!sentSms) {
+        //     if(!otp) res.status(500).send({message: "Unable to send otp code via mail"});
+        // }
+
+        // if(!otp) res.status(500).send({message: "Unable to send otp"});
+
+        // console.log("otp:", otp)
+
+        const {_id, phonenumber } = user;
+
+        const otpExist = await Otpmodel.deleteOne({ userId: _id });
+
+        const newOtp = await Otpmodel.create({ userId: _id, phonenumber, otp: otpCode });
+
+        const userData = { userId: newOtp.userId, otp: newOtp.otp  };
+
+        return res.status(200).send(userData);
+
+    } catch (error) {
+        return res.status(401).send({ error: error.message });
+    }
     
-//     try {
-//         const otpExist = await Otpmodel.findOne({userId: req.params.id});
-//         if(otpExist.otp === req.body.otpcode) {
-//             return res.status(200).send({userId: req.params.id});
-//         }
-//     } catch (error) {
-//         return res.status(401).send({ message: 'Otp verification failed'});
-//     }
-    
-// }
+}
+
+
 exports.verifyOtp = async (req, res, next) => {
     
     try {

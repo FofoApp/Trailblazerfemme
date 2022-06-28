@@ -3,9 +3,7 @@ const express = require('express');
 
 const AuthController = require('./../controllers/AuthController');
 const AdminUserController = require('./../controllers/adminController/AdminUserController');
-const { registerSchema } = require('./../validations/userSchema');
-
-const { validate } = require('./../validations/validationMiddleware');
+// const { registerSchema } = require('./../validations/userSchema');
 
 const { permissions } = require('./../middlewares/permissionsMiddleware');
  
@@ -19,7 +17,7 @@ const router = express.Router();
 
 router.post('/register', AuthController.register);
 
-router.post('/login', AuthController.login);
+router.post('/login',  AuthController.login);
 
 router.get('/dashboard-list-users', AdminUserController.dashboardListUsers);
 
@@ -36,9 +34,10 @@ router.get('/user/find', verifyAccessToken, permissions(["admin"]), AdminUserCon
 
 router.post('/refresh-token', verifyAccessToken, AuthController.refreshToken);
 
-router.post('/reset-password', AuthController.resetPassword);
+// router.post('/reset-password', AuthController.resetPassword);
+// router.post('/reset-password/:id/:token', AuthController.getResetPasswordToken);
 
-router.get('/reset-password/:id/:token', AuthController.getResetPasswordToken);
+router.post('/reset-password', AuthController.otpPage);
 
 router.patch('/reset-password/:id/:token', AuthController.postResetPasswordToken);
 
@@ -46,6 +45,7 @@ router.post('/logout',  AuthController.logout);
 
 // router.get('/verifyotp/:id', AuthController.otpPage);
 router.post('/verifyotp', AuthController.verifyOtp);
+router.patch('/update-password/:userId', AuthController.updatePassword);
 
 router.patch('/user/:userId/update', verifyAccessToken,  AuthController.updateUser);
 

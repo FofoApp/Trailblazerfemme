@@ -34,7 +34,7 @@ router.get('/category/:categoryId/get', verifyAccessToken, permissions(["user", 
 //BOOK CATEGORY
 //ADMIN ACCESS ROUTES ONLY 
 router.post('/category/create', verifyAccessToken,  permissions(["admin"]), BookLibraryCategoryController.createNewBookCategory);
-router.put('/category/:categoryId/update', verifyAccessToken, permissions(["admin"]), BookLibraryCategoryController.updateBookCategoryById);
+router.patch('/category/:categoryId/update', verifyAccessToken, permissions(["admin"]), BookLibraryCategoryController.updateBookCategoryById);
 router.delete('/category/:categoryId/delete', verifyAccessToken, permissions(["admin"]), BookLibraryCategoryController.deleteBookCategoryById);
 
 
@@ -45,7 +45,7 @@ router.post('/book/create', verifyAccessToken, permissions(["admin"]), upload.si
 router.post('/book/trending', verifyAccessToken, permissions(["user","admin"]), BookController.trendingBooks);
 router.get('/book/search', verifyAccessToken, permissions(["user","admin"]), BookController.searchBook);
 router.get('/book/:bookId/get', verifyAccessToken, permissions(["user","admin"]), BookController.fetchBookById);
-router.patch('/book/:bookId/update', verifyAccessToken, permissions(["user","admin"]), BookController.updateBookById);
+router.patch('/book/:bookId/update', verifyAccessToken, permissions(["admin"]), BookController.updateBookById);
 router.delete('/book/:bookId/delete', verifyAccessToken, permissions(["admin"]), BookController.deleteBookById);
 
 

@@ -123,12 +123,10 @@ exports.searchAllBooks = async (req, res, next) => {
                 { title : { $regex: '.*' + searchKeyword + '.*',  $options: 'i' }  },
                 { author : { $regex: '.*' + searchKeyword + '.*',  $options: 'i' }  },
             ]
-        }).select( "_id title imagePath author price ratings store").limit(20)
+        }).select( "_id title imagePath author price ratings store");
 
        
-         if(searched.length === 0) {
-            return res.status(400).send({ error: "No match found" });
-         }
+         if(searched.length === 0) return res.status(400).send({ error: "No match found" });
 
          return res.status(200).send(searched);
 
@@ -138,7 +136,7 @@ exports.searchAllBooks = async (req, res, next) => {
 }
 
 exports.searchBook = async (req, res, next) => {
-    //NOTE: REMEMBER TO VALIDATE USER INPUTS 
+    //NOTE: REMEMBER TO VALIDATE USER INPUTS
   
     try {
         const { searchKeyword } = req.body;
@@ -192,8 +190,8 @@ exports.searchBook = async (req, res, next) => {
             //     "cloudinaryPublicId": 0,
             //     "bookCategoryId": 0,
             //     "createdAt": 0,
-            //     "comments_count":{$size:{"$ifNull":["$blog_comments",[]]}},
-            //     "likes_count":{$size:{"$ifNull":["$blog_likes",[]]}}
+            //     "comments_count":{$size:{"$ifNull":["$blog_comments", []]}},
+            //     "likes_count":{$size:{"$ifNull":["$blog_likes", []]}}
             //     } 
             // }
         // ];
