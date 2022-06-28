@@ -87,7 +87,7 @@ exports.register = async (req, res, next) => {
 
              
 
-              request(options, function (error, response) {
+              request(options, async function (error, response) {
 
                 if (error) throw new Error(error);
 
