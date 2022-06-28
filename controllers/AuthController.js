@@ -65,6 +65,8 @@ exports.register = async (req, res, next) => {
 
         // const otp = sendSMS(otpCode);
         // const sentSms  = sendGridMail(user.email, otpCode);
+        let smsError;
+        let smsRes;
 
             var options = {
                 'method': 'POST',
@@ -83,8 +85,15 @@ exports.register = async (req, res, next) => {
               
               }
 
+             
+
               request(options, function (error, response) {
-                if (error) throw new Error(error);
+                if (error) {
+                    smsError = error;
+                    throw new Error(error);
+                }
+
+                smsRes = response.body;
                 console.log(response.body);
               });
 
@@ -120,7 +129,7 @@ exports.register = async (req, res, next) => {
         
         await refreshAccessToken.save();
 
-        return res.status(200).send({accessToken, refreshToken, message: "Otp has been sent to your phone"});
+        return res.status(200).send({accessToken, refreshToken, smsError, smsRes, message: "Otp has been sent to your phone"});
 
        
     } catch (error) {
