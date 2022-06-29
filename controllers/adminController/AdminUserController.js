@@ -159,7 +159,7 @@ exports.findUser = async (req, res, next) => {
         if(!mongoose.Types.ObjectId(userId)){
             return res.status(400).json({ error: "Invalid user ID"})
         }
-        const findUser = await UserModel.findById(userId).select("_id fullname email phonenumber createdAt ");
+        const findUser = await UserModel.findById(userId).select("_id fullname email phonenumber profileImage blocked roles createdAt ");
         if(!findUser) {
             return res.status(400).json({ error: "User not found"});
         }
@@ -177,7 +177,7 @@ exports.allUsers = async (req, res, next) => {
         if(!mongoose.Types.ObjectId(userId)){
             return res.status(400).json({ error: "Invalid user ID"})
         }
-        const findUsers = await UserModel.find({}).select("_id fullname email phonenumber createdAt ");
+        const findUsers = await UserModel.find({}).select("_id fullname email phonenumber profileImage blocked roles createdAt");
         if(!findUsers) {
             return res.status(400).json({ error: "No user(s) found"});
         }
