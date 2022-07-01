@@ -101,6 +101,9 @@ exports.uploadProfileImage = async (req, res, next) => {
     try {
         // const plan = await planValidation({name, price});
        //Find user and ensure user with the speicifed id exist
+       if(!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(404).send({ message: "User not found!" });
+    }
 
         let findUserById = await UserModel.findById(userId);
         if(!findUserById) {
