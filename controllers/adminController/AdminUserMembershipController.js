@@ -10,7 +10,7 @@ exports.createUserMembership = async (req, res, next) => {
         "amount": 2000,
         "benefits": ["Health care", "Feeding"],
         "description": "Bronze description"
-        }
+        } 
      */
 
 

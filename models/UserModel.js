@@ -14,8 +14,7 @@ const userSchema = new Schema({
     password: { type: String, required: true },
     accountVerified: { type: Boolean, default: false },
     about: { type: String, default: null },
-    profileImageCloudinaryPublicId: { type: String, default: null },
-    profileImage: { type: String, default: null },
+
     location: { type: String, default: null },
     socialLinks: { type: [String] },
     isPaid: { type: Boolean, default: false },
@@ -29,8 +28,12 @@ const userSchema = new Schema({
     
     booksRead: [{ type: mongoose.Schema.Types.ObjectId, ref: "Book"}],
 
-    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    profileId: { type: mongoose.Schema.Types.ObjectId, ref: "Profile" },
+
+    // profileImageCloudinaryPublicId: { type: String, default: null },
+    // profileImage: { type: String, default: null },
+    // followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    // following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
     trending: { type: mongoose.Schema.Types.ObjectId, ref: "TrendingBook"},
 
@@ -38,12 +41,24 @@ const userSchema = new Schema({
 
 }, { timestamps: true });
 
+
+userSchema.methods.toJSON = function() {
+    let user = this;
+    let userObject = user.toObject();
+    delete userObject.password;
+    delete userObject.__v;
+    return userObject;
+}
+
 userSchema.pre('save', async function(next) {
+    let user = this;
 
     try {
+        if(!user.isModified('password')) return next();
+
         const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(this.password, salt);
-        this.password = hashedPassword;
+        const hashedPassword = await bcrypt.hash(user.password, salt);
+        user.password = hashedPassword;
         next();
     
     } catch (error) {
@@ -53,8 +68,9 @@ userSchema.pre('save', async function(next) {
 });
 
 userSchema.methods.isValidPassword = async function(password){
+    let user = this;
     try {
-        return await bcrypt.compare(password, this.password);
+        return await bcrypt.compare(password, user.password);
     } catch (error) {
         throw error;
     }

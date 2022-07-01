@@ -6,7 +6,9 @@ const createPlan = async (req, res, next) => {
 
     try {
         const plan = await planValidation({name, price});
+
         const createPlan = new PlanModel(plan);
+        
         const savePlan = await createPlan.save();
 
         if(!savePlan) {

@@ -37,13 +37,15 @@ router.post('/refresh-token', verifyAccessToken, AuthController.refreshToken);
 // router.post('/reset-password', AuthController.resetPassword);
 // router.post('/reset-password/:id/:token', AuthController.getResetPasswordToken);
 
-router.post('/reset-password', AuthController.otpPage);
+
 
 router.patch('/reset-password/:id/:token', AuthController.postResetPasswordToken);
 
 router.post('/logout',  AuthController.logout);
 
 // router.get('/verifyotp/:id', AuthController.otpPage);
+
+router.post('/reset-password', AuthController.otpPage);
 router.post('/verifyotp', AuthController.verifyOtp);
 router.patch('/update-password/:userId', AuthController.updatePassword);
 

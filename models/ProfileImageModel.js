@@ -2,11 +2,14 @@ const mongoose = require('mongoose');
 
 const profileImageSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref:"User", required: true  },
-    publicId: { type: String, unique: true, required: true },
-    image_path: {type: String, required: true },
+ 
+    profileImageCloudinaryPublicId: { type: String, unique:true, required: true, default: null },
+    profileImage: { type: String, required: true, default: null },
+
     post: { type: Array },
-    followers: { type: Array, default: [] },
-    following: { type: Array, default: [] }
+    
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
 }, { timestamps: true });
 
