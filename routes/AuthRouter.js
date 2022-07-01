@@ -27,7 +27,7 @@ router.patch('/block-user', verifyAccessToken, permissions(["admin"]), AdminUser
 router.patch('/unblock-user', verifyAccessToken, permissions(["admin"]), AdminUserController.unblockUser);
 router.get('/list-block-users', verifyAccessToken, permissions(["admin"]), AdminUserController.listblockedUsers);
 router.get('/show-blocked-user', verifyAccessToken, permissions(["admin"]), AdminUserController.showblockedUser);
-router.get('/finduser', AdminUserController.findUserByEmail);
+router.get('/finduser', verifyAccessToken, permissions(["admin"]), AdminUserController.findUserByEmail);
 
 //FIND A USER 
 router.get('/users', verifyAccessToken, permissions(["admin"]), AdminUserController.allUsers);
