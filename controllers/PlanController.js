@@ -1,13 +1,13 @@
+const mongoose = require('mongoose');
+const MembershipModel = require('./../models/adminModel/AdminMembershipModel');
 
-const PlanModel = require('./../models/PlanModel');
-
-const createPlan = async (req, res, next) => {
+exports.createPlan = async (req, res, next) => {
     const { name, price } = req.body;
 
     try {
         const plan = await planValidation({name, price});
 
-        const createPlan = new PlanModel(plan);
+        const createPlan = new MembershipModel(plan);
         
         const savePlan = await createPlan.save();
 
@@ -24,7 +24,24 @@ const createPlan = async (req, res, next) => {
 
 }
 
-const listPlans = async (req, res, next) => {
+exports.findPlanById = async (req, res, next) => {
+    const { membershipId } = req.params;
+    try {
+        if(!mongoose.Types.ObjectId.isValid(membershipId)) {
+            return res.status(200).send({error: "Invalid plan parameter"});
+        }
+        const plan = await MembershipModel.findById(membershipId);
+        
+        if(!plan) {
+            return res.status(404).send({ error: "Membership plan not found" });
+        }
+        return res.status(200).send(plan);
+    } catch (error) {
+        return res.status(500).send({ error: error.message });
+    }
+}
+
+exports.listPlans = async (req, res, next) => {
     try {
         const plans = await PlanModel.find({});
         
@@ -37,7 +54,3 @@ const listPlans = async (req, res, next) => {
     }
 }
 
-module.exports  = {
-    createPlan,
-    listPlans
-}
