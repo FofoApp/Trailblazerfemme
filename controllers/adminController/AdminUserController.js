@@ -37,7 +37,19 @@ exports.dashboardListUsers = async (req, res, next) => {
     }
 }
 
+exports.findUserByEmail = async (req, res, next) => {
+    const email = req.body.email;
 
+    try {
+        const user = await UserModel.findOne({email}).select(`-password -__v -updatedAt `);
+        if(!user) return res.status(404).send({error: "User not found"});
+
+        return res.status(200).send(user);
+
+    } catch (error) {
+        return res.status(500).send({ message: error.message });
+    }
+}
 
 exports.memberShip = async (req, res, next) => {
 
