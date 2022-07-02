@@ -118,7 +118,7 @@ exports.register = async (req, res, next) => {
         
         await refreshAccessToken.save();
 
-        return res.status(200).send({accessToken, refreshToken, userId: savedUser._id,  message: "Otp has been sent to your phone"});
+        return res.status(200).send({accessToken, refreshToken, userId: savedUser._id,  otp: otpCode,  message: "Otp has been sent to your phone"});
 
        
     } catch (error) {
