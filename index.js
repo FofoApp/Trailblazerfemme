@@ -10,8 +10,9 @@ const cors = require('cors');
 // const limitter = require('express-rate-limiter');
 const createError = require('http-errors');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const otpGenerate = require('otp-generator')
-const sdk = require('api')('@sendchamp/v1.0#abgrgkyvjmnhz');
+
+// const otpGenerate = require('otp-generator')
+// const sdk = require('api')('@sendchamp/v1.0#abgrgkyvjmnhz');
 
 const PORT = process.env.PORT || 2000;
 
@@ -21,7 +22,6 @@ global.publicPath = `${__dirname}/public`;
 require('./initDB')();
 
 
-const FollowersAndFollowingRoutes = require('./routes/followersAndFollowingRoutes');
 const CommunityRoutes = require('./routes/CommunityRoutes');
 const PlanRoute = require('./routes/PlanRoutes');
 const ProfileRoutes = require('./routes/ProfileRoutes');
@@ -35,7 +35,10 @@ const ProductRoutes = require('./routes/ProductRoutes');
 const JobRoutes = require('./routes/jobRoutes');
 const MembershipRoutes = require('./routes/membershipRoutes');
 const AdminDashboardRoutes = require('./routes/AdminDashboardRoutes');
+const PaymentRoutes = require('./routes/paymentRoutes');
 // const BookRoutes = require('./routes/BookRoutes');
+
+const { recurrentPaymentMiddleware } = require('./middlewares/recurrentPaymentMiddleware');
 
 require('./helpers/initRedis');
 
@@ -52,15 +55,21 @@ app.use(hpp());
 
 
 
-app.get('/', async (req, res, next) => {
+app.get('/', recurrentPaymentMiddleware, async (_req, res, next) => {
+
       try {
+      
             return res.status(200).send(`Welcome to Fofo-App`);
+
       } catch (error) {
             return res.status(500).send(`${error.message}`);
       }
 });
 
+
+
 app.post('/api/payment', async (req, res, next) => {
+
       const { product, stripToken: token } = req.body;
     
       try {
@@ -86,6 +95,7 @@ app.post('/api/payment', async (req, res, next) => {
 });
 
 
+app.use('/api/pay', PaymentRoutes);
 app.use('/api/blog', BlogRoutes);
 app.use('/api/library', MyLibraryRoutes);
 app.use('/api/podcast', PodcastRoutes);
@@ -100,8 +110,6 @@ app.use('/api/plan', PlanRoute);
 app.use('/api/profile', ProfileRoutes);
 app.use('/api/auth', AuthRoute);
 
-// app.use('/api/books', BookRoutes);
-// app.use('/api', FollowersAndFollowingRoutes);
 
 //404 request handler and pass to error handler
 app.use(async (req, res, next) => {

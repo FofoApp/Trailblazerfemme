@@ -1,8 +1,10 @@
 const moment = require('moment');
 const Q = require("q");
 // const request = require("request");
-const axios = require('axios')
-const calculateNextPayment = (chargeType, normalDate) => {
+const axios = require('axios');
+
+
+exports.calculateNextPayment = (chargeType, normalDate) => {
     let currentDate;
 
     if(!chargeType) return null;
@@ -21,7 +23,7 @@ const calculateNextPayment = (chargeType, normalDate) => {
     return "Invalid";
 }
 
-const  verifyPayment = async (reference) => {
+exports.verifyPayment = async (reference) => {
     let options = {
         method: 'get',
         url: `https://api.paystack.co/transaction/verify/${reference}`,
@@ -48,10 +50,4 @@ const  verifyPayment = async (reference) => {
    } catch (error) {
        console.log(error)
    }
-}
-
-
-module.exports = {
-    calculateNextPayment,
-    verifyPayment
 }

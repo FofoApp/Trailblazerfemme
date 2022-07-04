@@ -12,6 +12,17 @@ exports.jobs = async (req, res, next) => {
      
     //GET REQUEST
     //http://localhost:2000/api/dashboard
+    let { page, size } = req.query;
+
+    if(!page) page = 1;
+    if(!size) size = 10;
+
+    page = parseInt(page);
+    size = parseInt(size);
+
+    const limit = size;
+    const skip = (page - 1) * size;
+
 
     try {
         let jobCategories = [];
@@ -28,11 +39,10 @@ exports.jobs = async (req, res, next) => {
 
         const jobCount = await JobModel.find({});
 
-
-
-
         const users = await UserModel.find({}).select(`-password -__v -updatedAt -following -followers -recentlySearchedBook 
-        -recentlyPlayedPodcast -booksRead -library -books -createdAt`).limit(5);
+        -recentlyPlayedPodcast -booksRead -library -books -createdAt`)
+        .limit(limit)
+        .skip(skip);
         
         users.map((user) => {
             if(user.roles[0] === 'admin') adminArray.push(user.roles[0]);
@@ -130,8 +140,22 @@ exports.createNewJob = async (req, res, next) => {
 exports.listJobs = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/jobs/lists
+    let { page, size } = req.query;
+
+    if(!page) page = 1;
+    if(!size) size = 10;
+
+    page = parseInt(page);
+    size = parseInt(size);
+
+    const limit = size;
+    const skip = (page - 1) * size;
+
     try {
-        const jobs = await JobModel.find({}).limit(5);
+        const jobs = await JobModel.find({})
+        .limit(limit)
+        .skip(skip);
+        
         if(!jobs) {
             return res.status(200).send({ message: "No job found", jobs: []});
         }
@@ -219,14 +243,13 @@ exports.updateJobById = async (req, res, next) => {
         }
 
         //UPDATE JOB 
-         await JobModel.findByIdAndUpdate(jobId,
-            {   $set:  updateData}, {new: true});
+         await JobModel.findByIdAndUpdate(jobId, {$set: updateData}, {new: true});
         
         return res.status(200).send({message: "Job updated successfully"});
 
     } catch (error) {
-        console.log(error)
-        return res.status(500).send({ message: error.message });
+        // console.log(error)
+        return res.status(500).send({ error: error.message });
     }
 }
 

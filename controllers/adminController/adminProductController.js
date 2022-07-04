@@ -74,8 +74,21 @@ try {
 exports.listProducts = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/product/lists
+    let { page, size } = req.query;
+
+    if(!page) page = 1;
+    if(!size) size = 10;
+
+    page = parseInt(page);
+    size = parseInt(size);
+
+    const limit = size;
+    const skip = (page - 1) * size;
+
     try {
-        const products = await ProductModel.find({}).limit(5);
+        const products = await ProductModel.find({})
+        .limit(limit)
+        .skip(skip)
 
         if(!products) {
             return res.status(200).send({message: "No product found"});

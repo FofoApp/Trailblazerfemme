@@ -4,17 +4,27 @@ const Schema = mongoose.Schema;
 
 
 const userSchema = new Schema({
+
     fullname: { type: String, required: true },
     email: { type: String, required: true, lowercase: true, unique: true },
     phonenumber: { type: String, required: true },
     field: { type: String, required: true },
-    blocked: { type: Boolean, default: false },
-    membership: { type: String, default: null },
-    membershipId: { type: String, default: null },
+    blocked: { type: Boolean, default: false }, // block / unblock users
+
+
+    membershipName: { type: String, default: null },
+    membershipId: { type: mongoose.Schema.Types.ObjectId, ref: "Membership" },
+    paymentId: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
+    paymentDate: { type: Date },
+    nextPayment: { type: Date },
+    isPaymentActive: { type: Boolean, default: false },
+    paymentType: { type: String },                      //monthly | yearly
+    amount: { type: String },                           //$25
+
+
     password: { type: String, required: true },
     accountVerified: { type: Boolean, default: false },
     about: { type: String, default: null },
-
     location: { type: String, default: null },
     socialLinks: { type: [String] },
     isPaid: { type: Boolean, default: false },

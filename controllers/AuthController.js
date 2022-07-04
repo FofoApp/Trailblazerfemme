@@ -15,6 +15,7 @@ const { registerValidation,
 const User = require('./../models/UserModel');
 const Otpmodel = require('../models/OtpModel');
 const RefreshAccessToken = require('./../models/RefreshAccessTokenModel');
+
 const FollowersAndFollowingModel = require('./../models/FollowersAndFollowingModel');
 
 const { signInAccessToken, signInRefreshToken, verifyRefreshToken, resetPasswordToken } = require('./../helpers/jwtHelper');
@@ -53,7 +54,9 @@ exports.register = async (req, res, next) => {
         const result = await registerValidation(req.body);
 
         const doesExist = await User.findOne({ email: result.email });
+
         const date = calculateNextPayment(annually, moment().format());
+        
 
         if(doesExist) throw createError.Conflict(`${result.email} already exist`);
        
@@ -93,9 +96,10 @@ exports.register = async (req, res, next) => {
 
                 const otpIsSet = await Otpmodel.findByIdAndDelete(savedUser._id);
         
-                const newOtp = await Otpmodel.create({ 
-                userId: savedUser._id,  phonenumber: savedUser.phonenumber,  otp: otpCode  });    
+                const newOtp = await Otpmodel.create({ userId: savedUser._id, phonenumber: savedUser.phonenumber, otp: otpCode });
+
                 // console.log(response.body);
+
               });
 
         const { email, roles, username, field, profileImagePath } = savedUser;
