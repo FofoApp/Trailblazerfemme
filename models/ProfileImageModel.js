@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 const profileImageSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref:"User", required: true  },
  
-    profileImageCloudinaryPublicId: { type: String, unique:true, required: true, default: null },
-    profileImage: { type: String, required: true, default: null },
+    profileImageCloudinaryPublicId: { type: String, required: true  },
+    profileImage: { type: String, required: true },
 
     post: { type: Array },
     

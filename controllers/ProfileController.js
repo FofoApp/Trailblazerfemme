@@ -124,12 +124,18 @@ exports.uploadProfileImage = async (req, res, next) => {
         }
         
         //Save new Image path to database
-        const uploadNewImage = await Profile.create({
+        const profileData = {
             userId: userId,
             profileImageCloudinaryPublicId: uploaderResponse.public_id,
-            profileImage: uploaderResponse.secure_url,
-        });
+            profileImage: uploaderResponse.secure_url
+        }
+        // console.log(uploaderResponse)
+
+        const uploadNewImage = await Profile.create(profileData);
         
+        if(!uploadNewImage) {
+            return res.status(404).send({error: 'Unable to create profileImage'})
+        }
         findUserById.profileId = uploadNewImage._id;
 
         await findUserById.save();
@@ -138,7 +144,7 @@ exports.uploadProfileImage = async (req, res, next) => {
 
     } catch (error) {
         console.log(error)
-        return res.status(500).send(error);
+        return res.status(500).send({error: error.message });
         // return next(error)
     }
 
