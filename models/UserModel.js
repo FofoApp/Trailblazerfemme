@@ -11,15 +11,16 @@ const userSchema = new Schema({
     field: { type: String, required: true },
     blocked: { type: Boolean, default: false }, // block / unblock users
 
-
+    chargeId: { type: String },
     membershipName: { type: String, default: null },
     membershipId: { type: mongoose.Schema.Types.ObjectId, ref: "Membership" },
     paymentId: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
     paymentDate: { type: Date },
-    nextPayment: { type: Date },
-    isPaymentActive: { type: Boolean, default: false },
-    paymentType: { type: String },                      //monthly | yearly
+    nextPaymentDueDate: { type: Date },
+    paymentType1: { type: Number },                      //1 month or 2month or 3month ...
+    paymentType2: { type: String },                      //monthly | yearly
     amount: { type: String },                           //$25
+    isPaid: { type: Boolean, default: false },
 
 
     password: { type: String, required: true },
@@ -27,8 +28,6 @@ const userSchema = new Schema({
     about: { type: String, default: null },
     location: { type: String, default: null },
     socialLinks: { type: [String] },
-    isPaid: { type: Boolean, default: false },
-    nextPaymentDate: { type: Date },
     roles: { type: [String], enum: ["user", "admin", "superAdmin"], default: "user"},
 
     books: { type: mongoose.Schema.Types.ObjectId, ref: "Book"},
@@ -45,7 +44,7 @@ const userSchema = new Schema({
     // followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     // following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
-    trending: { type: mongoose.Schema.Types.ObjectId, ref: "TrendingBook"},
+    trending: [{ type: mongoose.Schema.Types.ObjectId, ref: "TrendingBook"}],
 
     library: [{ type: mongoose.Schema.Types.ObjectId, ref: "MyLibrary"}],
 

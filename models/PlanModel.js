@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const planSchema = new mongoose.Schema({
-    name: { type: String, unique: true, required: true },
+    name: { type: String,  required: true },
     price: {type: Number, required: true }
 }, { timestamps: true });
 

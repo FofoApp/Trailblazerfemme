@@ -539,8 +539,12 @@ exports.postResetPasswordToken = async (req, res, next) => {
 exports.updatePassword = async (req, res, next) => {
 
     const userId = req.params.userId;
-    const { password } = req.body;
+    const { password, confirmPassword } = req.body;
     try {
+
+        if(password !== confirmPassword) {
+            return res.status(401).send({ error: 'Password mis-match'});
+        }
 
         if(!mongoose.Types.ObjectId.isValid(userId)) return res.status(401).send({ error: 'Invalid user id'});
 
@@ -580,6 +584,7 @@ exports.updatePassword = async (req, res, next) => {
 }
 
 exports.otpPage = async (req, res, next) => {
+
     const { email } = req.body;
 
     try {
@@ -587,7 +592,6 @@ exports.otpPage = async (req, res, next) => {
         const user = await User.findOne({ email: email });
 
         if(!user) return res.status(404).send({ error: "User not found" });
-
 
         const otpCode = generateFourDigitsOTP();
 
@@ -633,7 +637,7 @@ exports.verifyOtp = async (req, res, next) => {
     try {
         
         // const otp = await otpValidation({otp: req.body.otp});
-        const otp = req.body.otp;
+        const { otp } = req.body;
         if(otp.length < 4 || otp.length > 4 ) return res.status(200).send({ error: 'Input valid 4 digit otp code'})
         
         const isOtpFound = await Otpmodel.findOne({otp: otp});
@@ -652,7 +656,7 @@ exports.verifyOtp = async (req, res, next) => {
         return res.status(200).send("Otp verified");
 
     } catch (error) {
-        console.log(error)
+        
         next(error)
     }
     

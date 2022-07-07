@@ -95,8 +95,8 @@ exports.getProfileImage = async (req, res, next) => {
 
 exports.uploadProfileImage = async (req, res, next) => {
     const { userId } = req.params;
-    ///upload-profile-image/:id
-    //http://localhost:2000/api/profile/upload-profile-image/628696153cf50a6e1a34e2c5
+    // upload-profile-image/:id
+    // http://localhost:2000/api/profile/upload-profile-image/628696153cf50a6e1a34e2c5
 
     try {
         // const plan = await planValidation({name, price});
@@ -114,6 +114,7 @@ exports.uploadProfileImage = async (req, res, next) => {
         if(profile) {
             return res.status(404).send({ message: "You already have an existing profile image"});
         }
+
         //Upload Image to cloudinary
         const uploaderResponse = await cloudinary.uploader.upload(req.file.path);
         
