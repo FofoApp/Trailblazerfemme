@@ -15,6 +15,7 @@ exports.createNewBook = async (req, res, next) => {
             title: "Book title one",
             author: "Book author",
             price: 2000,
+            bookLink: "",
             ratings: 4,
             bookImage: "image",
             bookCategoryId: "",
@@ -101,9 +102,9 @@ exports.createNewBook = async (req, res, next) => {
 
         // return res.status(200).send({ message: "Book created successfully", books, paginationData});
        
-        const joblink = `${req.protocol}://${req.get('host')}/api/jobs/create`;
+        // const joblink = `${req.protocol}://${req.get('host')}/api/jobs/create`;
 
-        return res.status(200).send({ book: createdBook, joblink });
+        return res.status(200).send({ book: createdBook });
 
     } catch (error) {
         // console.log(error)
@@ -114,6 +115,7 @@ exports.createNewBook = async (req, res, next) => {
 exports.searchAllBooks = async (req, res, next) => {
     
     try {
+
         const { searchKeyword } = req.body;
 
         if(!searchKeyword || searchKeyword === "") {
@@ -127,7 +129,6 @@ exports.searchAllBooks = async (req, res, next) => {
             ]
         }).select( "_id title imagePath author price ratings store");
 
-       
          if(searched.length === 0) return res.status(400).send({ error: "No match found" });
 
          return res.status(200).send(searched);
@@ -231,7 +232,9 @@ exports.searchBook = async (req, res, next) => {
 exports.fetchBooks = async (req, res, next) => {
     //NOTE: REMEMBER TO VALIDATE USER INPUTS 
     try {
+
         const findBookExist = await BookModel.find({});
+
         if(!findBookExist) {
             return res.status(401).send({ error: "Books not found" });
         }
