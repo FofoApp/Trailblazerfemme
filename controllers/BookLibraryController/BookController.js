@@ -50,7 +50,7 @@ exports.createNewBook = async (req, res, next) => {
             createdBy: currentUser
         });
 
-         await createNewBook.save();
+         const createdBook = await createNewBook.save();
 
         // let query = [
         //     {
@@ -93,18 +93,20 @@ exports.createNewBook = async (req, res, next) => {
         // query.push({ $skip:skip, });
 		// query.push({ $limit:perPage, });
 
-        // query.push({ $sort: {createdAt:-1} });	
+        // query.push({ $sort: {createdAt:-1} });
 
         // const books = await BookModel.aggregate(query);
 
         // let paginationData = { totalRecords:total, currentPage:page, perPage:perPage, totalPages:Math.ceil(total/perPage) }
 
         // return res.status(200).send({ message: "Book created successfully", books, paginationData});
-        
-        return res.status(200).send("Books created successfully");
+       
+        const joblink = `${req.protocol}://${req.get('host')}/api/jobs/create`;
+
+        return res.status(200).send({ book: createdBook, joblink });
 
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         return res.status(500).send({ message: error.message });
     }
 }

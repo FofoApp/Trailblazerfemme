@@ -99,11 +99,16 @@ exports.uploadProfileImage = async (req, res, next) => {
     // http://localhost:2000/api/profile/upload-profile-image/628696153cf50a6e1a34e2c5
 
     try {
+
         // const plan = await planValidation({name, price});
        //Find user and ensure user with the speicifed id exist
-       if(!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(404).send({ message: "User not found!" });
-    }
+        if(!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(404).send({ message: "User not found!" });
+        }
+
+        if(req.user && userId && req.user.id !== userId) {
+            return res.status(400).send({ message: "You are not allowed to perform this operation" });
+        }
 
         let findUserById = await UserModel.findById(userId);
         if(!findUserById) {
@@ -129,7 +134,6 @@ exports.uploadProfileImage = async (req, res, next) => {
             profileImageCloudinaryPublicId: uploaderResponse.public_id,
             profileImage: uploaderResponse.secure_url
         }
-        // console.log(uploaderResponse)
 
         const uploadNewImage = await Profile.create(profileData);
         
@@ -143,7 +147,7 @@ exports.uploadProfileImage = async (req, res, next) => {
         return res.status(201).send({ message: "Profile created successfully", uploadNewImage });
 
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         return res.status(500).send({error: error.message });
         // return next(error)
     }
