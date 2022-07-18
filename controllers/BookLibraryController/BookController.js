@@ -245,50 +245,57 @@ exports.fetchBooks = async (req, res, next) => {
             return res.status(404).send("No categories found")
         }
 
-        let query = [
-            {
-                $lookup: { from: 'bookcategories', localField: 'bookCategoryId', foreignField: '_id', as: "book_category" }
-            },
-            {  $unwind: '$book_category' },
+        // let query = [
+        //     {
+        //         $lookup: { from: 'bookcategories', localField: 'bookCategoryId', foreignField: '_id', as: "book_category" }
+        //     },
+        //     {  $unwind: '$book_category' },
          
-            {
-                $project: {
-                        "book_category":1,
-                        "_id": 1,
-                        "title": 1,
-                        "imagePath": 1,
-                        "author": 1,
-                        "price": 1,
-                        "ratings": 1,
-                        "store": 1,
-                        "bookCategoryId": 1,
-                }
-            },
-            {
-                $group: {_id: "$book_category", category: { $mergeObjects: "$book_category" } }
-            }
+        //     {
+        //         $project: {
+        //                 "book_category":1,
+        //                 "_id": 1,
+        //                 "title": 1,
+        //                 "bookImage": 1,
+        //                 "author": 1,
+        //                 "bookLink": 1,
+        //                 "price": 1,
+        //                 "ratings": 1,
+        //                 "store": 1,
+        //                 "bookCategoryId": 1,
+        //         }
+        //     },
+        //     {
+        //         $group: {_id: "$book_category", category: { $mergeObjects: "$book_category" } }
+        //     }
 
-        ];
-       
+        // ];
+       // let total= await BookModel.countDocuments(query);
 
-        let total= await BookModel.countDocuments(query);
+        let total= await BookModel.countDocuments();
 		let page = (req.query.page) ? parseInt(req.query.page) : 1;
 		let perPage = (req.query.perPage) ? parseInt(req.query.perPage) : 10;
 		let skip = (page-1)*perPage;
 
-        query.push({ $skip:skip });
-		query.push({ $limit:perPage });
+        // query.push({ $skip:skip });
+		// query.push({ $limit:perPage });
 
-        query.push({ $sort: {createdAt:-1} });
+        // query.push({ $sort: {createdAt:-1} });
 
-        const books = await BookModel.aggregate(query);
+        // const books = await BookModel.aggregate(query);
+
+        const books = await BookModel.find({})
+                                     .select('_id title author bookImage bookLink price ratings store bookCategoryId')
+                                    .populate('bookCategoryId', '_id title')
+                                    .skip(skip)
+                                    .limit(perPage)
 
         let paginationData = { totalRecords:total, currentPage:page, perPage:perPage, totalPages:Math.ceil(total/perPage) }
 
         return res.status(200).send({ books, paginationData});
 
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         return res.status(500).send({ message: error.message });
     }
 }

@@ -18,7 +18,7 @@ const bookSchema = new mongoose.Schema({
     recentSearch: [{ type: ObjectId, ref: "Book" }],
     readers: [{ type:ObjectId, ref: "Book"}],
     createdBy: { type: ObjectId, ref: "User"},
-    trendingId: [{ type: ObjectId, ref: 'TrendingBook'}],
+    trendingBookId: [{ type: ObjectId, ref: 'TrendingBook'}],
 
 }, { timestamps: true });
 
