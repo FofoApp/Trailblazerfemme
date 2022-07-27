@@ -39,11 +39,6 @@ const userSchema = new Schema({
 
     profileId: { type: mongoose.Schema.Types.ObjectId, ref: "Profile" },
 
-    // profileImageCloudinaryPublicId: { type: String, default: null },
-    // profileImage: { type: String, default: null },
-    // followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    // following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-
     trending: [{ type: mongoose.Schema.Types.ObjectId, ref: "TrendingBook"}],
 
     library: [{ type: mongoose.Schema.Types.ObjectId, ref: "MyLibrary"}],
@@ -62,15 +57,6 @@ const userSchema = new Schema({
 },
 
 { timestamps: true });
-
-
-// userSchema.methods.toJSON = function() {
-//     let user = this;
-//     let userObject = user.toObject();
-//     delete userObject.password;
-//     delete userObject.__v;
-//     return userObject;
-// }
 
 userSchema.pre('save', async function(next) {
     let user = this;

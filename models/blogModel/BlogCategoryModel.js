@@ -2,8 +2,7 @@ const mongoose = require('mongoose');
 
 
 const blogCategorySchema = new mongoose.Schema({
-    name: { type: String, required: true }, 
-    slug: { type: String },
+    name: { type: String, required: true, unique: true }
 }, 
 
 {

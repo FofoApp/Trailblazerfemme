@@ -5,23 +5,34 @@
     const BlogCategoryController = require('./../controllers/blogController/BlogCategoryController');
     const { verifyAccessToken } = require('./../helpers/jwtHelper');
     const { permissions } = require('./../middlewares/permissionsMiddleware');
+
+    const upload = require('./../helpers/multer');
+
     //BLOG ROUTES
     
     router.get('/', verifyAccessToken, BlogController.blog);
-    router.post('/create', verifyAccessToken, permissions(["admin"]),  BlogController.createNewBlog);
+    router.post('/create', verifyAccessToken, permissions(["admin"]), upload.single('blogImage'),  BlogController.createNewBlog);
     router.get('/lists', verifyAccessToken, BlogController.FetchBlogs);
     router.get('/:blogId/show', verifyAccessToken, verifyAccessToken, BlogController.FetchBlogById);
-    router.put('/:blogId/update', verifyAccessToken, permissions(["admin"]),  BlogController.updateBlogById);
-    router.delete('/:blogId/like', verifyAccessToken, BlogController.blogLikes);
+    router.patch('/:blogId/update', verifyAccessToken, permissions(["admin"]),  upload.single('blogImage'), BlogController.updateBlogById);
+    
+    //COMMENT AND DELETE COMMENT
+    router.patch('/:blogId/comment', verifyAccessToken, BlogController.blogComment);
+    router.patch('/:blogId/delete-blog-comment', verifyAccessToken, permissions(["admin"]),  BlogController.deleteBlogComment);
+
+    //LIKE AND DISLIKE
+    router.patch('/:blogId/like', verifyAccessToken, BlogController.blogLikes);
+
+    //DELETE 
     router.delete('/:blogId/delete', verifyAccessToken, BlogController.deleteBlogById);
 
 
 
     //BLOG CATEGORY ROUTES
     router.get('/categories', verifyAccessToken, BlogCategoryController.FetchBlogCategories);
-    router.get('/:blogCategoryId/show', verifyAccessToken, BlogCategoryController.FetchBlogCategoryById);
+    router.get('/category/:blogCategoryId/show', verifyAccessToken, BlogCategoryController.FetchBlogCategoryById);
     router.post('/category/create', verifyAccessToken,  BlogCategoryController.createNewBlogCategory);
-    router.put('/category/:blogCategoryId/update', verifyAccessToken, permissions(["admin"]),  BlogCategoryController.updateBlogCategoryById);
+    router.patch('/category/:blogCategoryId/update', verifyAccessToken, permissions(["admin"]),  BlogCategoryController.updateBlogCategoryById);
     router.delete('/category/:blogCategoryId/delete', verifyAccessToken, permissions(["admin"]), BlogCategoryController.deleteBlogCategoryById);
 
 

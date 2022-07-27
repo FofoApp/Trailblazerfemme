@@ -1,6 +1,7 @@
 const BlogCategoryModel = require('../../models/blogModel/BlogCategoryModel');
 
-const createNewBlogCategory = async (req, res, next) => {
+
+exports.createNewBlogCategory = async (req, res, next) => {
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
     
     try {
@@ -10,7 +11,7 @@ const createNewBlogCategory = async (req, res, next) => {
             return res.status(401).send({ message: `Blog name ${req.body.name } already exists` });
         }
 
-        const createNewBlogCategory = new BlogCategoryModel(req.body);
+        const createNewBlogCategory = new BlogCategoryModel(req.body.name);
         const blogCategoryData = await createNewBlogCategory.save();
 
         return res.status(200).send({ message: "Create new Blog", blogCategoryData });
@@ -21,19 +22,19 @@ const createNewBlogCategory = async (req, res, next) => {
 }
 
 
-const FetchBlogCategories = async (req, res, next) => {
+exports.FetchBlogCategories = async (req, res, next) => {
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
     try {
         const findBlogCategoryExist = await BlogCategoryModel.find({});
 
-        return res.status(200).send({ message: "All Blog Categories", blogCategoryData: findBlogCategoryExist });
+        return res.status(200).send({ blogs: findBlogCategoryExist });
     } catch (error) {
-        return res.status(500).send({ message: error.message })
+        return res.status(500).send({ error: error.message })
     }
 }
 
 
-const FetchBlogCategoryById = async (req, res, next) => {
+exports.FetchBlogCategoryById = async (req, res, next) => {
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
     try {
         const findBlogCategoryExist = await BlogCategoryModel.findById(req.params.blogCategoryId);
@@ -44,14 +45,14 @@ const FetchBlogCategoryById = async (req, res, next) => {
 
         return res.status(200).send({ message: "Blog Category", blogCategoryData: findBlogCategoryExist });
     } catch (error) {
-        return res.status(500).send({ message: error.message })
+        return res.status(500).send({ error: error.message })
     }
 }
 
 
 
 
-const updateBlogCategoryById = async (req, res, next) => {
+exports.updateBlogCategoryById = async (req, res, next) => {
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
     try {
         const findBlogCategoryExist = await BlogCategoryModel.findById(req.params.blogCategoryId);
@@ -59,8 +60,8 @@ const updateBlogCategoryById = async (req, res, next) => {
         if(!findBlogCategoryExist) {
             return res.status(401).send({ message: "Blog Category not found" });
         }
-        const updateBlogCategory = await BlogCategoryModel.updateOne({ _id: req.params.blogCategoryId }, { $set: req.body }, { new: true });
-        return res.status(200).send({ message: "Blog Category updated successfully", blogCategoryData: updateBlogCategory });
+        const updateBlogCategory = await BlogCategoryModel.updateOne({ _id: req.params.blogCategoryId }, { $set: req.body.name }, { new: true });
+        return res.status(200).send({ message: "Blog Category updated successfully"});
     } catch (error) {
         return res.status(500).send({ message: error.message })
     }
@@ -68,7 +69,7 @@ const updateBlogCategoryById = async (req, res, next) => {
 
 
 
-const deleteBlogCategoryById = async (req, res, next) => {
+exports.deleteBlogCategoryById = async (req, res, next) => {
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
     try {
         const findBlogCategoryExist = await BlogCategoryModel.findById(req.params.blogCategoryId);
@@ -77,16 +78,8 @@ const deleteBlogCategoryById = async (req, res, next) => {
             return res.status(401).send({ message: "Blog Category not found" });
         }
              await BlogCategoryModel.findByIdAndDelete(req.params.blogCategoryId);
-        return res.status(200).send({ message: "Blog Category deleted successfully" });
+            return res.status(200).send({ message: "Blog Category deleted successfully" });
     } catch (error) {
-        return res.status(500).send({ message: error.message })
+        return res.status(500).send({ error: error.message })
     }
-}
-
-module.exports = {
-    createNewBlogCategory,
-    FetchBlogCategories,
-    FetchBlogCategoryById,
-    updateBlogCategoryById,
-    deleteBlogCategoryById,
 }

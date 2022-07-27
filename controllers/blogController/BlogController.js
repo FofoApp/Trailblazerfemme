@@ -1,8 +1,11 @@
+const fs = require('fs');
 const mongoose = require('mongoose');
 
 const BlogModel = require('./../../models/blogModel/BlogModel');
 const BlogCategoryModel = require('./../../models/blogModel/BlogCategoryModel');
 const BlogLikeModel = require('./../../models/blogModel/BlogLikeModel');
+const ProfileModel = require('./../../models/ProfileImageModel');
+const { cloudinary } = require('./../../helpers/cloudinary');
 
 exports.blog = async (req, res, next) => {
     //GET REQUEST
@@ -11,7 +14,11 @@ exports.blog = async (req, res, next) => {
     try {
 
         const categories = await BlogCategoryModel.find({}).select('-__v -createdAt -updatedAt');
-        const blogs = await BlogModel.find({}).select('-__v -createdAt -updatedAt');
+        const blogs = await BlogModel.find()
+                                    .populate("createdBy", "fullname email")
+                                    .populate("comments.commentedBy", "fullname")
+                                    .populate("comments.userProfile", "profileImage")
+                                    
 
        const newBlog =  await BlogModel.find({}).where('blogviews').size(1)
 
@@ -48,54 +55,43 @@ exports.createNewBlog = async (req, res, next) => {
         }
      */
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
+    const blogCreatedBy = req.user.id;
     try {
         let findBlogExist = await BlogModel.findOne({ title: req.body.title });
+     
 
         if(findBlogExist) {
             return res.status(401).send({ message: `Blog name ${req.body.title } already exists` });
         }
 
-        let createNewBlog = new BlogModel(req.body);
+        // //Upload Image to cloudinary
+        const uploaderResponse = await cloudinary.uploader.upload(req.file.path);
+
+        if(!uploaderResponse) {
+            //Reject if unable to upload image
+            return res.status(404).send({ message: "Unable to upload image please try again"});
+        }
+
+        let blogData = {
+            ...req.body,
+            createdBy:blogCreatedBy,            
+            blogImageCloudinaryPublicId: uploaderResponse.public_id,
+            blogImagePath: uploaderResponse.secure_url
+        }
+
+        // return res.send(blogData)
+
+        let createNewBlog = new BlogModel(blogData);
         let savedNewBlog = await createNewBlog.save();
-        // const populatedData = await BlogModel.findById(savedNewBlog._id).populate('created_by').populate('blogCategory')
-        let query=[
-			{
-				$lookup: { from: "users", localField: "created_by", foreignField: "_id", as: "creator" }
-			},
-			{$unwind: '$creator'},
-			{
-				$lookup: { from: "blogcategories", localField: "blogCategory", foreignField: "_id", as: "category_details" }
-			},
-			{$unwind: '$category_details'},
-			{
-				$match:{
-					'_id':mongoose.Types.ObjectId(savedNewBlog._id)
-				}
-			},
-			{ 
-	    		$project : {
-    			"_id": 1,
-    			"createdAt": 1,
-	    		"title": 1,
-	    		"short_description": 1,
-	    		"description": 1,
-				"image": 1,
-	    		"category_details.name": 1,
-				"category_details.slug": 1,
-				"category_details._id": 1,
-				"creator._id": 1 ,
-	    		"creator.email": 1 ,
-	    		"creator.first_name": 1,
-	    		"creator.last_name": 1,
-	    		"comments_count":{$size:{"$ifNull":["$blog_comments",[]]}},
-	    		"likes_count":{$size:{"$ifNull":["$blog_likes",[]]}}
-	    		} 
-	    	}
-		];
+        if(!savedNewBlog) {
+            return res.status(401).send({ message: "Unable to create new blog"});
+        }
 
-		let blogs = await BlogModel.aggregate(query);
+        let blogs = await BlogModel.find()
+                                     .populate('createdBy', 'fullname email')
+                                     .populate('blogCategory', 'name slug')
 
-        return res.status(200).send({ message: "Blog Created Successfully", populatedData });
+        return res.status(200).send({ message: "Blog Created Successfully", blogs });
     } catch (error) {
         return res.status(500).send({ message: error.message })
     }
@@ -206,13 +202,12 @@ exports.FetchBlogById = async (req, res, next) => {
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
     try {
         let blogId = req.params.blogId;
-        const currentUser = req.user.id;
+        let currentUser = req.user.id;
 
         if(!mongoose.Types.ObjectId.isValid(blogId)){
 			return res.status(400).send({ message:'Invalid blog id', blogPost: [] });
 		}
         const findBlogExist = await BlogModel.findById(blogId);
-        console.log(findBlogExist.id)
 
         if(!findBlogExist.blogviews.includes(currentUser)) {
             findBlogExist = await BlogModel.updateOne({ _id: findBlogExist.id}, {$push: { "blogviews": currentUser }});
@@ -222,44 +217,11 @@ exports.FetchBlogById = async (req, res, next) => {
             return res.status(401).send({ message: "Blog not found" });
         }
 
-		
-		let query = [
-			{
-				$lookup: { from: "users", localField: "created_by", foreignField: "_id", as: "creator" }
-			},
-			{$unwind: '$creator'},
-			{
-				$lookup: { from: "blogcategories", localField: "blogCategory", foreignField: "_id", as: "category_details" }
-			},
-			{$unwind: '$category_details'},
-			{
-				$match:{ '_id': mongoose.Types.ObjectId(blogId) }
-			},
-			{ 
-	    		$project : {
-    			"_id": 1,
-    			"createdAt": 1,
-	    		"title": 1,
-	    		"short_description": 1,
-	    		"description":1,
-				"image": 1,
-	    		"category_details.name": 1,
-				"category_details.slug": 1,
-				"category_details._id": 1,
-				"creator._id": 1,
-	    		"creator.email": 1,
-	    		"creator.profileImagePath": 1,
-	    		"comments_count":{$size:{"$ifNull":["$blog_comments",[]]}},
-	    		// "likes_count":{$size:{"$ifNull":["$blog_likes",[]]}}
-	    		} 
-	    	}
-		];
+        let blogPost = await BlogModel.findById(blogId)
+                                    .populate('createdByUserId')
+                                    .populate('blogCategoryId', 'name slug')
 
-		let blogPost = await BlogModel.aggregate(query);
-
-        //  let blogPost = await BlogModel.findOne({_id:blogId}).populate('blogCategory').populate('created_by');
-
-        return res.status(200).send({ blogPost: blogPost });
+        return res.status(200).send(blogPost);
     } catch (error) {
         return res.status(500).send({ message: error.message })
     }
@@ -302,31 +264,48 @@ exports.updateBlogById = async (req, res, next) => {
         }
      */
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
+
+    const { blogId } = req.params;
+
     try {
-        let blogId = req.params.blogId;
+
         if(!mongoose.Types.ObjectId.isValid(blogId)){
             return res.status(400).send({ message:'Invalid blog id', blogPost: {} });
         }
 
-        const findBlogExist = await BlogModel.findOne({_id: req.params.blogId });
+        const findBlogExist = await BlogModel.findById(blogId);
 
         if(!findBlogExist) {
             return res.status(404).send({ message: "Blog not found", blogPost: {}  });
         }
 
-        let current_user = req.user;
+        let currentUser = req.user.id;
 
-        if(findBlogExist.created_by != current_user._id){
+        if(findBlogExist.createdBy.toString() !== currentUser.toString()){
             return res.status(400).send({ message:'Access denied', blogPost: {} });
         }
 
-        await BlogModel.updateOne({_id: findBlogExist._id},{
-            title:req.body.title,
-            short_description:req.body.short_description,
-            description:req.body.description,
-            category:req.body.category,
-            image:image_file_name
-         });
+        //Upload Image to cloudinary
+        //DELETE FILE FROM CLOUDINARY IF EXIST
+        let updateData = { ...req.body };
+     
+        if(findBlogExist.blogImageCloudinaryPublicId && req.file.fieldname && req.file.fieldname === 'blogImage') {
+            let uploaderResponse = await cloudinary.uploader.destroy(findBlogExist.blogImageCloudinaryPublicId); 
+            
+            if(!uploaderResponse) {
+                //Reject if unable to upload image
+                return res.status(400).send({ message: "Unable to delete profile image please try again"});
+            }
+
+            //Upload Image to cloudinary
+            uploaderResponse = await cloudinary.uploader.upload(req.file.path);
+            updateData['blogImageCloudinaryPublicId'] =  uploaderResponse.public_id;
+            updateData['blogImagePath'] = uploaderResponse.secure_url;
+
+            fs.unlinkSync(req?.file?.path);
+        }
+
+        await BlogModel.updateOne({_id: findBlogExist._id},{ $set: updateData });
 
          let query=[
             {
@@ -361,90 +340,128 @@ exports.updateBlogById = async (req, res, next) => {
 
         const updatedBlog = await BlogModel.aggregate(query);
 
-        return res.status(200).send({ message: "Blog updated successfully", updatedBlog: updatedBlog });
+        return res.status(200).send({ message: "Blog updated successfully"});
     } catch (error) {
-        return res.status(500).send({ message: error.message })
+        return res.status(500).send({ error: error.message })
+    }
+}
+
+exports.blogComment = async (req, res, next) => {
+    try {
+        console.log(req.user.id)
+        let {comment} = req.body;
+        let profile = await ProfileModel.findOne({ userId: req.user.id});
+
+        comment = { comment: comment, commentedBy: mongoose.Types.ObjectId(req.user.id), userProfile: mongoose.Types.ObjectId(profile.id) }
+
+            const result = await BlogModel.findByIdAndUpdate(req.params.blogId, {$push: { comments: comment }}, {new: true})
+            .populate("comments.commentedBy", "fullname")
+            .populate("comments.userProfile", 'profileImage');
+
+        return res.status(200).send(result);
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send({ error: error.message });
     }
 }
 
 
+exports.deleteBlogComment = (req, res, next) => {
+    try {
+        // {"commentId": "Updated" }
+        let {comment} = req.body.commentId;
+            BlogModel.findByIdAndUpdate(req.params.blogId, {$pull: { comments: { _id: {$eq: mongoose.Types.ObjectId(comment)} } }}, 
+            {new: true})
+            .populate("comments.commentedBy", "fullname")
+            .populate("createdBy", "fullname")
+            .exec((err, result) =>{
+            if(err) {
+                console.log(err)
+                return res.status(400).json({ error: err });
+            }
+            return res.status(200).send(result);
+        });
+
+
+    } catch (error) {
+        return res.status(500).send({ error: error.message });
+    }
+}
 
 exports.deleteBlogById = async (req, res, next) => {
+
     //DELETE REQUEST
     // http://localhost:2000/api/blog/:blogCategoryId/delete
     // http://localhost:2000/api/blog/6286c236fbc9ab5d15903635/delete
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
+
+    let {blogId} = req.params;
+    let currentUser = req.user.id;
     try {
-        let blogId = req.params.blogId;
         if(!mongoose.Types.ObjectId.isValid(blogId)){
-            return res.status(400).send({ message:'Invalid blog id', blogPost: {} });
+            return res.status(400).send({ message:'Invalid blog id' });
         }
 
         const findBlogExist = await BlogModel.findById(blogId);
 
         if(!findBlogExist) {
-            return res.status(400).send({ message: "Blog not found", blogPost: {}  });
+            return res.status(400).send({ error: "Blog not found"});
         }
 
-        const blogPost = await BlogModel.findOne({ _id: findBlogExist._id });
+        let publicId  = findBlogExist.blogImageCloudinaryPublicId;
 
-        if(!blogPost){
-            return res.status(400).send({ message:'No blog found', blogPost:{} });
-        } else {
-            let current_user = req.user;
+        let uploaderResponse = await cloudinary.uploader.destroy(publicId);
 
-			if(blogPost.created_by != current_user._id){
-				return res.status(400).send({ message:'Access denied', blogPost:{} });
-            }else {
-                // let old_path=publicPath+'/uploads/blog_images/'+blog.image;
-				// if(fs.existsSync(old_path)){
-				// 	fs.unlinkSync(old_path);
-				// }
-
-				await BlogModel.deleteOne({_id: blogPost._id });
-				return res.status(200).send({ message:'Blog successfully deleted', blogPost:{} 	});
-            }
-
+        if(!uploaderResponse) {
+            return res.status(200).send({ message: "Unable to delete image, try again!"});
         }
+
+        if(currentUser.toString() !== findBlogExist.createdBy.toString()) {
+            return res.status(400).send({ error:'You can only delete blog created by you'});
+        }
+
+        await findBlogExist.remove();
+
+        return res.status(400).send({ message:'Blog deleted successfully'});
+
+
 
     } catch (error) {
-        return res.status(500).send({ message: error.message })
+        return res.status(500).send({ error: error.message })
     }
 }
 
 
 exports.blogLikes = async (req, res, next) => {
     try {
-        const blogId = req.params.blogId;
-
+        const { blogId } = req.params;
+        let message = '';
         if(!mongoose.Types.ObjectId.isValid(blogId)){
-            return res.status(400).send({ message:'Invalid blog id', blogPost: {} });
+            return res.status(400).send({ error:'Invalid blog id' });
         }
 
-        const findBlogExist = await BlogModel.findById(blogId);
+        let findBlogExist = await BlogModel.findById(blogId)
 
         if(!findBlogExist) {
-            return res.status(400).send({ message: "Blog not found", blogPost: {}  });
+            return res.status(400).send({ error: "Blog not found" });
         }
 
-        // const blogPost = await BlogModel.findOne({ _id: findBlogExist._id });
-        let current_user = req.user;
+        let currentUser = req.user.id;
 
-        const blogLike = await BlogLikeModel.findOne({ blogId, userId: current_user.id });
-        if(!blogLike) {
-            const blogLikeDoc = new BlogLikeModel({ userId: current_user.id, blogId });
-            const likeData = await blogLikeDoc.save();
-            const likeDate = await BlogModel.updateOne({ _id: blogId}, {$push: {blogLikes: likeData._id }});
+        if(findBlogExist.blogLikes.includes(currentUser)) {
 
+            findBlogExist.blogLikes.pull(currentUser)
+            message = 'Blog post disliked';
         }else {
-            deletedLike = await BlogLikeModel.deleteOne({ _id: blogLike._id });
-
-            await BlogModel.updateOne({ _id: blogLike.blogId}, {$pull: {blogLikes: likeData._id }});
+            findBlogExist.blogLikes.push(currentUser)
+            message = 'Blog post liked';
         }
+
+        findBlogExist.save();
         
-        
-        return res.status(200).send({ message: "Success"})
+        return res.status(200).send({message})
     } catch (error) {
-        return res.status(200).send({ message: error.message })
+        return res.status(200).send({ error: error.message })
     }
 }

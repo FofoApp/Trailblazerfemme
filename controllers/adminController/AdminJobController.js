@@ -228,7 +228,8 @@ exports.updateJobById = async (req, res, next) => {
         //Upload Image to cloudinary
         //DELETE FILE FROM CLOUDINARY IF EXIST
         if(req?.file?.jobImagePath) {
-            let uploaderResponse = await cloudinary.uploader.destroy(job.jobImageCloudinaryPublicId); 
+            let uploaderResponse = await cloudinary.uploader.destroy(job.jobImageCloudinaryPublicId);
+            console.log(uploaderResponse)
             if(!uploaderResponse) {
                 //Reject if unable to upload image
                 return res.status(400).send({ message: "Unable to delete profile image please try again"});
@@ -236,8 +237,8 @@ exports.updateJobById = async (req, res, next) => {
 
             //Upload Image to cloudinary
             uploaderResponse = await cloudinary.uploader.upload(req.file.path);
-            updateData[jobImageCloudinaryPublicId] =  uploaderResponse.public_id;
-            updateData[jobImagePath] = uploaderResponse.secure_url;
+            updateData['jobImageCloudinaryPublicId'] =  uploaderResponse.public_id;
+            updateData['jobImagePath'] = uploaderResponse.secure_url;
 
             fs.unlinkSync(req?.file?.path);
         }
