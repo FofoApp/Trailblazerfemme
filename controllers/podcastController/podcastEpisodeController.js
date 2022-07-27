@@ -3,7 +3,7 @@ const PodcastEpisodeModel = require('./../../models/podcast/PodcastEpisodeModel'
 const { cloudinary } = require('./../../helpers/cloudinary');
 
 
-const createNewPodcastEpisode = async (req, res, next) => {
+exports.createNewPodcastEpisode = async (req, res, next) => {
     //NOTE VALIDATE USER INPUTS BEFORE PROCESSING
 
     //http://localhost:2000/api/podcast/create
@@ -65,7 +65,7 @@ const createNewPodcastEpisode = async (req, res, next) => {
 }
 
 
-const listPodcastEpisodes = async (req, res, next) => {
+exports.listPodcastEpisodes = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/podcast/episodes/lists
 
@@ -82,7 +82,7 @@ const listPodcastEpisodes = async (req, res, next) => {
 }
 
 
-const searchForPodcastEpisode = async (req, res, next) => {
+exports.searchForPodcastEpisode = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/podcast/episodes/search
     /**
@@ -120,7 +120,7 @@ const searchForPodcastEpisode = async (req, res, next) => {
     }
 }
 
-const updatePodcastEpisodeById = async (req, res, next) => {
+exports.updatePodcastEpisodeById = async (req, res, next) => {
     //NOTE VALIDATE USER INPUTS BEFORE PROCESSING
    //http://localhost:2000/api/podcast/episode/podcastEpisodeId/update
    const podcastId = req.params.podcastId;
@@ -145,7 +145,7 @@ const updatePodcastEpisodeById = async (req, res, next) => {
 }
 
 
-const deletePodcastEpisodeById = async (req, res, next) => {
+exports.deletePodcastEpisodeById = async (req, res, next) => {
 
     //NOTE VALIDATE USER INPUTS BEFORE PROCESSING
    //http://localhost:2000/api/podcast/episode/podcastEpisodeId/delete
@@ -169,13 +169,4 @@ const deletePodcastEpisodeById = async (req, res, next) => {
        return res.status(500).send({ message: error.message });
    }
 
-}
-
-
-module.exports = {
-    createNewPodcastEpisode,
-    listPodcastEpisodes,
-    searchForPodcastEpisode,
-    updatePodcastEpisodeById,
-    deletePodcastEpisodeById
 }

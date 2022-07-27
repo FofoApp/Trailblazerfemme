@@ -10,7 +10,19 @@ const cartSchema = new mongoose.Schema({
     productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product'},
     categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductCategory'},
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
- });
+}, 
+
+{
+    toJSON: {
+        transform: (document, returnedObject, options) => {
+                    returnedObject.id = returnedObject._id
+                    delete returnedObject._id
+                    delete returnedObject.__v
+        }
+    }
+},
+
+{ timestamps: true });
 
 const Cart = mongoose.model('Cart', cartSchema);
 

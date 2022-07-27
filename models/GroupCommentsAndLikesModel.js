@@ -5,7 +5,19 @@ const groupCommentAndLikesSchema = new mongoose.Schema({
     groupLikes: { type: Array, default: [] },
     groupComments: { type: Array, default: [] },
     
-}, { timestamps: true });
+}, 
+
+{
+    toJSON: {
+        transform: (document, returnedObject, options) => {
+                    returnedObject.id = returnedObject._id
+                    delete returnedObject._id
+                    delete returnedObject.__v
+        }
+    }
+},
+
+{ timestamps: true });
 
 
 

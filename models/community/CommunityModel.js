@@ -16,7 +16,19 @@ const communitySchema = new mongoose.Schema({
     communityComments:{ type: Array, default: []},    
     communityLikes: {type: Array, default: [] }
     
-}, { timestamps: true });
+}, 
+
+{
+    toJSON: {
+        transform: (document, returnedObject, options) => {
+                    returnedObject.id = returnedObject._id
+                    delete returnedObject._id
+                    delete returnedObject.__v
+        }
+    }
+},
+
+{ timestamps: true });
 
 
 const Community = mongoose.model('Community', communitySchema);

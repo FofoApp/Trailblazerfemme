@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const BookCategoryModel = require('./../../models/bookLibraryModel/BookCategoryModel');
 
 
-const createNewBookCategory = async (req, res, next) => {
+exports.createNewBookCategory = async (req, res, next) => {
  //Notes:: REMEMBER TO VALIDATE USER INPUTS
  
     try {
@@ -24,7 +24,7 @@ const createNewBookCategory = async (req, res, next) => {
     }
 }
 
-const fetchBookCategories = async (req, res, next) => {
+exports.fetchBookCategories = async (req, res, next) => {
     try {
         const categories = await BookCategoryModel.find({});
 
@@ -38,7 +38,7 @@ const fetchBookCategories = async (req, res, next) => {
 }
 
 
-const fetchBookCategoryById = async (req, res, next) => {
+exports.fetchBookCategoryById = async (req, res, next) => {
     try {
         const categoryId = req.params.categoryId;
         if(!mongoose.Types.ObjectId.isValid(categoryId)) {
@@ -57,7 +57,7 @@ const fetchBookCategoryById = async (req, res, next) => {
 }
 
 
-const updateBookCategoryById = async (req, res, next) => {
+exports.updateBookCategoryById = async (req, res, next) => {
     try {
 
         const categoryId = req.params.categoryId;
@@ -83,7 +83,7 @@ const updateBookCategoryById = async (req, res, next) => {
 }
 
 
-const deleteBookCategoryById = async (req, res, next) => {
+exports.deleteBookCategoryById = async (req, res, next) => {
     try {
         const categoryId = req.params.categoryId;
         if(!mongoose.Types.ObjectId.isValid(categoryId)) {
@@ -101,17 +101,4 @@ const deleteBookCategoryById = async (req, res, next) => {
     } catch (error) {
         return res.status(500).send({error: error.message});
     }
-}
-
-
-
-
-
-
-module.exports = {
-    createNewBookCategory,
-    fetchBookCategories,
-    fetchBookCategoryById,
-    updateBookCategoryById,
-    deleteBookCategoryById
 }

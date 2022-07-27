@@ -28,7 +28,7 @@ exports.dashboardListUsers = async (req, res, next) => {
         const paidArray = [];
 
         const users = await UserModel.find({})
-        .select(`-password -__v -updatedAt -following -followers -recentlySearchedBook 
+        .select(`-updatedAt -following -followers -recentlySearchedBook 
         -recentlyPlayedPodcast -booksRead -library -books -createdAt`)
         .limit(limit)
         .skip(skip);
@@ -62,7 +62,7 @@ exports.findUserByEmail = async (req, res, next) => {
     const email = req.body.email;
 
     try {
-        const user = await UserModel.findOne({email}).select(`-password -__v -updatedAt `);
+        const user = await UserModel.findOne({email}).select(`-updatedAt `);
         if(!user) return res.status(404).send({error: "User not found"});
 
         return res.status(200).send(user);
@@ -83,7 +83,7 @@ exports.memberShip = async (req, res, next) => {
         const goldPlan = [];
         const silverPlan = [];
 
-        const users = await UserModel.find({}).select(`-password -__v -updatedAt -following -followers -recentlySearchedBook 
+        const users = await UserModel.find({}).select(`-updatedAt -following -followers -recentlySearchedBook 
         -recentlyPlayedPodcast -booksRead -library `).limit(5);
 
         const membership2 = await UserModel.find({});

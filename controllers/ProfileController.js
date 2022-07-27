@@ -28,7 +28,7 @@ exports.profile = async (req, res, next) => {
         // .populate('following', '_id fullname');
 
         const profile = await Profile.findOne({ userId: userId })
-        .populate('userId', '_id fullname');
+        .populate('userId', 'fullname');
 
         if(!profile)  return res.status(404).send({error: "No profile found for this user"});
         
@@ -48,7 +48,7 @@ exports.getAllProfileImages = async (req, res, next) => {
         // const plan = await planValidation({name, price});
        //Find user and ensure user with the speicifed id exist
 
-        const profile = await Profile.find({}).select('_id userId profileImageCloudinaryPublicId profileImage');
+        const profile = await Profile.find({}).select('userId profileImageCloudinaryPublicId profileImage');
 
         if(!profile) {
             return res.status(404).send({ error: "Profile pictures not found"});
@@ -73,7 +73,7 @@ exports.getProfileImage = async (req, res, next) => {
 
         const findUserById = await User.findById(userId);
 
-        const profile = await Profile.findOne({ userId: findUserById._id }).select('_id userId profileImageCloudinaryPublicId profileImage');
+        const profile = await Profile.findOne({ userId: findUserById._id }).select(' userId profileImageCloudinaryPublicId profileImage');
 
         if(!findUserById) {
             return res.status(404).send({ message: "User not found"});

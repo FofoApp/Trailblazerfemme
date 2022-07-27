@@ -6,7 +6,19 @@ const membershipSchema = new mongoose.Schema({
     amount: { type: Number, required: true },
     benefits: { type: [String], default: [] },
     description: { type: String, required: true },
-}, { timestamps: true });
+}, 
+
+{
+    toJSON: {
+        transform: (document, returnedObject, options) => {
+                    returnedObject.id = returnedObject._id
+                    delete returnedObject._id
+                    delete returnedObject.__v
+        }
+    }
+},
+
+{ timestamps: true });
 
 const Membership = mongoose.model('Membership', membershipSchema);
 

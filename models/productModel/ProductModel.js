@@ -21,7 +21,19 @@ const productSchema = new mongoose.Schema({
     ratings: [{ type: Number, default: 0 }],
     reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
     categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductCategory' },
-});
+}, 
+
+{
+    toJSON: {
+        transform: (document, returnedObject, options) => {
+                    returnedObject.id = returnedObject._id
+                    delete returnedObject._id
+                    delete returnedObject.__v
+        }
+    }
+},
+
+{ timestamps: true });
 
 
 const Product = mongoose.model('Product', productSchema);

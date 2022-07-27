@@ -69,7 +69,7 @@ exports.listPosts = async (req, res, next) => {
     //http://localhost:2000/api/posts/lists
 
     try {
-        const findIfPostExist = await PostModel.find({}).populate('likes').populate('comments.createdBy', '_id fullname')
+        const findIfPostExist = await PostModel.find({}).populate('likes').populate('comments.createdBy', 'fullname')
 
         if(!findIfPostExist) {
             return res.status(200).send({ message: "No post found!" });

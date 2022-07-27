@@ -18,7 +18,19 @@ const postSchema = new mongoose.Schema({
     ],
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     // comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
-}, { timestamps: true });
+}, 
+
+{
+    toJSON: {
+        transform: (document, returnedObject, options) => {
+                    returnedObject.id = returnedObject._id
+                    delete returnedObject._id
+                    delete returnedObject.__v
+        }
+    }
+},
+
+{ timestamps: true });
 
 const Post = mongoose.model('Post', postSchema);
 

@@ -6,7 +6,7 @@ const { cloudinary } = require('./../../helpers/cloudinary');
 
 
 
-const podcasts = async (req, res, next) => {
+exports.podcasts = async (req, res, next) => {
 
     //GET REQUEST
     //http://localhost:2000/api/podcast
@@ -83,7 +83,7 @@ const podcasts = async (req, res, next) => {
 }
 
 
-const createNewPodcast = async (req, res, next) => {
+exports.createNewPodcast = async (req, res, next) => {
     //NOTE VALIDATE USER INPUTS BEFORE PROCESSING
 
     //http://localhost:2000/api/podcast/create
@@ -142,7 +142,7 @@ const createNewPodcast = async (req, res, next) => {
     }
 }
 
-const listPodcasts = async (req, res, next) => {
+exports.listPodcasts = async (req, res, next) => {
     //NOTE VALIDATE USER INPUTS BEFORE PROCESSING
     //GET REQUEST
     //http://localhost:2000/api/podcast/lists
@@ -158,7 +158,7 @@ const listPodcasts = async (req, res, next) => {
 }
 
 
-const searchForPodcast = async (req, res, next) => {
+exports.searchForPodcast = async (req, res, next) => {
     //NOTE VALIDATE USER INPUTS BEFORE PROCESSING
     //GEY REQUEST
    //http://localhost:2000/api/podcast/search
@@ -205,7 +205,7 @@ const searchForPodcast = async (req, res, next) => {
 }
 
 
-const searchPodcastById = async (req, res, next) => {
+exports.searchPodcastById = async (req, res, next) => {
     //NOTE VALIDATE USER INPUTS BEFORE PROCESSING
     //GET REQUEST
    //http://localhost:2000/api/podcast/podcastId/search
@@ -240,7 +240,7 @@ const searchPodcastById = async (req, res, next) => {
 
 }
 
-const updatePodcastById = async (req, res, next) => {
+exports.updatePodcastById = async (req, res, next) => {
     //NOTE VALIDATE USER INPUTS BEFORE PROCESSING
     //PATCH REQUEST
    //http://localhost:2000/api/podcast/podcastId/update
@@ -267,7 +267,7 @@ const updatePodcastById = async (req, res, next) => {
 }
 
 
-const deletePodcastById = async (req, res, next) => {
+exports.deletePodcastById = async (req, res, next) => {
 
     //NOTE VALIDATE USER INPUTS BEFORE PROCESSING
     //DELETE REQUEST
@@ -293,15 +293,4 @@ const deletePodcastById = async (req, res, next) => {
        return res.status(500).send({ message: error.message });
    }
 
-}
-
-
-module.exports = {
-    createNewPodcast,
-    listPodcasts,
-    searchForPodcast,
-    deletePodcastById,
-    updatePodcastById,
-    podcasts,
-    searchPodcastById
 }

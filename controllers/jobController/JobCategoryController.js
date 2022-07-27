@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const JobCategoryModel = require('./../../models/jobModel/JobCategory');
 
-const createNewJobCategory = async (req, res, next) => {
+exports.createNewJobCategory = async (req, res, next) => {
     //POST REQUEST
 //http://localhost:2000/api/jobs/category/create
 /**
@@ -24,7 +24,7 @@ const createNewJobCategory = async (req, res, next) => {
     }
 }
 
-const listJobCategories = async (req, res, next) => {
+exports.listJobCategories = async (req, res, next) => {
     //get REQUEST
     //http://localhost:2000/api/jobs/categories
 
@@ -39,7 +39,7 @@ const listJobCategories = async (req, res, next) => {
     }
 }
 
-const findJobCategoryById = async (req, res, next) => {
+exports.findJobCategoryById = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/jobs/category/jobCategoryId/get
     
@@ -60,7 +60,7 @@ const findJobCategoryById = async (req, res, next) => {
 }
 
 
-const updateJobCategoryById = async (req, res, next) => {
+exports.updateJobCategoryById = async (req, res, next) => {
         //PATCH REQUEST
     //http://localhost:2000/api/jobs/category/628d56ad55040aa7fb78d8b2/update
     /**
@@ -89,7 +89,7 @@ const updateJobCategoryById = async (req, res, next) => {
 
 
 
-const deleteJobCategoryById = async (req, res, next) => {
+exports.deleteJobCategoryById = async (req, res, next) => {
     //DELETE REQUEST
     //http://localhost:2000/api/jobs/category/628d56ad55040aa7fb78d8b2/delete
     const jobCategoryId = req.params.jobCategoryId;
@@ -108,15 +108,4 @@ const deleteJobCategoryById = async (req, res, next) => {
     } catch (error) {
         return res.status(500).send({ message: error.message });
     }
-}
-
-
-
-
-module.exports = {
-    createNewJobCategory,
-    listJobCategories,
-    findJobCategoryById,
-    updateJobCategoryById,
-    deleteJobCategoryById
 }

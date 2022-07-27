@@ -3,7 +3,7 @@ const followersAndFollowingSchema = require('../models/FollowersAndFollowingMode
 const User = require('../models/UserModel');
 
 
-const follow = async (req, res, next) => {
+exports.follow = async (req, res, next) => {
     //Note user both follower and followee should be logged in to perform action
     try {
         //Find follower by id from the request parameter
@@ -46,8 +46,4 @@ const follow = async (req, res, next) => {
     
 
 
-}
-
-module.exports  = {
-    follow
 }

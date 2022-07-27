@@ -1,7 +1,7 @@
 
 const PodcastModel = require('./../../models/podcast/PodcastCategoryModel')
 
-const createPodcastCategory = async (req, res, next) => {
+exports.createPodcastCategory = async (req, res, next) => {
     //http://localhost:2000/api/podcast/category/create
     /*
     {
@@ -27,11 +27,11 @@ const createPodcastCategory = async (req, res, next) => {
     }
 }
 
-const PodcastCategories = async (req, res, next) => {
+exports.PodcastCategories = async (req, res, next) => {
     //VALIDATE USER INPUT BEFORE PROCESSING
     //http://localhost:2000/api/podcast/categories
     try {
-        const findIfCategoryExist = await PodcastModel.find().select('-createdAt -updatedAt -__v');
+        const findIfCategoryExist = await PodcastModel.find().select('-createdAt -updatedAt');
 
         if(!findIfCategoryExist) {
             return res.status(200).send({ message: "No category found", categories: [] });
@@ -45,7 +45,7 @@ const PodcastCategories = async (req, res, next) => {
 }
 
 
-const updatePodcastCategoryById = async (req, res, next) => {
+exports.updatePodcastCategoryById = async (req, res, next) => {
     //VALIDATE USER INPUT BEFORE PROCESSING
     try {
         const updatePodcastCategory = await PodcastModel.findByIdAndUpdate(req.params.podcastId, {$set: req.body }, { new: true });
@@ -61,7 +61,7 @@ const updatePodcastCategoryById = async (req, res, next) => {
     }
 }
 
-const deletePodcastCategoryById = async (req, res, next) => {
+exports.deletePodcastCategoryById = async (req, res, next) => {
     //VALIDATE USER INPUT BEFORE PROCESSING
     try {
         const deletePodcastCategory = await PodcastModel.findByIdAndDelete(req.params.podcastId);
@@ -78,7 +78,7 @@ const deletePodcastCategoryById = async (req, res, next) => {
 }
 
 
-const recentlyPlayedPodcast = async (req, res, next) => {
+exports.recentlyPlayedPodcast = async (req, res, next) => {
     //VALIDATE USER INPUT BEFORE PROCESSING
     try {
         const deletePodcastCategory = await PodcastModel.findByIdAndDelete(req.params.podcastId);
@@ -94,18 +94,3 @@ const recentlyPlayedPodcast = async (req, res, next) => {
     }
 }
 
-
-
-
-
-
-
-
-module.exports = {
-    createPodcastCategory,
-    PodcastCategories,
-    updatePodcastCategoryById,
-    deletePodcastCategoryById,
-    recentlyPlayedPodcast
-
-}

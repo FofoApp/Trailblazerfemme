@@ -20,7 +20,19 @@ const bookSchema = new mongoose.Schema({
     createdBy: { type: ObjectId, ref: "User"},
     trendingBookId: [{ type: ObjectId, ref: 'TrendingBook'}],
 
-}, { timestamps: true });
+},
+
+{
+    toJSON: {
+        transform: (document, returnedObject, options) => {
+                    returnedObject.id = returnedObject._id
+                    delete returnedObject._id
+                    delete returnedObject.__v
+        }
+    }
+},
+
+{ timestamps: true });
 
 
 const Book  = mongoose.model('Book', bookSchema);

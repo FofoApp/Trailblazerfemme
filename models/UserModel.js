@@ -48,16 +48,29 @@ const userSchema = new Schema({
 
     library: [{ type: mongoose.Schema.Types.ObjectId, ref: "MyLibrary"}],
 
-}, { timestamps: true });
+}, 
+
+{
+    toJSON: {
+        transform: (document, returnedObject, options) => {
+                    returnedObject.id = returnedObject._id
+                    delete returnedObject._id
+                    delete returnedObject.password;
+                    delete returnedObject.__v
+        }
+    }
+},
+
+{ timestamps: true });
 
 
-userSchema.methods.toJSON = function() {
-    let user = this;
-    let userObject = user.toObject();
-    delete userObject.password;
-    delete userObject.__v;
-    return userObject;
-}
+// userSchema.methods.toJSON = function() {
+//     let user = this;
+//     let userObject = user.toObject();
+//     delete userObject.password;
+//     delete userObject.__v;
+//     return userObject;
+// }
 
 userSchema.pre('save', async function(next) {
     let user = this;

@@ -7,6 +7,7 @@ const bcrypt = require('bcrypt');
 const JWT = require('jsonwebtoken');
 const { cloudinary } = require('./../helpers/cloudinary');
 const sdk = require('api')('@sendchamp/v1.0#1v843jkyvjm1me');
+
 const { registerValidation, 
     loginValidation, 
     resetPasswordSchema, 
@@ -43,12 +44,15 @@ exports.register = async (req, res, next) => {
         }
 
      */
+
+
     const annually = 'years';
     const monthly = 'months';
     const days = 'days';
    
     
     try {
+
         // if(!email || !password) throw createError.BadRequest();
 
         const result = await registerValidation(req.body);
@@ -57,7 +61,6 @@ exports.register = async (req, res, next) => {
 
         const date = calculateNextPayment(annually, moment().format());
         
-
         if(doesExist) throw createError.Conflict(`${result.email} already exist`);
        
         const user = new User({...result,  nextPaymentDate: date});
@@ -68,6 +71,7 @@ exports.register = async (req, res, next) => {
 
         // const otp = sendSMS(otpCode);
         // const sentSms  = sendGridMail(user.email, otpCode);
+
         let smsError;
         let smsRes;
 
@@ -82,47 +86,42 @@ exports.register = async (req, res, next) => {
                 body: JSON.stringify({
                     "to":[`${savedUser.phonenumber}`],
                     "message": `Your otp code is ${otpCode}`,
-                    "sender_name":"Sendchamp", 
+                    "sender_name":"Sendchamp",
                     "route":"international"
                 })
               
               }
 
-             
 
-              request(options, async function (error, response) {
+            //   request(options, async function (error, response) {
 
-                if (error) throw new Error(error);
+            //     if (error) throw new Error(error);
 
-                const otpIsSet = await Otpmodel.findByIdAndDelete(savedUser._id);
+            //     const otpIsSet = await Otpmodel.findByIdAndDelete(savedUser._id);
         
-                const newOtp = await Otpmodel.create({ userId: savedUser._id, phonenumber: savedUser.phonenumber, otp: otpCode });
+            //     const newOtp = await Otpmodel.create({ userId: savedUser.id, phonenumber: savedUser.phonenumber, otp: otpCode });
+            //   });
 
-                // console.log(response.body);
 
-              });
+        const {id, email, roles, username, field, profileImagePath } = savedUser;
 
-        const { email, roles, username, field, profileImagePath } = savedUser;
-
-        const userObject = {  id: savedUser.id, email, roles, username, field, profileImagePath };
-    
-        const accessToken = await signInAccessToken(userObject)
+        const userObject = {  id, email, roles, username, field, profileImagePath };
+          
+        const accessToken = await signInAccessToken(userObject);
 
         const refreshToken = await signInRefreshToken(userObject);
 
-
-
-        let refreshAccessToken = await RefreshAccessToken.findOne({ userId: savedUser._id });
+        let refreshAccessToken = await RefreshAccessToken.findOne({ userId: savedUser.id });
         
         if(refreshAccessToken) {
             await refreshAccessToken.remove();
         }
 
-        refreshAccessToken = new RefreshAccessToken({userId: savedUser._id,  accessToken, refreshToken});
+        refreshAccessToken = new RefreshAccessToken({userId: savedUser.id,  accessToken, refreshToken});
         
         await refreshAccessToken.save();
 
-        return res.status(200).send({accessToken, refreshToken, userId: savedUser._id,  otp: otpCode,  message: "Otp has been sent to your phone"});
+        return res.status(200).send({accessToken, refreshToken, userId: savedUser.id,  message: "Otp has been sent to your phone"});
 
        
     } catch (error) {
@@ -142,7 +141,7 @@ exports.login = async (req, res, next) => {
     //POST REQUEST
     //http://localhost:2000/api/auth/login
     /**
-     * { 
+     * {
             "email": "ade@gmail.com",
             "password": "password123"
         }
@@ -175,9 +174,10 @@ exports.login = async (req, res, next) => {
         }
         const refreshAccessToken = new RefreshAccessToken({
             userId: user.id,
-            accessToken:accessToken, 
+            accessToken:accessToken,
             refreshToken:refreshToken
         });
+
         const savedRefreshAccessToken = await refreshAccessToken.save();
         
         return res.status(200).send({accessToken, refreshToken});
@@ -223,20 +223,12 @@ exports.logout = async (req, res, next) => {
                
         //if Refresh tokenn is set
         const isRefreshTokenSet = await RefreshAccessToken.findOne({userId: userId});
-        // return console.log(isRefreshTokenSet)
        
         if(!isRefreshTokenSet) {
             return res.status(404).send({ message: "Unable to logout user"})
         }
 
         await RefreshAccessToken.findByIdAndDelete({userId: userId});
-
-        // client.DEL(userId, (err, val) => {
-        //     if(err) {
-        //         throw createError.InternalServerError();
-        //     }
-        //     res.status(204);
-        // });
 
         return res.status(404).send({ message: "You are now logged out"})
 
@@ -330,7 +322,7 @@ exports.updateUser = async (req, res, next) => {
 
     try {
 
-        let user  = await User.findById(req.user.aud).select('-__v -_id -socialLinks -isPaid -password').lean();
+        let user  = await User.findById(req.user.aud).select('-socialLinks -isPaid');
     
         if(!user) throw createError.Conflict(`User with ${user.email} does not exist`);
 
@@ -362,8 +354,8 @@ exports.uploadProfilePicture = async (req, res, next) => {
     let currentUser = req.user.id;
 
     try {
-        let user  = await User.findById(currentUser).select('-__v -_id -socialLinks -isPaid -password').lean();
-    
+        let user  = await User.findById(currentUser).select('-socialLinks -isPaid -password');
+   
         if(!user) throw createError.Conflict(`User with ${user.email} does not exist`);
 
         // const result = registerSchema(profilePic, true);
@@ -371,7 +363,6 @@ exports.uploadProfilePicture = async (req, res, next) => {
         // if(!result) {
         //     return res.status(200).send({message: 'Unprocessible image'});
         // }
-    
         
         // //Upload Image to cloudinary
         const uploaderResponse = await cloudinary.uploader.upload(req.file.path);
@@ -413,10 +404,10 @@ exports.deleteUser = async (req, res, next) => {
     //http://localhost:2000/api/auth/user/62902e117ecadf9305054e1a/delete
 
     try {
-        const result = await User.findOne({ _id: req.params.id });
+        const result = await User.findOne({ _id: req.params.userId });
 
-        if(!result) throw createError.Conflict(`User with ${req.body.email} does not exist`);
-
+        if(!result) throw createError.Conflict(`User does not exist`);
+      
         let uploaderResponse = await cloudinary.uploader.destroy(result.profileImageCloudinaryPublicId);
 
         if(!uploaderResponse) {
@@ -503,7 +494,7 @@ exports.postResetPasswordToken = async (req, res, next) => {
     }
 
     try {
-        let doesExist = await User.findOne({ _id: id }).select('password -_id').lean();
+        let doesExist = await User.findOne({ _id: id }).select('password -_id');
 
         if(!doesExist) throw createError.Conflict(`User does not exist`);
         
@@ -556,7 +547,7 @@ exports.updatePassword = async (req, res, next) => {
 
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        const updatePassword = await User.findByIdAndUpdate(user._id, {$set: { password: hashedPassword }});
+        const updatePassword = await User.findByIdAndUpdate(user.id, {$set: { password: hashedPassword }});
         
         // const accessToken = await signInAccessToken(user);
         // const refreshToken = await signInRefreshToken(user);
@@ -592,7 +583,7 @@ exports.otpPage = async (req, res, next) => {
         const user = await User.findOne({ email: email });
 
         if(!user) return res.status(404).send({ error: "User not found" });
-
+        
         const otpCode = generateFourDigitsOTP();
 
         // const otp = sendSMS(otpCode);
@@ -615,11 +606,11 @@ exports.otpPage = async (req, res, next) => {
 
         // console.log("otp:", otp)
 
-        const {_id, phonenumber } = user;
+        const {id, phonenumber } = user;
 
-        const otpExist = await Otpmodel.deleteOne({ userId: _id });
+        const otpExist = await Otpmodel.deleteOne({ userId: id });
 
-        const newOtp = await Otpmodel.create({ userId: _id, phonenumber, otp: otpCode });
+        const newOtp = await Otpmodel.create({ userId: id, phonenumber, otp: otpCode });
 
         const userData = { userId: newOtp.userId, otp: newOtp.otp  };
 
@@ -650,7 +641,7 @@ exports.verifyOtp = async (req, res, next) => {
        
         
         if(verified) {
-            await Otpmodel.findByIdAndDelete(isOtpFound._id)
+            await Otpmodel.findByIdAndDelete(isOtpFound.id)
             
         }
         return res.status(200).send("Otp verified");

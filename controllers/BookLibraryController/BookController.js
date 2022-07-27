@@ -286,7 +286,7 @@ exports.fetchBooks = async (req, res, next) => {
 
         const books = await BookModel.find({})
                                      .select('_id title author bookImage bookLink price ratings store bookCategoryId')
-                                    .populate('bookCategoryId', '_id title')
+                                    .populate('bookCategoryId', 'title')
                                     .skip(skip)
                                     .limit(perPage)
 
@@ -326,15 +326,20 @@ exports.fetchBookById = async (req, res, next) => {
 
 exports.updateBookById = async (req, res, next) => {
     //NOTE: REMEMBER TO VALIDATE USER INPUTS 
+
     try {
         const bookId = req.params.bookId;
         if(!mongoose.Types.ObjectId.isValid(bookId)) {
             return res.status(401).send({ error: "Invalid book"})
         }
+        if(req.body.bookCategoryId && !mongoose.Types.ObjectId.isValid(req.body.bookCategoryId)) {
+            return res.status(401).send({ error: "Invalid bookCategoryId"});
+        }
         const findBookExist = await BookModel.findById(bookId);
         if(!findBookExist) {
             return res.status(404).send({ error: "Book not found"})
         }
+
          await BookModel.updateOne({_id: bookId}, { $set: { ...req.body }});
         
         return res.status(200).send("Book updated successfully");

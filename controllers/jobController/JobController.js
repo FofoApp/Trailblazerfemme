@@ -7,7 +7,7 @@ const JobApplicationModel = require('./../../models/jobModel/JobApplicationModel
 const { jobApplicationValidation } = require('./../../validations/jobValidation');
 const { cloudinary } = require('./../../helpers/cloudinary')
 
-const jobs = async (req, res, next) => {
+exports.jobs = async (req, res, next) => {
      
     //GET REQUEST
     //http://localhost:2000/api/jobs  
@@ -25,7 +25,7 @@ const jobs = async (req, res, next) => {
 }
 
 
-const jobApplication = async (req, res, next) => {
+exports.jobApplication = async (req, res, next) => {
 
     //POST REQUEST 
     //http://localhost:2000/api/jobs/jobId/apply
@@ -71,7 +71,7 @@ const jobApplication = async (req, res, next) => {
     }
 }
 
-const uploadCoverLetterAndResumee = async (req, res, next) => {
+exports.uploadCoverLetterAndResumee = async (req, res, next) => {
     //POST REQUEST
     //http://localhost:2000/api/jobs/jobId/application/upload
     //http://localhost:2000/api/jobs/62902e117ecadf9305054e1a/application/upload
@@ -155,7 +155,7 @@ const uploadCoverLetterAndResumee = async (req, res, next) => {
         return res.status(500).send({ message: error.message });
     }
 }
-const updateCoverLetterAndResumee = async (req, res, next) => {
+exports.updateCoverLetterAndResumee = async (req, res, next) => {
     //PATCH REQUEST
     //http://localhost:2000/api/jobs/JOBiD/update
     //http://localhost:2000/api/jobs/62902e117ecadf9305054e1a/application/update
@@ -217,7 +217,7 @@ const updateCoverLetterAndResumee = async (req, res, next) => {
 }
 
 
-const updateJobApplication = async (req, res, next) => {
+exports.updateJobApplication = async (req, res, next) => {
     //PATCH REQUEST
     //http://localhost:2000/api/jobs/JOBiD/update
     //http://localhost:2000/api/jobs/62902e117ecadf9305054e1a/application/update
@@ -258,7 +258,7 @@ const updateJobApplication = async (req, res, next) => {
 }
 
 
-const createNewJob = async (req, res, next) => {
+exports.createNewJob = async (req, res, next) => {
     /**
      * POST REQUEST
      * http://localhost:2000/api/jobs/create
@@ -287,7 +287,7 @@ const createNewJob = async (req, res, next) => {
 }
 
 
-const listJobs = async (req, res, next) => {
+exports.listJobs = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/jobs/lists
     
@@ -302,7 +302,7 @@ const listJobs = async (req, res, next) => {
     }
 }
 
-const findJobById  = async (req, res, next) => {
+exports.findJobById  = async (req, res, next) => {
 
     //GET REQUEST
     //http://localhost:2000/api/jobs/jobId/get
@@ -325,7 +325,7 @@ const findJobById  = async (req, res, next) => {
 }
 
 
-const updateJobById  = async (req, res, next) => {
+exports.updateJobById  = async (req, res, next) => {
     const jobId = req.params.jobId;
     try {
         if(!mongoose.Types.ObjectId.isValid(jobId)) {
@@ -341,7 +341,7 @@ const updateJobById  = async (req, res, next) => {
     }
 }
 
-const deleteJobById  = async (req, res, next) => {
+exports.deleteJobById  = async (req, res, next) => {
     const jobId = req.params.jobId;
     try {
         if(!mongoose.Types.ObjectId.isValid(jobId)) {
@@ -355,19 +355,4 @@ const deleteJobById  = async (req, res, next) => {
     } catch (error) {
         return res.status(500).send({ message: error.message });
     }
-}
-
-
-
-module.exports = {
-    createNewJob,
-    listJobs,
-    findJobById,
-    updateJobById,
-    deleteJobById,
-    jobs,
-    jobApplication,
-    updateJobApplication,
-    uploadCoverLetterAndResumee,
-    updateCoverLetterAndResumee
 }

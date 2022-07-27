@@ -19,7 +19,19 @@ const jobSchema = new mongoose.Schema({
 
     userId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     
-}, { timestamps: true });
+}, 
+
+{
+    toJSON: {
+        transform: (document, returnedObject, options) => {
+                    returnedObject.id = returnedObject._id
+                    delete returnedObject._id
+                    delete returnedObject.__v
+        }
+    }
+},
+
+{ timestamps: true });
 
 const Job = mongoose.model('Job', jobSchema);
 

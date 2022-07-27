@@ -9,7 +9,19 @@ const RefreshAccessTokenSchema = new Schema({
       created_At: { type: Date, default: Date.now, expires: 30 * 86400 },
       updated_At: { type: Date, default: Date.now }
       
-});
+}, 
+
+{
+    toJSON: {
+        transform: (document, returnedObject, options) => {
+                    returnedObject.id = returnedObject._id
+                    delete returnedObject._id
+                    delete returnedObject.__v
+        }
+    }
+},
+
+{ timestamps: true });
 
 const RefreshAccessToken = mongoose.model('RefreshAccessToken', RefreshAccessTokenSchema);
 module.exports = RefreshAccessToken;

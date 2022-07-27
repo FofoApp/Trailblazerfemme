@@ -4,7 +4,7 @@ const BlogModel = require('./../../models/blogModel/BlogModel');
 const BlogCategoryModel = require('./../../models/blogModel/BlogCategoryModel');
 const BlogLikeModel = require('./../../models/blogModel/BlogLikeModel');
 
-const blog = async (req, res, next) => {
+exports.blog = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/blog
 
@@ -35,7 +35,7 @@ const blog = async (req, res, next) => {
 }
 
 
-const createNewBlog = async (req, res, next) => {
+exports.createNewBlog = async (req, res, next) => {
     //POST REQUEST
     //http://localhost:2000/api/blog/create
     /**
@@ -102,7 +102,7 @@ const createNewBlog = async (req, res, next) => {
 }
 
 
-const FetchBlogs = async (req, res, next) => {
+exports.FetchBlogs = async (req, res, next) => {
     //GET REQUEST
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
     // http://localhost:2000/api/blog/lists?category=one
@@ -198,7 +198,7 @@ const FetchBlogs = async (req, res, next) => {
 }
 
 
-const FetchBlogById = async (req, res, next) => {
+exports.FetchBlogById = async (req, res, next) => {
     //GET REQUEST
     // http://localhost:2000/api/blog/blogId/show
     // http://localhost:2000/api/blog/6286a710380730138c08e194/show
@@ -266,7 +266,7 @@ const FetchBlogById = async (req, res, next) => {
 }
 
 
-const SearchBlogsByCategoryId = async (req, res, next) => {
+exports.SearchBlogsByCategoryId = async (req, res, next) => {
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
     // try {
         
@@ -288,7 +288,7 @@ const SearchBlogsByCategoryId = async (req, res, next) => {
 
 
 
-const updateBlogById = async (req, res, next) => {
+exports.updateBlogById = async (req, res, next) => {
     //PATH REQUEST
     // http://localhost:2000/api/blog/blogId/update
     // http://localhost:2000/api/blog/6286c236fbc9ab5d15903635/update
@@ -369,7 +369,7 @@ const updateBlogById = async (req, res, next) => {
 
 
 
-const deleteBlogById = async (req, res, next) => {
+exports.deleteBlogById = async (req, res, next) => {
     //DELETE REQUEST
     // http://localhost:2000/api/blog/:blogCategoryId/delete
     // http://localhost:2000/api/blog/6286c236fbc9ab5d15903635/delete
@@ -413,7 +413,7 @@ const deleteBlogById = async (req, res, next) => {
 }
 
 
-const blogLikes = async (req, res, next) => {
+exports.blogLikes = async (req, res, next) => {
     try {
         const blogId = req.params.blogId;
 
@@ -447,15 +447,4 @@ const blogLikes = async (req, res, next) => {
     } catch (error) {
         return res.status(200).send({ message: error.message })
     }
-}
-
-module.exports = {
-    createNewBlog,
-    FetchBlogs,
-    FetchBlogById,
-    updateBlogById,
-    deleteBlogById,
-    SearchBlogsByCategoryId,
-    blogLikes,
-    blog
 }

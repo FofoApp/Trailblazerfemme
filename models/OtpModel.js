@@ -7,7 +7,19 @@ const otpShema = new mongoose.Schema({
     otp: { type: Number, required: true },
     createdDate: { type: Date, default: Date.now, index: { expires: 300 }}
 //GET DELETED AFTER FIVE MINUTES
-}, { timestamps: true })
+}, 
+
+{
+    toJSON: {
+        transform: (document, returnedObject, options) => {
+                    returnedObject.id = returnedObject._id
+                    delete returnedObject._id
+                    delete returnedObject.__v
+        }
+    }
+},
+
+{ timestamps: true });
 
 const Otp = mongoose.model('Otp', otpShema);
 

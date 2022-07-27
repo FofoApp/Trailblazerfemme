@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const BlogCommentModel = require('./../../models/blogModel/BlogCommentModel');
 const BlogModel = require('./../../models/blogModel/BlogModel');
 
-const createNewBlogComment = async (req, res, next) => {
+exports.createNewBlogComment = async (req, res, next) => {
     //NOTE::: REMEMBER TO VALIDATE FOR USER INPUT BEFORE FURTHER PROCESSING
     
     try {
@@ -47,7 +47,7 @@ const createNewBlogComment = async (req, res, next) => {
     }
 }
 
-const FetchBlogComments = async (req, res, next) => {
+exports.FetchBlogComments = async (req, res, next) => {
     //http://localhost:2000/api/blog/6286c236fbc9ab5d15903635/comments
     //http://localhost:2000/api/blog/6286c236fbc9ab5d15903635/comments?perPage=2
     try {
@@ -103,7 +103,7 @@ const FetchBlogComments = async (req, res, next) => {
     }
 }
 
-const FetchBlogCommentById = async (req, res, next) => {
+exports.FetchBlogCommentById = async (req, res, next) => {
     try {
         
     } catch (error) {
@@ -112,7 +112,7 @@ const FetchBlogCommentById = async (req, res, next) => {
 }
 
 
-const SearchBlogCommmentByCommentId = async (req, res, next) => {
+exports.SearchBlogCommmentByCommentId = async (req, res, next) => {
     try {
         
     } catch (error) {
@@ -120,7 +120,7 @@ const SearchBlogCommmentByCommentId = async (req, res, next) => {
     }
 }
 
-const updateBlogCommentById = async (req, res, next) => {
+exports.updateBlogCommentById = async (req, res, next) => {
     //NOTE::: REMEMBER TO VALIDATE FOR USER INPUT BEFORE FURTHER PROCESSING
     try {
         let commentId = req.params.commentId;
@@ -163,7 +163,7 @@ const updateBlogCommentById = async (req, res, next) => {
 }
 
 
-const deleteBlogCommentById = async (req, res, next) => {
+exports.deleteBlogCommentById = async (req, res, next) => {
     try {
         let commentId = req.params.commentId;
         if(!mongoose.Types.ObjectId.isValid(blogId)) {
@@ -203,14 +203,4 @@ const deleteBlogCommentById = async (req, res, next) => {
     } catch (error) {
         return res.status(400).send({ message: error.message});
     }   
-}
-
-
-module.exports = {
-    createNewBlogComment,
-    FetchBlogComments,
-    FetchBlogCommentById,
-    SearchBlogCommmentByCommentId,
-    updateBlogCommentById,
-    deleteBlogCommentById
 }

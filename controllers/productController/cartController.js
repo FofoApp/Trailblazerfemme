@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const CartModel = require('./../../models/productModel/cartModel');
 
-const addToCart = async (req, res, next) => {
+exports.addToCart = async (req, res, next) => {
 
     try {
     
@@ -18,13 +18,4 @@ const addToCart = async (req, res, next) => {
     } catch (error) {
         return res.status(500).send({ message: error.message });
     }
-}
-
-
-
-module.exports = {
-    addToCart,
-    
-
-
 }

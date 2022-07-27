@@ -6,7 +6,19 @@ const communityCommentsSchema = new mongoose.Schema({
     Comment: { type: String, required: true },
     communityId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "Community"},
     
-}, { timestamps: true });
+}, 
+
+{
+    toJSON: {
+        transform: (document, returnedObject, options) => {
+                    returnedObject.id = returnedObject._id
+                    delete returnedObject._id
+                    delete returnedObject.__v
+        }
+    }
+},
+
+{ timestamps: true });
 
 
 const CommunityComments = mongoose.model('CommunityComments', communityCommentsSchema);

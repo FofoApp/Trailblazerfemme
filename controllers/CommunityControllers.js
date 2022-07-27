@@ -5,7 +5,7 @@ const CommunityModel = require('../models/community/CommunityModel');
 const PostModel = require('./../models/postModel/PostModel');
 
 
-const joinCommunity = async (req, res, next) => {
+exports.joinCommunity = async (req, res, next) => {
     //PATCH REQUEST
     //http://localhost:2000/api/community/communityId/join
     //http://localhost:2000/api/community/628f256391763d00e9be6c7a/join
@@ -45,7 +45,7 @@ const joinCommunity = async (req, res, next) => {
     }
 }
 
-const createNewCommunity = async (req, res, next) => {
+exports.createNewCommunity = async (req, res, next) => {
     //http://localhost:2000/api/community/create
     /**
      *  {
@@ -118,7 +118,7 @@ const createNewCommunity = async (req, res, next) => {
 }
 
 
-const listAllCommunities = async (req, res, next) => {
+exports.listAllCommunities = async (req, res, next) => {
 
     //GET REQUEST
     //http://localhost:2000/api/community/lists
@@ -155,7 +155,7 @@ const listAllCommunities = async (req, res, next) => {
 }
 
 
-const getCommunityById = async (req, res, next) => {
+exports.getCommunityById = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/community/communityId/get
     //http://localhost:2000/api/community/628f256391763d00e9be6c7a/get
@@ -176,7 +176,7 @@ const getCommunityById = async (req, res, next) => {
     }
 }
 
-const updateCommunityById = async (req, res, next) => {
+exports.updateCommunityById = async (req, res, next) => {
     //PATCH REQUEST
     //http://localhost:2000/api/community/:communityId/update
     //http://localhost:2000/api/community/628f256391763d00e9be6c7a/update
@@ -195,7 +195,7 @@ const updateCommunityById = async (req, res, next) => {
     }
 }
 
-const deleteCommunityById = async (req, res, next) => {
+exports.deleteCommunityById = async (req, res, next) => {
     //DELETE REQUEST
     //http://localhost:2000/api/community/:communityId/delete
     //http://localhost:2000/api/community/628f256391763d00e9be6c7a/delete
@@ -212,7 +212,7 @@ const deleteCommunityById = async (req, res, next) => {
 }
 
 
-const searchCommunityByParams = async (req, res, next) => {
+exports.searchCommunityByParams = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/community/search
 
@@ -229,17 +229,6 @@ const searchCommunityByParams = async (req, res, next) => {
         return res.status(500).send({ message: error.message });
     }
 }
-
-module.exports = {
-    createNewCommunity,
-    listAllCommunities,
-    getCommunityById,
-    updateCommunityById,
-    deleteCommunityById,
-    searchCommunityByParams,
-    joinCommunity
-}
-
 
 
 

@@ -5,7 +5,19 @@ const groupSchema = new mongoose.Schema({
     groupImagePath: { type: String, required: true },
     description: { type: String, required: true },
     dateJoined: { type: Date, default: Date.now },
-}, { timestamps: true });
+}, 
+
+{
+    toJSON: {
+        transform: (document, returnedObject, options) => {
+                    returnedObject.id = returnedObject._id
+                    delete returnedObject._id
+                    delete returnedObject.__v
+        }
+    }
+},
+
+{ timestamps: true });
 
 
 

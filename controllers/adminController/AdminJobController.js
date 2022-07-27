@@ -39,7 +39,7 @@ exports.jobs = async (req, res, next) => {
 
         const jobCount = await JobModel.find({});
 
-        const users = await UserModel.find({}).select(`-password -__v -updatedAt -following -followers -recentlySearchedBook 
+        const users = await UserModel.find({}).select(`-updatedAt -following -followers -recentlySearchedBook 
         -recentlyPlayedPodcast -booksRead -library -books -createdAt`)
         .limit(limit)
         .skip(skip);
