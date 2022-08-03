@@ -18,18 +18,20 @@ const communitySchema = new mongoose.Schema({
     
 }, 
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.__v
-        }
-    }
-},
-
 { timestamps: true });
 
+
+communitySchema.methods.toJSON = function() {
+    const community = this;
+    const communityObject = community.toObject();
+
+    communityObject.id = communityObject._id
+    delete communityObject._id
+    delete communityObject.__v
+
+    return communityObject
+
+}
 
 const Community = mongoose.model('Community', communitySchema);
 

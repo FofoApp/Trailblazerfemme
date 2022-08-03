@@ -3,6 +3,7 @@ const PodcastModel = require('./../../models/podcast/PodcastModel');
 const PodcastCategoryModel = require('./../../models/podcast/PodcastCategoryModel');
 const PopularPodcastModel = require('./../../models/podcast/PopularPodcastModel');
 const { cloudinary } = require('./../../helpers/cloudinary');
+const User = require('../../../uTubeServer/models/userModel');
 
 
 
@@ -95,15 +96,15 @@ exports.createNewPodcast = async (req, res, next) => {
     "about": "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words whichdon't look even slightly believable.",
     "hosts": "Omoregie & Johnson",
     "tags": "Career, Black Women",
+    "link": "podcastlink.com/podcast/getpodcast"
     "podcastCategoryId":"628aa41619bac3aea4eea770",
     "podcastHostId":"628695d03cf50a6e1a34e27b"
     }
 
     */
+   const { podcastCategoryId, podcastHostId } = req.body;
 
     try {
-        const podcastCategoryId = req.body.podcastCategoryId;
-        const podcastHostId = req.user ? req.user.id : req.body.podcastHostId;        
 
         if(!mongoose.Types.ObjectId.isValid(podcastCategoryId)) {
             return res.status(401).send({ message: "Unknown Podcast Category"})
@@ -129,8 +130,8 @@ exports.createNewPodcast = async (req, res, next) => {
 
         const createPodcast = new PodcastModel({
             ...req.body, podcastCategoryId, podcastHostId,
-             cloudinaryPublicId: uploaderResponse.public_id,
-            imagePath: uploaderResponse.secure_url
+             podcastCloudinaryPublicId: uploaderResponse.public_id,
+            podcastImage: uploaderResponse.secure_url
         });
 
         // const createPodcast = new PodcastModel(req.body);
@@ -147,13 +148,24 @@ exports.listPodcasts = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/podcast/lists
     try {
-        const podcasts = await PodcastModel.find({});
+        const podcasts = await PodcastModel.find({})
+                                            .populate({
+                                                path: 'podcastHostId',
+                                                model: 'User',
+                                                select: 'fullname createdAt',
+                                                populate: {
+                                                    path: 'profileId',
+                                                    model: 'Profile',
+                                                    select: 'id userId profileImage'
+                                                }
+                                            });
         if(!podcasts) {
-            return res.status(200).send({ message: "No podcast available", podcasts: []});
+            return res.status(200).send({ error: "No podcast available"});
         }
+      console.log(podcasts.podcastHostId)
         return res.status(200).send(podcasts);
     } catch (error) {
-        return res.status(200).send({ message: error.message });
+        return res.status(200).send({ error: error.message });
     }
 }
 

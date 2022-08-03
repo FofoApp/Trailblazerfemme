@@ -8,17 +8,17 @@ const membershipSchema = new mongoose.Schema({
     description: { type: String, required: true },
 }, 
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.__v
-        }
-    }
-},
-
 { timestamps: true });
+
+membershipSchema.methods.toJSON = function() {
+    const membership = this;
+    const membershipObject = membership.toObject();
+
+    membershipObject.id = membershipObject._id
+    delete membershipObject._id
+    delete membershipObject.__v
+    return membershipObject
+}
 
 const Membership = mongoose.model('Membership', membershipSchema);
 

@@ -13,17 +13,30 @@ const profileImageSchema = new mongoose.Schema({
 
 }, 
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.__v
-        }
-    }
-},
+// {
+//     toJSON: {
+//         transform: (document, returnedObject, options) => {
+//                     returnedObject.id = returnedObject._id
+//                     delete returnedObject._id
+//                     delete returnedObject.__v
+//         }
+//     }
+// },
 
 { timestamps: true });
+
+
+profileImageSchema.set('toJSON', {
+    // virtuals: true,
+    transform: function(doc, ret, options){
+        ret.id = ret._id;
+        delete ret._id;
+        delete ret.__v;
+
+        return ret;
+    }
+})
+
 
 const Profile = mongoose.model('Profile', profileImageSchema);
 

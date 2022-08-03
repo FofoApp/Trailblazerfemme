@@ -7,17 +7,28 @@ const communityLikesSchema = new mongoose.Schema({
     
 }, 
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.__v
-        }
-    }
-},
+// {
+//     toJSON: {
+//         transform: (document, returnedObject, options) => {
+//                     returnedObject.id = returnedObject._id
+//                     delete returnedObject._id
+//                     delete returnedObject.__v
+//         }
+//     }
+// },
 
 { timestamps: true });
+
+
+communityLikesSchema.methods.toJSON = function() {
+    const communityLikes = this;
+    const communityLikesObject = communityLikes.toObject();
+
+    communityLikesObject.id = communityLikesObject._id
+    delete communityLikesObject._id
+    delete communityLikesObject.__v
+    return communityLikesObject
+}
 
 
 const CommunityLikes = mongoose.model('CommunityLikes', communityLikesSchema);

@@ -23,18 +23,28 @@ const productSchema = new mongoose.Schema({
     categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductCategory' },
 }, 
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.__v
-        }
-    }
-},
+// {
+//     toJSON: {
+//         transform: (document, returnedObject, options) => {
+//                     returnedObject.id = returnedObject._id
+//                     delete returnedObject._id
+//                     delete returnedObject.__v
+//         }
+//     }
+// },
 
 { timestamps: true });
 
+
+productSchema.methods.toJSON = function() {
+    const product = this;
+    const productObject = product.toObject();
+
+    productObject.id = productObject._id
+    delete productObject._id
+    delete productObject.__v
+
+}
 
 const Product = mongoose.model('Product', productSchema);
 

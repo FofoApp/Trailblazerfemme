@@ -5,18 +5,17 @@ const blogLikeSchema = new mongoose.Schema({
     BlogId: { type: mongoose.Schema.Types.ObjectId, ref: 'Blog' },
 }, 
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.__v
-        }
-    }
-},
-
 { timestamps: true });
 
+blogLikeSchema.methods.toJSON = function() {
+    const blogLike = this;
+    const blogLikeObject = blogLike.toObject();
+
+    blogLikeObject.id = blogLikeObject._id
+    delete blogLikeObject._id
+    delete blogLikeObject.__v
+    return blogLikeObject
+}
 
 const BlogLikes = mongoose.model('BlogLikes', blogLikeSchema);
 

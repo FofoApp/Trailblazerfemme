@@ -20,17 +20,27 @@ const postSchema = new mongoose.Schema({
     // comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
 }, 
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.__v
-        }
-    }
-},
+// {
+//     toJSON: {
+//         transform: (document, returnedObject, options) => {
+//                     returnedObject.id = returnedObject._id
+//                     delete returnedObject._id
+//                     delete returnedObject.__v
+//         }
+//     }
+// },
 
 { timestamps: true });
+
+postSchema.methods.toJSON = function() {
+    const post = this;
+    const postObject = post.toObject();
+
+    postObject.id = postObject._id
+    delete postObject._id
+    delete postObject.__v
+    return postObject
+}
 
 const Post = mongoose.model('Post', postSchema);
 

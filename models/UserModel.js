@@ -45,18 +45,21 @@ const userSchema = new Schema({
 
 }, 
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.password;
-                    delete returnedObject.__v
-        }
-    }
-},
-
 { timestamps: true });
+
+
+userSchema.set('toJSON', {
+    // virtuals: true,
+    transform: function(doc, ret, options){
+        ret.id = ret._id;
+        delete ret._id;
+        delete ret.password;
+        delete ret.__v;
+
+        return ret;
+    }
+})
+
 
 userSchema.pre('save', async function(next) {
     let user = this;

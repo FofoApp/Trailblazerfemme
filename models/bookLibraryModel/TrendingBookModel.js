@@ -6,5 +6,16 @@ const trendingSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
+trendingSchema.methods.toJSON = function() {
+    const trending = this;
+    const trendingObject = trending.toObject();
+
+    trendingObject.id = trendingObject._id
+    delete trendingObject._id
+    delete trendingObject.__v
+    return trendingObject
+}
+
+
 const TrendingBook = mongoose.model('TrendingBook', trendingSchema);
 module.exports = TrendingBook;

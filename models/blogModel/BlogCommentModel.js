@@ -13,17 +13,17 @@ const blogCommentSchema = new mongoose.Schema({
     ],
 }, 
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.__v
-        }
-    }
-},
-
 { timestamps: true });
+
+blogCommentSchema.methods.toJSON = function() {
+    const blogComment = this;
+    const blogCommentObject = blogComment.toObject();
+
+    blogCommentObject.id = blogCommentObject._id
+    delete blogCommentObject._id
+    delete blogCommentObject.__v
+    return blogCommentObject
+}
 
 const BlogComment = mongoose.model('BlogComment', blogCommentSchema);
 

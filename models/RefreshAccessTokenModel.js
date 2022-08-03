@@ -11,17 +11,27 @@ const RefreshAccessTokenSchema = new Schema({
       
 }, 
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.__v
-        }
-    }
-},
+// {
+//     toJSON: {
+//         transform: (document, returnedObject, options) => {
+//                     returnedObject.id = returnedObject._id
+//                     delete returnedObject._id
+//                     delete returnedObject.__v
+//         }
+//     }
+// },
 
 { timestamps: true });
+
+RefreshAccessTokenSchema.methods.toJSON = function() {
+    const refreshToken = this;
+    const refreshTokenObject = refreshToken.toObject();
+
+    refreshTokenObject.id = refreshTokenObject._id
+    delete refreshTokenObject._id
+    delete refreshTokenObject.__v
+    return refreshTokenObject
+}
 
 const RefreshAccessToken = mongoose.model('RefreshAccessToken', RefreshAccessTokenSchema);
 module.exports = RefreshAccessToken;

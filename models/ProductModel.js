@@ -7,17 +7,27 @@ const ProductSchema = new Schema({
       price: { type: Number, required: true }
 }, 
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.__v
-        }
-    }
-},
+// {
+//     toJSON: {
+//         transform: (document, returnedObject, options) => {
+//                     returnedObject.id = returnedObject._id
+//                     delete returnedObject._id
+//                     delete returnedObject.__v
+//         }
+//     }
+// },
 
 { timestamps: true });
+
+ProductSchema.methods.toJSON = function() {
+    const product = this;
+    const productObject = product.toObject();
+
+    productObject.id = productObject._id
+    delete productObject._id
+    delete productObject.__v
+    return productObject
+}
 
 const Product = mongoose.model('Product', ProductSchema);
 module.exports = Product;

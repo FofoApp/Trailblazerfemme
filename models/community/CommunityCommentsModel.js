@@ -8,17 +8,17 @@ const communityCommentsSchema = new mongoose.Schema({
     
 }, 
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.__v
-        }
-    }
-},
-
 { timestamps: true });
+
+communityCommentsSchema.methods.toJSON = function() {
+    const communityComments = this;
+    const communityCommentsObject = communityComments.toObject();
+
+    communityCommentsObject.id = communityCommentsObject._id
+    delete communityCommentsObject._id
+    delete communityCommentsObject.__v
+    return communityCommentsObject
+}
 
 
 const CommunityComments = mongoose.model('CommunityComments', communityCommentsSchema);

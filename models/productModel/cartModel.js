@@ -12,17 +12,27 @@ const cartSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
 }, 
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.__v
-        }
-    }
-},
+// {
+//     toJSON: {
+//         transform: (document, returnedObject, options) => {
+//                     returnedObject.id = returnedObject._id
+//                     delete returnedObject._id
+//                     delete returnedObject.__v
+//         }
+//     }
+// },
 
 { timestamps: true });
+
+cartSchema.methods.toJSON = function() {
+    const cart = this;
+    const cartObject = cart.toObject();
+
+    cartObject.id = cartObject._id
+    delete cartObject._id
+    delete cartObject.__v
+    return cartObject
+}
 
 const Cart = mongoose.model('Cart', cartSchema);
 

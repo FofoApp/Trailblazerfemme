@@ -22,18 +22,27 @@ const bookSchema = new mongoose.Schema({
 
 },
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.__v
-        }
-    }
-},
+// {
+//     toJSON: {
+//         transform: (document, returnedObject, options) => {
+//                     returnedObject.id = returnedObject._id
+//                     delete returnedObject._id
+//                     delete returnedObject.__v
+//         }
+//     }
+// },
 
 { timestamps: true });
 
+bookSchema.methods.toJSON = function() {
+    const book = this;
+    const bookObject = book.toObject();
+
+    bookObject.id = bookObject._id
+    delete bookObject._id
+    delete bookObject.__v
+    return bookObject
+}
 
 const Book  = mongoose.model('Book', bookSchema);
 

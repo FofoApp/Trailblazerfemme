@@ -18,17 +18,27 @@ const jobApplicationSchema = new mongoose.Schema({
     
 }, 
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.__v
-        }
-    }
-},
+// {
+//     toJSON: {
+//         transform: (document, returnedObject, options) => {
+//                     returnedObject.id = returnedObject._id
+//                     delete returnedObject._id
+//                     delete returnedObject.__v
+//         }
+//     }
+// },
 
 { timestamps: true });
+
+jobApplicationSchema.methods.toJSON = function() {
+    const jobApplication = this;
+    const jobApplicationObject = jobApplication.toObject();
+
+    jobApplicationObject.id = jobApplicationObject._id
+    delete jobApplicationObject._id
+    delete jobApplicationObject.__v
+    return jobApplicationObject
+}
 
 
 const JobApplication = mongoose.model("JobApplication", jobApplicationSchema);

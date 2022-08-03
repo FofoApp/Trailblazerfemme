@@ -7,18 +7,28 @@ const followersAndFollowingSchema = new mongoose.Schema({
   following: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 }, 
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.__v
-        }
-    }
-},
+// {
+//     toJSON: {
+//         transform: (document, returnedObject, options) => {
+//                     returnedObject.id = returnedObject._id
+//                     delete returnedObject._id
+//                     delete returnedObject.__v
+//         }
+//     }
+// },
 
 { timestamps: true });
 
+followersAndFollowingSchema.methods.toJSON = function() {
+  const followersAndFollowing = this;
+  const followersAndFollowingObject = followersAndFollowing.toObject();
+
+  followersAndFollowingObject.id = followersAndFollowingObject._id
+  delete followersAndFollowingObject._id
+  delete followersAndFollowingObject.__v
+  return followersAndFollowingObject
+
+}
 
 const FollowersAndFollowings = mongoose.model("FollowersAndFollowings", followersAndFollowingSchema);
 module.exports = FollowersAndFollowings;

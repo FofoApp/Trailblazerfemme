@@ -5,17 +5,27 @@ const bookCategorySchema = new mongoose.Schema({
     iconName: { type: String, default: null }
 },
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.__v
-        }
-    }
-},
+// {
+//     toJSON: {
+//         transform: (document, returnedObject, options) => {
+//                     returnedObject.id = returnedObject._id
+//                     delete returnedObject._id
+//                     delete returnedObject.__v
+//         }
+//     }
+// },
 
 { timestamps: true });
+
+bookCategorySchema.methods.toJSON = function() {
+    const bookCategory = this;
+    const bookCategoryObject = bookCategory.toObject();
+
+    bookCategoryObject.id = bookCategoryObject._id
+    delete bookCategoryObject._id
+    delete bookCategoryObject.__v
+    return bookCategoryObject
+}
 
 
 const BookCategory = mongoose.model('BookCategory', bookCategorySchema);

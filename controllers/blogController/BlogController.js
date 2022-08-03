@@ -15,9 +15,29 @@ exports.blog = async (req, res, next) => {
 
         const categories = await BlogCategoryModel.find({}).select('-__v -createdAt -updatedAt');
         const blogs = await BlogModel.find()
-                                    .populate("createdBy", "fullname email")
-                                    .populate("comments.commentedBy", "fullname")
-                                    .populate("comments.userProfile", "profileImage")
+                                        .select('createdAt title blogLikes description blogImagePath createdBy blogviews comments')
+                        
+                                        .populate({
+                                            path: 'createdBy',
+                                            model: 'User',
+                                            select: 'fullname createdAt',
+                                            populate: {
+                                                path: 'profileId',
+                                                model: 'Profile',
+                                                select: 'id userId profileImage'
+                                            }
+                                        })
+                                        .populate({
+                                            path: 'comments.commentedBy',
+                                            model: 'User',
+                                            select: 'fullname createdAt',
+
+                                            populate: {
+                                                path: 'profileId',
+                                                model: 'Profile',
+                                                select: 'id userId profileImage'
+                                            }
+                                        })
                                     
 
        const newBlog =  await BlogModel.find({}).where('blogviews').size(1)
@@ -88,8 +108,17 @@ exports.createNewBlog = async (req, res, next) => {
         }
 
         let blogs = await BlogModel.find()
-                                     .populate('createdBy', 'fullname email')
-                                     .populate('blogCategory', 'name slug')
+                                    .populate({           
+                                        path: 'createdBy',
+                                        select: 'fullname',
+                                        model: 'User',
+                                        populate: {
+                                            path: 'profileId',
+                                            model: 'Profile',
+                                            select: 'comment commentDate userId profileImage ',
+                                        },
+                                        
+                                    })
 
         return res.status(200).send({ message: "Blog Created Successfully", blogs });
     } catch (error) {
@@ -105,6 +134,8 @@ exports.FetchBlogs = async (req, res, next) => {
     // http://localhost:2000/api/blog/lists?pages=1&perPage=2
     // http://localhost:2000/api/blog/lists?sortBy=title&sortOrder=asc
     // http://localhost:2000/api/blog/lists
+
+
     try {
 
         let query = [
@@ -348,15 +379,31 @@ exports.updateBlogById = async (req, res, next) => {
 
 exports.blogComment = async (req, res, next) => {
     try {
-        console.log(req.user.id)
+        // console.log(req.user.id)
         let {comment} = req.body;
+
         let profile = await ProfileModel.findOne({ userId: req.user.id});
 
-        comment = { comment: comment, commentedBy: mongoose.Types.ObjectId(req.user.id), userProfile: mongoose.Types.ObjectId(profile.id) }
+        // comment = { comment: comment, commentedBy: mongoose.Types.ObjectId(req.user.id), userProfile: mongoose.Types.ObjectId(profile.id) }
+        
+        comment = { comment: comment, commentedBy: mongoose.Types.ObjectId(req.user.id)}
 
-            const result = await BlogModel.findByIdAndUpdate(req.params.blogId, {$push: { comments: comment }}, {new: true})
-            .populate("comments.commentedBy", "fullname")
-            .populate("comments.userProfile", 'profileImage');
+        let  result = await BlogModel.findByIdAndUpdate(req.params.blogId, {$push: { comments: comment }}, {new: true})
+        .select('title description blogImagePath blogLikes blogviews comments')
+        .populate("createdBy", "fullname profileImage createdAt")
+        .populate("comments.commentedBy", "fullname commentDate profileImage")
+      
+        // .populate("comments", "title commentDate description blogImagePath")
+        // .populate({
+        //     path: 'comments.commentedBy',
+        //     model: 'User',
+        //     populate: {
+        //         path: 'profileId',
+        //         model: 'Profile',
+        //         select: 'comment commentDate comment userId profileImage ',
+        //     },
+            
+        // })
 
         return res.status(200).send(result);
 
@@ -434,8 +481,11 @@ exports.deleteBlogById = async (req, res, next) => {
 
 
 exports.blogLikes = async (req, res, next) => {
+
+    const { blogId } = req.params;
+    let currentUser = req.user.id;
+
     try {
-        const { blogId } = req.params;
         let message = '';
         if(!mongoose.Types.ObjectId.isValid(blogId)){
             return res.status(400).send({ error:'Invalid blog id' });
@@ -447,15 +497,19 @@ exports.blogLikes = async (req, res, next) => {
             return res.status(400).send({ error: "Blog not found" });
         }
 
-        let currentUser = req.user.id;
+      
+        if (findBlogExist.createdBy.toString() === currentUser.toString()) {
+            message = "You can't like/unlike you own post";
+            return res.status(200).send({message})
+        }
 
         if(findBlogExist.blogLikes.includes(currentUser)) {
 
             findBlogExist.blogLikes.pull(currentUser)
-            message = 'Blog post disliked';
+            message = 'Disliked';
         }else {
             findBlogExist.blogLikes.push(currentUser)
-            message = 'Blog post liked';
+            message = 'Liked';
         }
 
         findBlogExist.save();

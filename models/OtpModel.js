@@ -1,7 +1,7 @@
 
 const mongoose = require('mongoose');
 
-const otpShema = new mongoose.Schema({
+const otpSchema = new mongoose.Schema({
     userId: { type: String, required: true },
     phonenumber: {type: String, required: true },
     otp: { type: Number, required: true },
@@ -9,18 +9,28 @@ const otpShema = new mongoose.Schema({
 //GET DELETED AFTER FIVE MINUTES
 }, 
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.__v
-        }
-    }
-},
+// {
+//     toJSON: {
+//         transform: (document, returnedObject, options) => {
+//                     returnedObject.id = returnedObject._id
+//                     delete returnedObject._id
+//                     delete returnedObject.__v
+//         }
+//     }
+// },
 
 { timestamps: true });
 
-const Otp = mongoose.model('Otp', otpShema);
+otpSchema.methods.toJSON = function() {
+    const otp = this;
+    const otpObject = otp.toObject();
+
+    otpObject.id = otpObject._id
+    delete otpObject._id
+    delete otpObject.__v
+    return otpObject
+}
+
+const Otp = mongoose.model('Otp', otpSchema);
 
 module.exports = Otp;

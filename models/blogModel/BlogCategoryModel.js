@@ -5,18 +5,25 @@ const blogCategorySchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true }
 }, 
 
-{
-    toJSON: {
-        transform: (document, returnedObject, options) => {
-                    returnedObject.id = returnedObject._id
-                    delete returnedObject._id
-                    delete returnedObject.__v
-        }
-    }
-},
-
 { timestamps: true });
 
+blogCategorySchema.set('toJSON', {
+    transform: function(doc, ret, options){
+        ret.id = ret._id;
+        delete ret._id;
+        delete ret.__v;
+    }
+})
+
+// blogCategorySchema.methods.toJSON = function() {
+//     const blogCategory = this;
+//     const blogCategoryObject = blogCategory.toObject();
+
+//     blogCategoryObject.id = blogCategoryObject._id
+//     delete blogCategoryObject._id
+//     delete blogCategoryObject.__v
+
+// }
 
 const BlogCategory = mongoose.model('BlogCategory', blogCategorySchema);
 
