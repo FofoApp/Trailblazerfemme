@@ -3,7 +3,7 @@ const PodcastModel = require('./../../models/podcast/PodcastModel');
 const PodcastCategoryModel = require('./../../models/podcast/PodcastCategoryModel');
 const PopularPodcastModel = require('./../../models/podcast/PopularPodcastModel');
 const { cloudinary } = require('./../../helpers/cloudinary');
-const User = require('../../../uTubeServer/models/userModel');
+
 
 
 
