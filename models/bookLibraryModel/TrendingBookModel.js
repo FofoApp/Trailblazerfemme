@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 const trendingSchema = new mongoose.Schema({
-    userId: {  type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    bookId: {  type: mongoose.Schema.Types.ObjectId, ref: 'Book' },
+    userId: [{  type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    bookId: [{  type: mongoose.Schema.Types.ObjectId, ref: 'Book' }],
 }, { timestamps: true });
 
 

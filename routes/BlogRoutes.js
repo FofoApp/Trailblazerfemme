@@ -11,13 +11,16 @@
     //BLOG ROUTES
     
     router.get('/', verifyAccessToken, BlogController.blog);
+    // router.get('/:blogId/details', verifyAccessToken, BlogController.getSpecificBlogAndItsComments);
     router.post('/create', verifyAccessToken, permissions(["admin"]), upload.single('blogImage'),  BlogController.createNewBlog);
     router.get('/lists', verifyAccessToken, BlogController.FetchBlogs);
     router.get('/:blogId/show', verifyAccessToken, verifyAccessToken, BlogController.FetchBlogById);
     router.patch('/:blogId/update', verifyAccessToken, permissions(["admin"]),  upload.single('blogImage'), BlogController.updateBlogById);
     
     //COMMENT AND DELETE COMMENT
-    router.patch('/:blogId/comment', verifyAccessToken, BlogController.blogComment);
+    router.get('/:blogId/comments', verifyAccessToken, BlogController.listBlogComment);
+    router.post('/:blogId/comment/create', verifyAccessToken, BlogController.blogComment);
+    // router.patch('/:blogId/comment', verifyAccessToken, BlogController.blogComment);
     router.patch('/:blogId/delete-blog-comment', verifyAccessToken, permissions(["admin"]),  BlogController.deleteBlogComment);
 
     //LIKE AND DISLIKE

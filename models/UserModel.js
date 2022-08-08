@@ -29,19 +29,27 @@ const userSchema = new Schema({
     location: { type: String, default: null },
     socialLinks: { type: [String] },
     roles: { type: [String], enum: ["user", "admin", "superAdmin"], default: "user"},
+    // profileId: { type: mongoose.Schema.Types.ObjectId, ref: "Profile" },
 
-    books: { type: mongoose.Schema.Types.ObjectId, ref: "Book"},
+    profileImageCloudinaryPublicId: { type: String  },
+    profileImage: { type: String },
+
+    // post: { type: Array },
+    
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+
+
+    books: [{ type: mongoose.Schema.Types.ObjectId, ref: "Book"}],
 
     recentlySearchedBook: [{ type: mongoose.Schema.Types.ObjectId, ref: "Book"}],
     recentlyPlayedPodcast: [{ type: mongoose.Schema.Types.ObjectId, ref: "Podcast"} ],
     
     booksRead: [{ type: mongoose.Schema.Types.ObjectId, ref: "Book"}],
 
-    profileId: { type: mongoose.Schema.Types.ObjectId, ref: "Profile" },
-
     trending: [{ type: mongoose.Schema.Types.ObjectId, ref: "TrendingBook"}],
 
-    library: [{ type: mongoose.Schema.Types.ObjectId, ref: "MyLibrary"}],
+    library: [{ type: mongoose.Schema.Types.ObjectId, ref: "Book"}],
 
 }, 
 

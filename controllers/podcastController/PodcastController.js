@@ -70,7 +70,7 @@ exports.podcasts = async (req, res, next) => {
             ]
         );
         
-        return res.status(200).send({ message: "Podcast", 
+        return res.status(200).send({
         categories: podcastCategories,
         recentlyPlayedPodcast,
         topPodcasters,
@@ -79,7 +79,7 @@ exports.podcasts = async (req, res, next) => {
     });
         
         } catch (error) {
-            return res.status(500).send({ message: error.message });
+            return res.status(500).send({ error: error.message });
         }
 }
 

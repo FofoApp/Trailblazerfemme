@@ -2,14 +2,54 @@ const fs = require('fs');
 const mongoose = require('mongoose');
 
 const BlogModel = require('./../../models/blogModel/BlogModel');
+const BlogCommentModel = require('./../../models/blogModel/BlogCommentModel');
 const BlogCategoryModel = require('./../../models/blogModel/BlogCategoryModel');
 const BlogLikeModel = require('./../../models/blogModel/BlogLikeModel');
 const ProfileModel = require('./../../models/ProfileImageModel');
 const { cloudinary } = require('./../../helpers/cloudinary');
 
+exports.getSpecificBlogAndItsComments = async (req, res, next) => {
+    const testBlog = await BlogModel.aggregate([
+        { $lookup: { from: "users", localField: 'createdBy', foreignField: "_id", as: "author" } },
+        {$unwind: "$author" },
+        { $lookup: { from: "blogcomments", localField: '_id', foreignField: "blogId", as: "comments" } },
+        { $lookup: { from: "profiles", localField: 'comments.userWhoCommentId', foreignField: "userId", as: "profile" } },
+        { $project: { 
+            _id: 1, 
+            title:1, 
+            description:1, 
+            blogImagePath:1, 
+            profile:1,
+             "author._id":1, 
+             "author.fullname":1,
+            "author.profileImage":1,
+            "comments": 1,
+            "comments": {
+                "$map": {
+                    "input": "$comments",
+                    "as": "comment",
+                    "in": {
+                        "_id": "$$comment._id",
+                        "comment": "$$comment.comment",
+                        "createdDate": "$$comment.createdAt",
+                        "userWhoCommentId": "$$comment._id",
+
+                        "profileImage": "$$comment.userWhoComment.profileImage",
+                        "fullname": "$$comment.userWhoComment.fullname",
+                    }
+                }
+            }
+    
+        }  }
+        ]);
+}
+
 exports.blog = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/blog
+    const userId = "628695d03cf50a6e1a34e27b";
+    let blogId = req.params.blogId;
+
 
     try {
 
@@ -20,17 +60,17 @@ exports.blog = async (req, res, next) => {
                                         .populate({
                                             path: 'createdBy',
                                             model: 'User',
-                                            select: 'fullname createdAt',
-                                            populate: {
-                                                path: 'profileId',
-                                                model: 'Profile',
-                                                select: 'id userId profileImage'
-                                            }
+                                            select: 'fullname profileImage createdAt',
+                                            // populate: {
+                                            //     path: 'profileId',
+                                            //     model: 'Profile',
+                                            //     select: 'id userId profileImage'
+                                            // }
                                         })
                                         .populate({
                                             path: 'comments.commentedBy',
                                             model: 'User',
-                                            select: 'fullname createdAt',
+                                            select: 'fullname profileImage createdAt',
 
                                             populate: {
                                                 path: 'profileId',
@@ -110,13 +150,13 @@ exports.createNewBlog = async (req, res, next) => {
         let blogs = await BlogModel.find()
                                     .populate({           
                                         path: 'createdBy',
-                                        select: 'fullname',
+                                        select: 'fullname profileImage',
                                         model: 'User',
-                                        populate: {
-                                            path: 'profileId',
-                                            model: 'Profile',
-                                            select: 'comment commentDate userId profileImage ',
-                                        },
+                                        // populate: {
+                                        //     path: 'profileId',
+                                        //     model: 'Profile',
+                                        //     select: 'comment commentDate userId profileImage ',
+                                        // },
                                         
                                     })
 
@@ -140,7 +180,7 @@ exports.FetchBlogs = async (req, res, next) => {
 
         let query = [
 			{
-				$lookup: { from: "users", localField: "created_by", foreignField: "_id", as: "creator" },
+				$lookup: { from: "users", localField: "createdBy", foreignField: "_id", as: "creator" },
                 
 			},
             {$unwind: '$creator'},
@@ -194,15 +234,16 @@ exports.FetchBlogs = async (req, res, next) => {
 	    		"title": 1,
 	    		"short_description":1,
 	    		"description":1,
-				"image":1,
+				"blogImagePath":1,
 	    		"category_details.name":1,
 				"category_details.slug":1,
 				"category_details._id":1,
 				"creator._id":1 ,
 	    		"creator.email":1 ,
 	    		"creator.fullname":1 ,
-	    		"comments_count":{$size:{"$ifNull":["$blog_comments",[]]}},
-	    		"likes_count":{$size:{"$ifNull":["$blog_likes",[]]}}
+	    		"creator.profileImage":1 ,
+	    		"comments_count":{$size:{"$ifNull":["$blogComments",[]]}},
+	    		"likes_count":{$size:{"$ifNull":["$blogLikes",[]]}}
 	    		} 
 	    	}
 	    );
@@ -240,17 +281,70 @@ exports.FetchBlogById = async (req, res, next) => {
 		}
         const findBlogExist = await BlogModel.findById(blogId);
 
-        if(!findBlogExist.blogviews.includes(currentUser)) {
-            findBlogExist = await BlogModel.updateOne({ _id: findBlogExist.id}, {$push: { "blogviews": currentUser }});
-        }
-
         if(!findBlogExist) {
             return res.status(401).send({ message: "Blog not found" });
         }
 
-        let blogPost = await BlogModel.findById(blogId)
-                                    .populate('createdByUserId')
-                                    .populate('blogCategoryId', 'name slug')
+        if(!findBlogExist.blogviews.includes(currentUser)) {
+            findBlogExist = await BlogModel.updateOne({ _id: findBlogExist.id}, {$addToSet: { "blogviews": currentUser }});
+        }
+
+        // let blogPost = await BlogModel.findById(blogId)
+        //                             .populate('createdBy', 'fullname createdAt profileImage blogLikes blogviews')
+        //                             .populate('blogCategory', 'name slug')
+        //                             .populate('blogComments')
+
+
+        let blogPost = await BlogModel.aggregate([
+            { $match: { '_id': { '$eq': mongoose.Types.ObjectId(blogId) }  } },
+            { $lookup: { from: "users", localField: 'createdBy', foreignField: "_id", as: "author" } },
+            {$unwind: "$author" },
+    
+            { $lookup: { from: "blogcomments", 
+                    let: { blogId: "$_id" },
+                    pipeline: [ 
+                    { 
+                        $match: { $expr: {$eq: ["$$blogId", "$blogId"]  }  }  
+                    }, 
+                    {
+                        $lookup: { from: "users", localField: 'userWhoComment', foreignField: "_id", as: "userWhoComment" } ,
+    
+                    },
+                    { $unwind: "$userWhoComment"  }
+                ],
+                        as: "comments",
+                    
+            } },
+    
+            { $project: { 
+                _id: 0,
+                id: "$_id",
+                title:1, 
+                description:1, 
+                blogImagePath:1, 
+                "author.id": "$author._id",
+                 "author._id":null, 
+                 "author.fullname":1,
+                "author.profileImage":1,
+                // "comments": 1,
+                "comments": {
+                    "$map": {
+                        "input": "$comments",
+                        "as": "comment",
+                        "in": {
+                            "id": "$$comment._id",
+                            "comment": "$$comment.comment",
+                            "createdDate": "$$comment.createdAt",
+                            "fullname": "$$comment.userWhoComment.fullname",
+                            "commentUserImage": "$$comment.userWhoComment.profileImage",
+                            "commentUserId": "$$comment.userWhoComment._id",
+                        }
+                    }
+                }
+    
+            }  }
+    
+            ]);
 
         return res.status(200).send(blogPost);
     } catch (error) {
@@ -301,19 +395,19 @@ exports.updateBlogById = async (req, res, next) => {
     try {
 
         if(!mongoose.Types.ObjectId.isValid(blogId)){
-            return res.status(400).send({ message:'Invalid blog id', blogPost: {} });
+            return res.status(400).send({ message:'Invalid blog id' });
         }
 
         const findBlogExist = await BlogModel.findById(blogId);
 
         if(!findBlogExist) {
-            return res.status(404).send({ message: "Blog not found", blogPost: {}  });
+            return res.status(404).send({ message: "Blog not found" });
         }
 
         let currentUser = req.user.id;
 
         if(findBlogExist.createdBy.toString() !== currentUser.toString()){
-            return res.status(400).send({ message:'Access denied', blogPost: {} });
+            return res.status(400).send({ message:'Access denied! You can only update your own post' });
         }
 
         //Upload Image to cloudinary
@@ -338,9 +432,9 @@ exports.updateBlogById = async (req, res, next) => {
 
         await BlogModel.updateOne({_id: findBlogExist._id},{ $set: updateData });
 
-         let query=[
+         let query = [
             {
-                $lookup: { from: "users", localField: "created_by", foreignField: "_id", as: "creator" }
+                $lookup: { from: "users", localField: "createdBy", foreignField: "_id", as: "creator" }
             },
             {$unwind: '$creator'},
             {
@@ -363,8 +457,8 @@ exports.updateBlogById = async (req, res, next) => {
                 "category_details._id":1,
                 "creator._id":1 ,
                 "creator.email":1 ,
-                "comments_count":{$size:{"$ifNull":["$blog_comments",[]]}},
-                "likes_count":{$size:{"$ifNull":["$blog_likes",[]]}}
+                "comments_count":{$size:{"$ifNull":["$blogComments",[]]}},
+                "likes_count":{$size:{"$ifNull":["$blogLikes",[]]}}
                 } 
             }
         ]
@@ -377,41 +471,95 @@ exports.updateBlogById = async (req, res, next) => {
     }
 }
 
-exports.blogComment = async (req, res, next) => {
+exports.listBlogComment = async (req, res, next) => {
+    const blogId = req.params.blogId;
     try {
-        // console.log(req.user.id)
-        let {comment} = req.body;
 
-        let profile = await ProfileModel.findOne({ userId: req.user.id});
+        const findBlog = await BlogModel.findById(blogId);
+        if(!findBlog) return res.status(404).send({ error: "Blog not found"});
 
-        // comment = { comment: comment, commentedBy: mongoose.Types.ObjectId(req.user.id), userProfile: mongoose.Types.ObjectId(profile.id) }
+        let query=[
+            { $lookup: { from: "users", localField: "userWhoComment", foreignField: "_id", as: "userComment" } },
+            {$unwind: '$userComment'},
+            { $match: { 'blogId': mongoose.Types.ObjectId(blogId) } },
+            { $sort: { createdAt:-1 } },
+           { $project: { _id: 1, createdAt:1, comment:1, blogId:1, "userComment._id":1, "userComment.fullname":1, "userComment.createdAt":1  }  }
+        ];
+
+        /**
+         * 
+         * "_id": "62ecd9dbe704a403d542f197",
+            "comment": "My second Awesome comment ",
+            "blogId": "62e27d64ceefca38901a272e",
+            "userWhoComment": "628696153cf50a6e1a34e2c5",
+            "comments": [],
+            "createdAt": "2022-08-05T08:50:35.516Z",
+         */
+
+        const comments  = await BlogCommentModel.aggregate(query);
+
+        return res.status(200).send(comments);
         
-        comment = { comment: comment, commentedBy: mongoose.Types.ObjectId(req.user.id)}
-
-        let  result = await BlogModel.findByIdAndUpdate(req.params.blogId, {$push: { comments: comment }}, {new: true})
-        .select('title description blogImagePath blogLikes blogviews comments')
-        .populate("createdBy", "fullname profileImage createdAt")
-        .populate("comments.commentedBy", "fullname commentDate profileImage")
-      
-        // .populate("comments", "title commentDate description blogImagePath")
-        // .populate({
-        //     path: 'comments.commentedBy',
-        //     model: 'User',
-        //     populate: {
-        //         path: 'profileId',
-        //         model: 'Profile',
-        //         select: 'comment commentDate comment userId profileImage ',
-        //     },
-            
-        // })
-
-        return res.status(200).send(result);
-
     } catch (error) {
-        console.log(error)
         return res.status(500).send({ error: error.message });
     }
 }
+
+
+exports.blogComment = async (req, res, next) => {
+    let { comment } = req.body;
+    const userWhoComment =  mongoose.Types.ObjectId(req.user.id);
+    const blogId = req.params.blogId;
+    try {
+        let commentData = { comment, blogId, userWhoComment };
+
+        let profile = await ProfileModel.findOne({ userId: req.user.id});
+        
+
+        // let  result = await BlogModel.findByIdAndUpdate(req.params.blogId, {$push: { comments: comment }}, {new: true})
+        // .select('title description blogImagePath blogLikes blogviews comments')
+        // .populate("createdBy", "fullname profileImage createdAt")
+        // .populate("comments.commentedBy", "fullname commentDate profileImage")
+
+        const newComment = new BlogCommentModel(commentData);
+        const savedBlogComment = await newComment.save();
+
+        await BlogModel.findByIdAndUpdate(blogId, { $push: {blogComments: savedBlogComment._id } } );
+
+
+        return res.status(200).send(savedBlogComment);
+
+        } catch (error) {
+            // console.log(error)
+            return res.status(500).send({ error: error.message });
+        }
+}
+
+// exports.blogComment = async (req, res, next) => {
+//     let {comment} = req.body;
+//     const commentedBy =  mongoose.Types.ObjectId(req.user.id);
+//     try {
+
+  
+
+//         let profile = await ProfileModel.findOne({ userId: req.user.id});
+
+//         // comment = { comment: comment, commentedBy: mongoose.Types.ObjectId(req.user.id), userProfile: mongoose.Types.ObjectId(profile.id) }
+        
+//         comment = { comment: comment, commentedBy};
+
+//         let  result = await BlogModel.findByIdAndUpdate(req.params.blogId, {$push: { comments: comment }}, {new: true})
+//         .select('title description blogImagePath blogLikes blogviews comments')
+//         .populate("createdBy", "fullname profileImage createdAt")
+//         .populate("comments.commentedBy", "fullname commentDate profileImage")
+
+//         return res.status(200).send(result);
+
+//         } catch (error) {
+//             // console.log(error)
+//             return res.status(500).send({ error: error.message });
+//         }
+// }
 
 
 exports.deleteBlogComment = (req, res, next) => {
@@ -507,9 +655,12 @@ exports.blogLikes = async (req, res, next) => {
 
             findBlogExist.blogLikes.pull(currentUser)
             message = 'Disliked';
-        }else {
+
+        } else {
+
             findBlogExist.blogLikes.push(currentUser)
             message = 'Liked';
+
         }
 
         findBlogExist.save();

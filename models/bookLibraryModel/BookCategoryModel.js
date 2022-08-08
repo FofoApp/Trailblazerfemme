@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
+const { ObjectId} = mongoose.Schema;
 
 const bookCategorySchema = new mongoose.Schema({
     title: { type: String, required: true, unique: true },
-    iconName: { type: String, default: null }
+    iconName: { type: String, default: null },
+    books: [{ type: ObjectId, ref: "Book"}],
 },
 
 // {
@@ -17,15 +19,17 @@ const bookCategorySchema = new mongoose.Schema({
 
 { timestamps: true });
 
-bookCategorySchema.methods.toJSON = function() {
-    const bookCategory = this;
-    const bookCategoryObject = bookCategory.toObject();
+bookCategorySchema.set('toJSON', {
+    virtuals: true,
+    transform: function(doc, ret, options){
+        ret.id = ret._id;
+        delete ret._id;
+        delete ret.password;
+        delete ret.__v;
 
-    bookCategoryObject.id = bookCategoryObject._id
-    delete bookCategoryObject._id
-    delete bookCategoryObject.__v
-    return bookCategoryObject
-}
+        return ret;
+    }
+})
 
 
 const BookCategory = mongoose.model('BookCategory', bookCategorySchema);

@@ -11,14 +11,15 @@ const blogModelSchema = new mongoose.Schema({
     {
         comment: String,
         commentDate: { type: Date, default: Date.now() },
-        commentedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        commentedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        blogId: {type: mongoose.Schema.Types.ObjectId, ref: 'Blog' },
         // userProfile: {type: mongoose.Schema.Types.ObjectId, ref: 'Profile' },
     },
 ],
 
  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
  blogCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'BlogCategory', required: true},
-//  blogComment: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BlogComment' }],
+ blogComments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BlogComment' }],
  blogLikes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
  blogviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 //  toJSON: { virtuals: true },

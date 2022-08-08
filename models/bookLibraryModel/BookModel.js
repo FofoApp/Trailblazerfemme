@@ -13,36 +13,38 @@ const bookSchema = new mongoose.Schema({
     cloudinaryPublicId: { type: String, required: true },
     bookImage: { type: String, required: true },
     bookCategoryId:{ type: ObjectId, ref: "BookCategory"},
-
-
-    recentSearch: [{ type: ObjectId, ref: "Book" }],
-    readers: [{ type:ObjectId, ref: "Book"}],
+    readers: [{ type: ObjectId, ref: "User"}],
     createdBy: { type: ObjectId, ref: "User"},
-    trendingBookId: [{ type: ObjectId, ref: 'TrendingBook'}],
+
+    // recentSearch: [{ type: ObjectId, ref: "Book" }],
+    // trendingBookId: [{ type: ObjectId, ref: 'TrendingBook'}],
 
 },
 
-// {
-//     toJSON: {
-//         transform: (document, returnedObject, options) => {
-//                     returnedObject.id = returnedObject._id
-//                     delete returnedObject._id
-//                     delete returnedObject.__v
-//         }
-//     }
-// },
-
 { timestamps: true });
 
-bookSchema.methods.toJSON = function() {
-    const book = this;
-    const bookObject = book.toObject();
+// bookSchema.methods.toJSON = function() {
+//     const book = this;
+//     const bookObject = book.toObject();
 
-    bookObject.id = bookObject._id
-    delete bookObject._id
-    delete bookObject.__v
-    return bookObject
-}
+//     bookObject.id = bookObject._id
+//     delete bookObject._id
+//     delete bookObject.__v
+//     return bookObject
+// }
+
+bookSchema.set('toJSON', {
+    virtuals: true,
+    transform: function(doc, ret, options){
+        ret.id = ret._id;
+        delete ret._id;
+        delete ret.password;
+        delete ret.__v;
+
+        return ret;
+    }
+})
+
 
 const Book  = mongoose.model('Book', bookSchema);
 

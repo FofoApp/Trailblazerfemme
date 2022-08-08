@@ -20,20 +20,10 @@ exports.profile = async (req, res, next) => {
             return res.status(404).send({ message: "User not found!" });
         }
 
-        // const usR = await UserModel.findById(userId).populate('followers', '_id fullname').populate('following', '_id fullname');
-        // return res.status(200).send(usR)
-
-        // const user = await UserModel.findOne({ _id: userId }).select('-password -createdAt -updatedAt -__v')
-        // .populate('followers', '_id fullname')
-        // .populate('following', '_id fullname');
-
-        const profile = await Profile.findOne({ userId: userId })
-        .populate('userId', 'fullname');
+        const profile = await UserModel.findOne({ userId: userId });
 
         if(!profile)  return res.status(404).send({error: "No profile found for this user"});
         
-        // const communities = await CommunityModel.find().sort({ createdAt: -1 }).limit(10).select('-createdAt -updatedAt -__v');
-
         return res.status(200).send(profile);
         
     } catch (error) {
@@ -48,7 +38,7 @@ exports.getAllProfileImages = async (req, res, next) => {
         // const plan = await planValidation({name, price});
        //Find user and ensure user with the speicifed id exist
 
-        const profile = await Profile.find({}).select('userId profileImageCloudinaryPublicId profileImage');
+        const profile = await UserModel.find({}).select(' profileImageCloudinaryPublicId profileImage');
 
         if(!profile) {
             return res.status(404).send({ error: "Profile pictures not found"});
@@ -73,7 +63,7 @@ exports.getProfileImage = async (req, res, next) => {
 
         const findUserById = await User.findById(userId);
 
-        const profile = await Profile.findOne({ userId: findUserById._id }).select(' userId profileImageCloudinaryPublicId profileImage');
+        const profile = await UserModel.findOne({ _id: findUserById._id }).select(' profileImageCloudinaryPublicId profileImage');
 
         if(!findUserById) {
             return res.status(404).send({ message: "User not found"});
@@ -115,39 +105,35 @@ exports.uploadProfileImage = async (req, res, next) => {
             return res.status(404).send({ message: "User not found"});
         }
 
-        const profile = await Profile.findOne({ userId: findUserById._id });
-        if(profile) {
-            return res.status(404).send({ message: "You already have an existing profile image"});
+        let uploaderResponse;
+        if(findUserById.profileImage) {
+            //If Image is already saved in the Database, Delete Previous from Cloudinary 
+            uploaderResponse = await cloudinary.uploader.destroy(findUserById.profileImageCloudinaryPublicId);
         }
 
+
+        //Reject if unable to upload image
+        // if(!uploaderResponse) {            
+        //     return res.status(404).send({ message: "Unable to delete previous image"});
+        // }
+
         //Upload Image to cloudinary
-        const uploaderResponse = await cloudinary.uploader.upload(req.file.path);
+        uploaderResponse = await cloudinary.uploader.upload(req.file.path);
         
         if(!uploaderResponse) {
             //Reject if unable to upload image
             return res.status(404).send({ message: "Unable to upload image please try again"});
         }
-        
-        //Save new Image path to database
-        const profileData = {
-            userId: userId,
-            profileImageCloudinaryPublicId: uploaderResponse.public_id,
-            profileImage: uploaderResponse.secure_url
-        }
 
-        const uploadNewImage = await Profile.create(profileData);
-        
-        if(!uploadNewImage) {
-            return res.status(404).send({error: 'Unable to create profileImage'})
-        }
-        findUserById.profileId = uploadNewImage._id;
+        findUserById.profileImage = uploaderResponse.secure_url;
+        findUserById.profileImageCloudinaryPublicId = uploaderResponse.public_id;
 
         await findUserById.save();
 
-        return res.status(201).send({ message: "Profile created successfully", uploadNewImage });
+        return res.status(201).send({ message: "Profile image saved successfully" });
 
     } catch (error) {
-        // console.log(error)
+        console.log(error)
         return res.status(500).send({error: error.message });
         // return next(error)
     }

@@ -5,6 +5,37 @@ const UserModel = require('./../../models/UserModel');
 const TrendingBookModel = require('./../../models/bookLibraryModel/TrendingBookModel');
 const { cloudinary } = require('./../../helpers/cloudinary');
 
+
+
+exports.testBooks = async (req, res, next) => {
+
+    const userId = req.user.id;
+
+    try {
+        //Book Categories
+        const bookCategories = await BookCategoryModel.find({}, 'title books')
+        .populate({ path: 'books',  select: 'title author price store bookImage', });
+        if(!bookCategories) return res.status(404).send({error: 'Book Categories not found'});
+
+        //Continue Reading
+        
+        //'books', 'title author price store bookImage'
+        const userWithBook = await UserModel.findById(userId)
+        .populate({ path: 'books',  select: 'title author price store bookImage',})
+        .populate({ path: 'booksRead',  select: 'title author price store bookImage',})
+        .populate({ path: 'library',  select: 'title author price store bookImage',})
+        .populate({ path: 'recentlySearchedBook',  select: 'title author price store bookImage',})
+        
+        if(!userWithBook) {
+            return res.status(404).send({ error: 'Books not found'});
+        }
+
+        return res.status(200).send({ bookCategories, userWithBook, });
+    } catch (error) {
+        return res.status(500).send({error:error.message})
+    }
+}
+
 exports.createNewBook = async (req, res, next) => {
     //NOTE: REMEMBER TO VALIDATE USER INPUTS 
     const currentUser = req.user.id;
@@ -301,6 +332,7 @@ exports.fetchBooks = async (req, res, next) => {
 }
 
 exports.fetchBookById = async (req, res, next) => {
+    // let sess = await mongoose.startSession();
     //NOTE: REMEMBER TO VALIDATE USER INPUTS 
     try {
         const bookId = req.params.bookId;
@@ -308,9 +340,36 @@ exports.fetchBookById = async (req, res, next) => {
         if(!mongoose.Types.ObjectId.isValid(bookId)) {
             return res.status(401).send({ error: "Invalid book"})
         }
-        const findBookExist = await BookModel.findById(bookId)
-        .populate("bookCategoryId", "_id title")
-        .select("_id title bookImage author price ratings store bookCategoryId");
+        // sess.startTransaction();
+
+        let findBookExist = await BookModel.findByIdAndUpdate(bookId, 
+                            {$addToSet: { 'readers': req.user.id } },
+                            // { session: sess  }
+                            )
+                            .select("_id title bookImage author price ratings store bookCategoryId")
+                            .populate({           
+                                path: 'readers',
+                                select: 'fullname',
+                                model: 'User',
+                                populate: {
+                                    path: 'profileId',
+                                    model: 'Profile',
+                                    select: 'profileImage',
+                                },
+                                
+                            })
+                            .populate({
+                                path: 'bookCategoryId',
+                                model: 'BookCategory',
+                                select: 'title',
+                                populate: {
+                                    path: 'books',
+                                    model: 'Book',
+                                    select: "title bookImage author store"
+                                }
+
+                            })
+                // await sess.commitTransaction();
 
         if(!findBookExist) {
             return res.status(404).send({ error: "Book not found"})
@@ -319,6 +378,9 @@ exports.fetchBookById = async (req, res, next) => {
         return res.status(200).send(findBookExist);
 
     } catch (error) {
+        // await sess.abortTransaction();
+        // await sess.endSession();
+        console.log(error)
         return res.status(500).send({ error: error.message });
     }
 }
