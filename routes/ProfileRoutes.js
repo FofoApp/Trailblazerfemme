@@ -6,7 +6,7 @@ const { verifyAccessToken } = require('./../helpers/jwtHelper');
 
 
 
-// router.get('/', verifyAccessToken, ProfileController.profile);
+router.get('/', verifyAccessToken, ProfileController.profile);
 // router.patch('/user/:userId/follow', verifyAccessToken, ProfileController.follow);
 // router.get('/get-profile-images', verifyAccessToken,  ProfileController.getAllProfileImages);
 

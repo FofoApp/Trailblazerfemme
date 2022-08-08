@@ -20,9 +20,29 @@ exports.profile = async (req, res, next) => {
             return res.status(404).send({ message: "User not found!" });
         }
 
-        const profile = await UserModel.findOne({ userId: userId });
+        let profile = await UserModel.aggregate([
+            { $match: { "_id": mongoose.Types.ObjectId(userId) } },
+            { $addFields: {
+                followers: { $sum: 1 },
+                following: { $sum: 1 },
+                booksRead: { $sum: 1 },
+             }},
+            { $project: { 
+                id: "$_id",
+                _id: 0,
+                fullname: 1,
+                profileImage:1, 
+                followers:1,
+                following:1,
+                about:1,
+                booksRead:1,
+                roles: { $arrayElemAt: ["$roles", 0] }
+            } }
+        ])
 
-        if(!profile)  return res.status(404).send({error: "No profile found for this user"});
+        // profile = await UserModel.findOne({ userId: userId });
+
+        if(!profile)  return res.status(404).send({error: "User profile not found"});
         
         return res.status(200).send(profile);
         
