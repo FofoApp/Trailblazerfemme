@@ -7,6 +7,7 @@ const userSchema = new Schema({
 
     fullname: { type: String, required: true },
     email: { type: String, required: true, lowercase: true, unique: true },
+    jobTitle: { type: String, default: null },
     phonenumber: { type: String, required: true },
     field: { type: String, required: true },
     blocked: { type: Boolean, default: false }, // block / unblock users
@@ -26,10 +27,10 @@ const userSchema = new Schema({
     password: { type: String, required: true },
     accountVerified: { type: Boolean, default: false },
     about: { type: String, default: null },
-    location: { type: String, default: null },
+    cityState: { type: String, default: null },
     socialLinks: { type: [String] },
     roles: { type: [String], enum: ["user", "admin", "superAdmin"], default: "user"},
-    // profileId: { type: mongoose.Schema.Types.ObjectId, ref: "Profile" },
+    profileId: { type: mongoose.Schema.Types.ObjectId, ref: "Profile" },
 
     profileImageCloudinaryPublicId: { type: String  },
     profileImage: { type: String },

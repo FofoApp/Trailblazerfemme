@@ -7,6 +7,12 @@ const blogModelSchema = new mongoose.Schema({
  blogImagePath: { type: String, required: true },
  blogImageCloudinaryPublicId: { type: String, required: true },
 
+ createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
+ blogCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'BlogCategory', required: true},
+ blogComments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BlogComment' }],
+ blogLikes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+ blogviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+
  comments: [
     {
         comment: String,
@@ -17,11 +23,6 @@ const blogModelSchema = new mongoose.Schema({
     },
 ],
 
- createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
- blogCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'BlogCategory', required: true},
- blogComments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BlogComment' }],
- blogLikes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
- blogviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 //  toJSON: { virtuals: true },
 //  toObject: { virtuals: true }
 }, 
@@ -35,9 +36,7 @@ blogModelSchema.virtual('likes').get(function() {
     return this.blogLikes;
 }).set(function(value) {
     var like = value;
-    
-    console.log(like)
-})
+});
 
 
 blogModelSchema.set('toJSON', {
@@ -59,59 +58,6 @@ blogModelSchema.set('toJSON', {
         return ret;
     }
 })
-
-
-
-// blogModelSchema.virtual('id')
-//                 .get(function(){
-//                     this._id.toHexString();
-//                     delete this._id;
-//                     return this;
-//                 });
-
-// blogModelSchema.set('toJSON', {
-//     virtuals: true
-// })
-
-
-// blogModelSchema.methods.toJSON = function() {
-//     const blog = this;
-//     const blogObject = blog.toObject();
-
-//     blogObject.id = blogObject._id
-
-//     delete blogObject._id
-//     delete blogObject.__v
-
-
-//     blogObject.createdBy.id = blogObject.createdBy._id
-//     delete blogObject.createdBy._id
-
-//     blogObject.createdBy.profileId.id = blogObject.createdBy.profileId._id
-//     delete blogObject.createdBy.profileId._id
-//     console.log(blogObject.createdBy)
-
-
-//     if(blogObject.comments) {
-//     blogObject.comments.map((comment) => {
-//         comment.id = comment._id
-//         delete comment._id
-
-//         comment.commentedBy.id = comment.commentedBy._id
-//         delete comment.commentedBy._id
-
-//         comment.commentedBy.profileId.id = comment.commentedBy.profileId._id
-//         delete  comment.commentedBy.profileId._id
-
-//         return comment;
-//     })
-
-
-// }
-
-//         return blogObject;
-
-// }
 
 const Blog = mongoose.model('Blog', blogModelSchema);
 

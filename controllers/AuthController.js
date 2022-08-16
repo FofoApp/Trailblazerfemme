@@ -326,9 +326,10 @@ exports.updateUser = async (req, res, next) => {
     
         if(!user) throw createError.Conflict(`User with ${user.email} does not exist`);
 
-        user = {...req.body, roles: "user"};
+        let userData = {...req.body, roles: "user"};
         
-        const result = registerSchema(user, true);
+        // const result = registerSchema(user, true);
+        const result = registerValidation(userData, true);
 
         if(!result) {
             return res.status(200).send({message: 'Unable to update user'});

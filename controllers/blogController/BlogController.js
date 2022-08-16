@@ -179,19 +179,16 @@ exports.FetchBlogs = async (req, res, next) => {
     try {
 
         let query = [
-			{
-				$lookup: { from: "users", localField: "createdBy", foreignField: "_id", as: "creator" },
-                
-			},
+			{ $lookup: { from: "users", localField: "createdBy", foreignField: "_id", as: "creator" }, },
+
             {$unwind: '$creator'},
 
-            { $lookup: { from: "blogcategories", localField: "blogCategory", foreignField: "_id", as: "category_details" },
-			},
+            { $lookup: { from: "blogcategories", localField: "blogCategory", foreignField: "_id", as: "category_details" }, },
 
 			{$unwind: '$category_details'},
     ];
 
-        if(req.query.keyword && req.query.keyword !=''){ 
+        if(req.query.keyword && req.query.keyword !==''){ 
 			query.push({
 			  $match: { 
 			    $or :[
@@ -202,7 +199,7 @@ exports.FetchBlogs = async (req, res, next) => {
 			});
 		}
 
-		if(req.query.category){		
+		if(req.query.category && req.query.category !== ''){		
 			query.push({
 			    $match: { 
 			    	'category_details.slug':{$regex: '.*' + req.query.category + '.*',  $options: 'i' },
@@ -210,18 +207,14 @@ exports.FetchBlogs = async (req, res, next) => {
 			});
 		}
 
-        if(req.query.userId){		
-			query.push({
-			    $match: { 
-			    	created_by: mongoose.Types.ObjectId(req.query.userId),
-			    }	
-			});
+        if(req.query.userId && req.query.userId !== ''){		
+			query.push({ $match: { created_by: mongoose.Types.ObjectId(req.query.userId), } });
 		}
 
         let total= await BlogModel.countDocuments(query);
 		let page= (req.query.page) ? parseInt(req.query.page) : 1;
 		let perPage = (req.query.perPage) ? parseInt(req.query.perPage) : 10;
-		let skip = (page-1)*perPage;
+		let skip = (page - 1) * perPage;
 
         query.push({ $skip:skip, });
 		query.push({ $limit:perPage, });
@@ -242,24 +235,24 @@ exports.FetchBlogs = async (req, res, next) => {
 	    		"creator.email":1 ,
 	    		"creator.fullname":1 ,
 	    		"creator.profileImage":1 ,
-	    		"comments_count":{$size:{"$ifNull":["$blogComments",[]]}},
-	    		"likes_count":{$size:{"$ifNull":["$blogLikes",[]]}}
-	    		} 
+	    		"comments_count":{ $size: {"$ifNull": ["$blogComments",[] ] } },
+	    		"likes_count":{ $size:{"$ifNull": ["$blogLikes", [] ] } }
+	    		}
 	    	}
 	    );
 
         if(req.query.sortBy && req.query.sortOrder){
 			var sort = {};
-			sort[req.query.sortBy] = (req.query.sortOrder=='asc') ? 1 : -1;
+			sort[req.query.sortBy] = (req.query.sortOrder == 'asc' ) ? 1 : -1;
 			query.push({ $sort: sort });
-		}else{
-			query.push({ $sort: {createdAt:-1} });	
+		} else {
+			query.push({ $sort: {createdAt: -1 } });	
 		}
 
         const findBlogExist = await BlogModel.aggregate(query);
         let paginationData = { totalRecords:total, currentPage:page, perPage:perPage, totalPages:Math.ceil(total/perPage) }
 
-        return res.status(200).send({ message: "All Blogs", blogs: findBlogExist, paginationData: paginationData  });
+        return res.status(200).send({ blogs: findBlogExist, paginationData: paginationData  });
     } catch (error) {
         return res.status(500).send({ message: error.message })
     }
@@ -279,7 +272,7 @@ exports.FetchBlogById = async (req, res, next) => {
         if(!mongoose.Types.ObjectId.isValid(blogId)){
 			return res.status(400).send({ message:'Invalid blog id', blogPost: [] });
 		}
-        const findBlogExist = await BlogModel.findById(blogId);
+        let findBlogExist = await BlogModel.findById(blogId);
 
         if(!findBlogExist) {
             return res.status(401).send({ message: "Blog not found" });
@@ -317,13 +310,12 @@ exports.FetchBlogById = async (req, res, next) => {
             } },
     
             { $project: { 
-                _id: 0,
                 id: "$_id",
+                _id: 0,
                 title:1, 
                 description:1, 
                 blogImagePath:1, 
                 "author.id": "$author._id",
-                 "author._id":null, 
                  "author.fullname":1,
                 "author.profileImage":1,
                 // "comments": 1,

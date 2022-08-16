@@ -92,7 +92,7 @@ exports.createNewPodcast = async (req, res, next) => {
     {
     "title": "Don’t make me think: A common sense approach to career thinking • EP 10",
     "topic": "Black Women In Tech",
-    "imagePath": "image location",
+    "podcastImage": "image location",
     "about": "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words whichdon't look even slightly believable.",
     "hosts": "Omoregie & Johnson",
     "tags": "Career, Black Women",
@@ -136,7 +136,7 @@ exports.createNewPodcast = async (req, res, next) => {
 
         // const createPodcast = new PodcastModel(req.body);
         const createdPodcast = await createPodcast.save();
-        return res.status(200).send({ message: "Podcast created successfully", createdPodcast});
+        return res.status(200).send({createdPodcast});
 
     } catch (error) {
         return res.status(500).send({ message: error.message });

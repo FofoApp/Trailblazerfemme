@@ -10,7 +10,9 @@ const upload = require('./../helpers/multer');
 
 
 //PODCAST CATEGORY
-router.post('/category/create', upload.single('podcastImage'),  PodcastCategoryController.createPodcastCategory);
+router.post('/category/create',  PodcastCategoryController.createPodcastCategory);
+router.patch('/category/:podcastCateogryId/update',  PodcastCategoryController.updatePodcastCategoryById);
+router.delete('/category/:podcastCateogryId/delete',  PodcastCategoryController.deletePodcastCategoryById);
 router.get('/categories', PodcastCategoryController.PodcastCategories);
 
 
