@@ -40,8 +40,6 @@ const PaymentRoutes = require('./routes/paymentRoutes');
 
 const { recurrentPaymentMiddleware } = require('./middlewares/recurrentPaymentMiddleware');
 
-require('./helpers/initRedis');
-
 const app = express();
 app.use(morgan('tiny'));
 

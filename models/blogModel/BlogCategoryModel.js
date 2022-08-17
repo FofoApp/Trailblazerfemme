@@ -15,15 +15,6 @@ blogCategorySchema.set('toJSON', {
     }
 })
 
-// blogCategorySchema.methods.toJSON = function() {
-//     const blogCategory = this;
-//     const blogCategoryObject = blogCategory.toObject();
-
-//     blogCategoryObject.id = blogCategoryObject._id
-//     delete blogCategoryObject._id
-//     delete blogCategoryObject.__v
-
-// }
 
 const BlogCategory = mongoose.model('BlogCategory', blogCategorySchema);
 

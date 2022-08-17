@@ -3,21 +3,21 @@ const BlogCategoryModel = require('../../models/blogModel/BlogCategoryModel');
 
 exports.createNewBlogCategory = async (req, res, next) => {
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
-    
+    const { name } = req.body;
     try {
-        const findBlogCategoryExist = await BlogCategoryModel.findOne({ name: req.body.name });
+        const findBlogCategoryExist = await BlogCategoryModel.findOne({ name });
 
         if(findBlogCategoryExist) {
-            return res.status(401).send({ message: `Blog name ${req.body.name } already exists` });
+            return res.status(401).send({ error: `Blog name ${ name } already exists` });
         }
 
-        const createNewBlogCategory = new BlogCategoryModel(req.body.name);
-        const blogCategoryData = await createNewBlogCategory.save();
-
-        return res.status(200).send({ message: "Create new Blog", blogCategoryData });
+        const createNewBlogCategory = new BlogCategoryModel({ name });
+        const savedBlogCategory = await createNewBlogCategory.save();
+        if(!savedBlogCategory) return res.status(400).send({ error: 'Unable to create blog category'});
+        return res.status(200).send(savedBlogCategory);
     } catch (error) {
-        console.log(error)
-        return res.status(500).send({ message: error.message })
+        // console.log(error)
+        return res.status(500).send({ error: error.message })
     }
 }
 

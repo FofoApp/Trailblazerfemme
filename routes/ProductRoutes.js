@@ -18,7 +18,7 @@ router.get('/:productId/product', ProductController.getProductById);
 
 
 //ADMIN PRODUCT ROUTES
-router.post('/create', verifyAccessToken, permissions(["admin"]), upload.array(['image1, image2, image3']), ProductController.createNewProduct);
+router.post('/create', verifyAccessToken, permissions(["admin"]), upload.any('productImages'), ProductController.createNewProduct);
 router.patch('/:productId/update', verifyAccessToken, permissions(["admin"]), ProductController.updateProductById);
 router.delete('/:productId/delete', verifyAccessToken, permissions(["admin"]), ProductController.deleteProductById);
 

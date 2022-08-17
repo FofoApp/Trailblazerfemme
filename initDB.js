@@ -7,11 +7,11 @@ module.exports = () => {
             useNewUrlParser: true,
             useUnifiedTopology: true
       })
-      .then(() => console.log('Connected to MongoDb'))
+      .then(() => console.log('MongoDb connection established'))
       .catch(err => console.log(err.message))
       
       mongoose.connection.on('connected', () => {
-            console.log("Mongoose connected to db")
+            console.log("Mongoose connected to MongoDb")
       });
       
       mongoose.connection.on('error', (err) => {
@@ -19,7 +19,7 @@ module.exports = () => {
       });
       
       mongoose.connection.on('disconnected', (err) => {
-            console.log("Mongoose connectedion is disconnected...")
+            console.log("Mongoose connection is disconnected...")
       });
       
       process.on('SIGINT', () =>  {

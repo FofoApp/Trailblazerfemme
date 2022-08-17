@@ -1,50 +1,54 @@
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
+
     name: { type: String, required: true },
     description: { type: String, required: true },
-    price: [{ 
-        s: {type: Number, default: 0 }, 
-        m: {type: Number, default: 0 },
-        l: {type: Number, default: 0 },
-        xl: {type: Number, default: 0 },
-        xxl: {type: Number, default: 0 },
-        xxxl: {type: Number, default: 0 },
-    }],
-    colour: { type: [String], default: [] },
-    images: [{ 
-        image1: { type: String, default: null},
-        image2: { type: String, default: null},
-        image3: { type: String, default: null},
-    }],
+
+    // sm: [{ sm:   { type: String, default: 0 }, smQ: { type: String, default: 0} }],
+    // md: [{ md:   { type: String, default: 0 },  mdQ: { type: String, default: 0} }],
+    // lg: [{ lg:   { type: String, default: 0 }, lgQ: { type: String, default: 0} }],
+    // xxl: [{ xxl:  { type: String, default: 0 }, xxlQ: { type: String, default: 0} }],
+    // xxxl: [{ xxxl: { type: String, default: 0 }, xxxlQ: { type: String, default: 0} }],
+
+    sm: { type: Number, default: 0 },
+    md: { type: Number, default: 0 },
+    lg: { type: Number, default: 0 },
+    xxl: { type: Number, default: 0 },
+    xxxl: { type: Number, default: 0 },
+
+    smQ: { type: Number, default: 0 },
+    mdQ: { type: Number, default: 0 },
+    lgQ: { type: Number, default: 0 },
+    xxlQ: { type: Number, default: 0 },
+    xxxlQ: { type: Number, default: 0 },
+
+    colors: { type: [String], default: [] },
+
+    images: [  { publicId: { type: String } , imgUrl: { type: String } } ],
+
     quantity: { type: Number, default: 0 },
+
     ratings: [{ type: Number, default: 0 }],
+
     reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
+
     categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductCategory' },
 }, 
 
-// {
-//     toJSON: {
-//         transform: (document, returnedObject, options) => {
-//                     returnedObject.id = returnedObject._id
-//                     delete returnedObject._id
-//                     delete returnedObject.__v
-//         }
-//     }
-// },
 
 { timestamps: true });
 
 
-productSchema.methods.toJSON = function() {
-    const product = this;
-    const productObject = product.toObject();
+// productSchema.methods.toJSON = function() {
+//     const product = this;
+//     const productObject = product.toObject();
 
-    productObject.id = productObject._id
-    delete productObject._id
-    delete productObject.__v
+//     productObject.id = productObject._id
+//     delete productObject._id
+//     delete productObject.__v
 
-}
+// }
 
 const Product = mongoose.model('Product', productSchema);
 

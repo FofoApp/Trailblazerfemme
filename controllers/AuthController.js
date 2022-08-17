@@ -21,7 +21,7 @@ const FollowersAndFollowingModel = require('./../models/FollowersAndFollowingMod
 
 const { signInAccessToken, signInRefreshToken, verifyRefreshToken, resetPasswordToken } = require('./../helpers/jwtHelper');
 
-const client = require('./../helpers/initRedis');
+
 
 const { generateFourDigitsOTP } = require('./../helpers/otpGenerator');
 const { sendGridMail } = require('./../helpers/sendGridMessaging');
@@ -126,7 +126,7 @@ exports.register = async (req, res, next) => {
        
     } catch (error) {
         if(error.isJoi === true) {
-            //unprocessible entry errors: server can't undestand or process the entries
+            //unprocessible entry errors: server can't understand or process the entries
             error.status = 422;
         }
         next(error)

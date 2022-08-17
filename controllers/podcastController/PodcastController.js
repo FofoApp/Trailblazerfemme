@@ -18,13 +18,12 @@ exports.podcasts = async (req, res, next) => {
 
     //TOP PODCASTER
 
-    const topPodcasters = await PodcastModel.aggregate(
-        [
-            { $group : { _id : "$podcastHostId", hostNames: { $addToSet: "$hosts" }, totalNumberOfPodcasts: { $sum: 1} } }
-        ]
-    );
+    const query =  [
+                        { $group : { _id : "$podcastHostId", hosts: { $addToSet: "$hosts" }, totalNumberOfPodcasts: { $sum: 1} } }
+                   ];
 
-        
+    const topPodcasters = await PodcastModel.aggregate(query);
+
         //RECENTLY PLAYED PODCAST
         const recentlyPlayedPodcast = await PodcastModel.aggregate(
             [
@@ -107,17 +106,17 @@ exports.createNewPodcast = async (req, res, next) => {
     try {
 
         if(!mongoose.Types.ObjectId.isValid(podcastCategoryId)) {
-            return res.status(401).send({ message: "Unknown Podcast Category"})
+            return res.status(401).send({ error: "Unknown Podcast Category"})
         }
 
         if(!mongoose.Types.ObjectId.isValid(podcastHostId)) {
-            return res.status(401).send({ message: "Unknown Podcast Host"})
+            return res.status(401).send({ error: "Unknown Podcast Host"})
         }
 
         const findIfPodcastExist = await PodcastModel.findOne({ title: req.body.title });
 
         if(findIfPodcastExist) {
-            return res.status(200).send({ message: "Podcast name already exist"});
+            return res.status(400).send({ error: "Podcast name already exist"});
         }
         
         // //Upload Image to cloudinary
@@ -125,7 +124,7 @@ exports.createNewPodcast = async (req, res, next) => {
 
         if(!uploaderResponse) {
             //Reject if unable to upload image
-            return res.status(404).send({ message: "Unable to upload image please try again"});
+            return res.status(404).send({ error: "Unable to upload image please try again"});
         }
 
         const createPodcast = new PodcastModel({
@@ -136,7 +135,7 @@ exports.createNewPodcast = async (req, res, next) => {
 
         // const createPodcast = new PodcastModel(req.body);
         const createdPodcast = await createPodcast.save();
-        return res.status(200).send({createdPodcast});
+        return res.status(201).send(createdPodcast);
 
     } catch (error) {
         return res.status(500).send({ message: error.message });
@@ -148,24 +147,45 @@ exports.listPodcasts = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/podcast/lists
     try {
-        const podcasts = await PodcastModel.find({})
-                                            .populate({
-                                                path: 'podcastHostId',
-                                                model: 'User',
-                                                select: 'fullname createdAt',
-                                                populate: {
-                                                    path: 'profileId',
-                                                    model: 'Profile',
-                                                    select: 'id userId profileImage'
-                                                }
-                                            });
+        
+        // const podcasts = await PodcastModel.find({})
+                                            // .populate({
+                                            //     path: 'hosts',
+                                            //     model: 'User',
+                                            //     select: 'fullname createdAt',
+                                            //     populate: {
+                                            //         path: 'profileId',
+                                            //         model: 'Profile',
+                                            //         select: 'id userId profileImage'
+                                            //     }
+                                            // });
+        const query = [
+            { $lookup: { from:'users',  localField: 'hosts', foreignField: "_id", as: 'hosts' } },
+            { $unwind: '$hosts' },
+            { $project: {
+                "id": "$_id",
+                "_id": 0,
+                "title": 1, 
+                "description": 1,
+                "podcastImage": 1,
+                "link": 1,
+                "hosts.id": "$hosts._id",
+                "hosts.fullname": 1, 
+                "hosts.profileImage": 1,
+                "hosts._id": null, 
+            } }
+        ];
+
+        const podcasts = await PodcastModel.aggregate(query)
+   
         if(!podcasts) {
-            return res.status(200).send({ error: "No podcast available"});
+            return res.status(204).send({ error: "No podcast available"});
         }
-      console.log(podcasts.podcastHostId)
+  
         return res.status(200).send(podcasts);
+
     } catch (error) {
-        return res.status(200).send({ error: error.message });
+        return res.status(500).send({ error: error.message });
     }
 }
 
@@ -181,24 +201,59 @@ exports.searchForPodcast = async (req, res, next) => {
     "searchKeyword": "Omoregie"
     }
    */
-   const searchKeyword = req.body.searchKeyword;
+   const { q } = req.body;
+   let { page, perpage } = req.query;
+
+   page = (page) ? parseInt(page) : 1;
+   perpage = (perpage) ? parseInt(perpage) : 10;
+
+   let skip = (page - 1) * perpage;
+
    try {
 
-       let page = (req.query.page) ? parseInt(req.query.page) : 1;
-       let perPage = (req.query.perPage) ? parseInt(req.query.perPage) : 10;
-       let skip = (page-1)*perPage;
 
-   const searchForPodcast = await PodcastModel.find({
-           $or: [
-               { title: {  $regex: '.*' + searchKeyword + '.*',  $options: 'i'  } },
-               { hosts: { $regex: '.*' + searchKeyword + '.*',  $options: 'i' } },
-               { topic: { $regex: '.*' + searchKeyword + '.*',  $options: 'i' } },
-           ],
-           }
 
-   ).skip(skip).limit(perPage);
+//    const searchForPodcast = await PodcastModel.find({
+//            $or: [
+//                { title: {  $regex: '.*' + q + '.*',   $options: 'i'  } },
+//                { hosts: {  $regex: '.*' + q + '.*',   $options: 'i' } },
+//                { topic: {  $regex: '.*' + q + '.*',   $options: 'i' } },
+//            ],
+//            }
+
+//    ).skip(skip).limit(perpage);
    
      //.select('-trendingId -recentSearch -cloudinaryPublicId -createdAt -updatedAt -__v')
+
+     const query = [
+        { $match: { $or: [
+            { title: {  $regex: '.*' + q + '.*',   $options: 'i'  } },
+            { hosts: {  $regex: '.*' + q + '.*',   $options: 'i' } },
+            { topic: {  $regex: '.*' + q + '.*',   $options: 'i' } },
+        ] } },
+
+        
+
+        { $lookup: { from: "users", localField: 'hosts', foreignField: "_id", as: "hosts" } },
+        { $unwind: "$hosts" },
+        { $project: {
+            "id": "$_id",
+            "_id": 0,
+            "title": 1, 
+            "description": 1,
+            "podcastImage": 1,
+            "link": 1,
+            "hosts.id": "$hosts._id",
+            "hosts.fullname": 1, 
+            "hosts.profileImage": 1,
+            "hosts._id": null, 
+        } }
+        
+     ];
+
+     const searched = await PodcastModel.aggregate(query);
+
+     return res.status(200).send(searched);
 
        if(!searchForPodcast) {
            return res.status(404).send({ message: "Podcast with the search phrase not found!"})
@@ -206,7 +261,7 @@ exports.searchForPodcast = async (req, res, next) => {
 
        let total = searchForPodcast ? searchForPodcast.length : 0;
 
-       let paginationData = { totalRecords:total, currentPage:page, perPage:perPage, totalPages:Math.ceil(total/perPage) }
+       let paginationData = { totalRecords:total, currentPage:page, perpage:perpage, totalPages:Math.ceil(total/perpage) }
        
        return res.status(200).send({  Podcasts:searchForPodcast, paginationData});
        
@@ -222,30 +277,42 @@ exports.searchPodcastById = async (req, res, next) => {
     //GET REQUEST
    //http://localhost:2000/api/podcast/podcastId/search
    //http://localhost:2000/api/podcast/628b3a7bc2a03c780da819b9/search
-   const podcastId = req.params.podcastId;
 
+   const { podcastId } = req.params;
+   
    try {
 
     if(!mongoose.Types.ObjectId.isValid(podcastId)) {
-        return res.status(400).send({ message: "Invalid podcast parameter"})
+        return res.status(400).send({ message: "Invalid podcast parameter"});
     }
-    const podcast = await PodcastModel.findOne({_id: podcastId }).select('-__v -updatedAt, -createdAt');
 
-//    const findPostcastAndUpdate = await PodcastModel.findByIdAndUpdate(podcastId, {$set: req.body}, {new: true} );
-//    if(!findPostcastAndUpdate) {
-//        return res.status(400).send({ message: "Unable to update podcast"});
-//    }
+    // const podcast = await PodcastModel.findOne({_id: podcastId }).select('-__v -updatedAt, -createdAt');
 
-    // const findIfUserAlreadyExistInPopularPodcast = await PopularPodcastModel.findOne({userWhoListenedToPodcast: "628695d03cf50a6e1a34e27b"});
-    
-    // if(findIfUserAlreadyExistInPopularPodcast) {
-    //     console.log("You already listend")
-    //     return res.status("200").send({ message: "User already listend"})
-    // }
+    const query = [
+        { $match: { _id: mongoose.Types.ObjectId(podcastId) } },
+        { $lookup: { from: "users", localField: 'hosts', foreignField: "_id", as: "hosts" } },
+        { $unwind: "$hosts" },
+        { $project: {
+            "id": "$_id",
+            "_id": 0,
+            "title": 1,
+            "description": 1,
+            "podcastImage": 1,
+            "link": 1,
+            "hosts.id": "$hosts._id",
+            "hosts.fullname": 1,
+            "hosts.profileImage": 1,
+            "hosts._id": null,
+        } }
+        
+     ];
 
-   const updatePopularPodcast = await PopularPodcastModel.create( { podcastId: podcastId, userWhoListenedToPodcast: "628695d03cf50a6e1a34e27b" });
+     const podcast = await PodcastModel.aggregate(query);
+
+//    const updatePopularPodcast = await PopularPodcastModel.create( { podcastId: podcastId, userWhoListenedToPodcast: "628695d03cf50a6e1a34e27b" });
       
-       return res.status(200).send({ message: "Podcast found", podcast})
+       return res.status(200).send(podcast[0]);
+
    } catch (error) {
        return res.status(500).send({ message: error.message });
    }
@@ -257,23 +324,25 @@ exports.updatePodcastById = async (req, res, next) => {
     //PATCH REQUEST
    //http://localhost:2000/api/podcast/podcastId/update
    //http://localhost:2000/api/podcast/628b36a28bebdadd00d787ed/update
-   const podcastId = req.params.podcastId;
+
+   const { podcastId } = req.params;
 
    try {
 
     if(!mongoose.Types.ObjectId.isValid(podcastId)) {
-        return res.status(400).send({ message: "Invalid podcast parameter"})
+        return res.status(400).send({ error: "Invalid podcast parameter"})
     }
 
-   const findPostcastAndUpdate = await PodcastModel.findByIdAndUpdate(req.params.podcastId, {$set: req.body}, {new: true} );
+   const findPostcastAndUpdate = await PodcastModel.findByIdAndUpdate(podcastId, {$set: req.body}, {new: true} );
 
    if(!findPostcastAndUpdate) {
-       return res.status(400).send({ message: "Unable to update podcast"});
+       return res.status(400).send({ error: "Unable to update podcast"});
    }
       
-       return res.status(200).send({ message: "Podcast updated successfully"})
+       return res.status(200).send({ success: "Podcast updated successfully" });
+
    } catch (error) {
-       return res.status(500).send({ message: error.message });
+       return res.status(500).send({ error: error.message });
    }
 
 }
@@ -285,7 +354,8 @@ exports.deletePodcastById = async (req, res, next) => {
     //DELETE REQUEST
     //http://localhost:2000/api/podcast/podcastId/delete
     //http://localhost:2000/api/podcast/628b36a28bebdadd00d787ed/delete
-   const podcastId = req.params.podcastId;
+
+   const { podcastId } = req.params;
 
    try {
        
