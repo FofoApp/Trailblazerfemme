@@ -154,13 +154,28 @@ exports.listProducts = async (req, res, next) => {
         const query = [
             { $match: {} },
 
-            { $addFields: { images: ["$images"] }},
-            { $unwind: "$images" },
+            // { $addFields: { $addFields: { sm: { "$" }  } }  },
+            // { $unwind: "$images" },
+
+            { $addFields: { 
+                sm: { price: "$sm", qty: "$smQ" },
+                md: { price: "$md", qty: "$mdQ" },
+                lg: { price: "$lg", qty: "$lgQ" },
+                xl: { price: "$xl", qty: "$xlQ" },
+                xxl: { price: "$xxl", qty: "$xxlQ" },
+                xxxl: { price: "$xxxl", qty: "$xxxlQ" },
+            } },
 
             { $project: { 
                 _id : 0, 
                 id: "$_id",
                 name: 1,
+                sm: 1,
+                md: 1,
+                lg: 1,
+                xl: 1,
+                xxl: 1,
+                xxxl: 1,
                 description:1,
                 colors:1,
                 images:1, 
@@ -169,6 +184,29 @@ exports.listProducts = async (req, res, next) => {
                 reviews:1,
                 categoryId:1,
                 createdAt:1,
+                // sm: 1, 
+                // md: 1, 
+                // lg: 1, 
+                // xl: 1, 
+                // xxl: 1, 
+                // xxxl: 1,  
+                // smQ: 1, 
+                // mdQ: 1, 
+                // lgQ: 1, 
+                // xlQ: 1, 
+                // xxlQ: 1, 
+                // xxxlQ: 1,
+             
+                images: { 
+                    "$map": {
+                        "input": "$images",
+                        "as": "image", 
+                        "in": {
+                            "id": "$$image._id",
+                            "imgUrl": "$$image.imgUrl",
+                        }
+                    }
+                },
              } },
 
             

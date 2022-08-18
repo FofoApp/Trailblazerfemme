@@ -335,7 +335,7 @@ exports.fetchBookById = async (req, res, next) => {
     // let sess = await mongoose.startSession();
     //NOTE: REMEMBER TO VALIDATE USER INPUTS 
     try {
-        const bookId = req.params.bookId;
+        const { bookId } = req.params;
 
         if(!mongoose.Types.ObjectId.isValid(bookId)) {
             return res.status(401).send({ error: "Invalid book"})
