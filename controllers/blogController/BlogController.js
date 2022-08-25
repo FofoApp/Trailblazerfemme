@@ -47,9 +47,12 @@ exports.getSpecificBlogAndItsComments = async (req, res, next) => {
 exports.blog = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/blog
-    const userId = "628695d03cf50a6e1a34e27b";
-    let blogId = req.params.blogId;
-
+    // const userId = "628695d03cf50a6e1a34e27b";
+    const userId = req.user.id;
+    let {blogId} = req.params;
+    //Hot
+    //Recent
+    //popular
 
     try {
 
@@ -77,7 +80,7 @@ exports.blog = async (req, res, next) => {
                                                 model: 'Profile',
                                                 select: 'id userId profileImage'
                                             }
-                                        })
+                                        }).sort({ createdAt: -1  })
                                     
 
        const newBlog =  await BlogModel.find({}).where('blogviews').size(1)
@@ -89,12 +92,15 @@ exports.blog = async (req, res, next) => {
         // ]);
 
         //SHOW POPULAR BLOG POST IF VIEWS IS GREATER THAN 20
-        const popularBlog = await BlogModel.find({
+        const popularBlog = await BlogModel.find(
+            {
             $expr: {
                 $gt: [{ $size: { $ifNull: ["$blogviews", []] } }, 20]
-            }
-        }).populate('blogCategory')
-        return res.status(200).send({ categories, blogs, popularBlog });
+            },
+        },
+        
+        ).populate('blogCategory');
+        return res.status(200).send({ categories:categories, recent: blogs, popular:popularBlog });
 
     } catch (error) {
         return res.status(500).send({ message: error.message })
@@ -266,7 +272,7 @@ exports.FetchBlogById = async (req, res, next) => {
 
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
     try {
-        let blogId = req.params.blogId;
+        let {blogId} = req.params;
         let currentUser = req.user.id;
 
         if(!mongoose.Types.ObjectId.isValid(blogId)){
@@ -305,7 +311,7 @@ exports.FetchBlogById = async (req, res, next) => {
                     },
                     { $unwind: "$userWhoComment"  }
                 ],
-                        as: "comments",
+                as: "comments",
                     
             } },
     

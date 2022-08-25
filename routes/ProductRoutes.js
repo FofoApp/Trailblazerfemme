@@ -3,7 +3,7 @@ const router = express.Router();
 
 const ProductController = require('../controllers/productController/ProductController');
 const productCategoryController = require('../controllers/productController/productCategoryController');
-const cartController = require('../controllers/productController/cartController');
+const CartController = require('../controllers/productController/cartController');
 const { verifyAccessToken } = require('./../helpers/jwtHelper');
 
 const { permissions } = require('./../middlewares/permissionsMiddleware');
@@ -11,31 +11,55 @@ const upload = require('./../helpers/multer');
 const uploadCv = require('./../helpers/multerCVupload');
 
 //PRODUCT ROUTES
-router.get('/', ProductController.shop);
-router.get('/lists', ProductController.listProducts);
-router.get('/:categoryId', ProductController.getProductsByCategory);
-router.get('/:productId/product', ProductController.getProductById);
+router.get('/', verifyAccessToken, permissions(["user","admin"]), ProductController.shop);
+router.get('/order', verifyAccessToken, permissions(["user","admin"]), CartController.getAllOrdersForAUser);
+router.get('/reviews', verifyAccessToken, permissions(["user","admin"]), ProductController.getAllReviews);
+router.post('/review', verifyAccessToken, permissions(["user","admin"]), ProductController.productReview);
+
+router.get('/lists', verifyAccessToken, permissions(["user","admin"]), ProductController.listProducts);
+
+router.get('/:categoryId', verifyAccessToken, permissions(["user","admin"]), ProductController.getProductsByCategory);
+router.get('/:productId/product', verifyAccessToken, permissions(["user","admin"]), ProductController.getProductById);
+
 
 
 //ADMIN PRODUCT ROUTES
 router.post('/create', verifyAccessToken, permissions(["admin"]), upload.any('productImages'), ProductController.createNewProduct);
-router.patch('/:productId/update', verifyAccessToken, permissions(["admin"]), ProductController.updateProductById);
+// router.post('/create', verifyAccessToken, upload.any('productImages'), ProductController.createNewProduct);
+
+
+router.patch('/:productId/update', verifyAccessToken, permissions(["admin"]), upload.any('productImages'), ProductController.updateProductById);
+// router.patch('/:productId/update', verifyAccessToken, upload.any('productImages'),  ProductController.updateProductById);
+
+
 router.delete('/:productId/delete', verifyAccessToken, permissions(["admin"]), ProductController.deleteProductById);
+// router.delete('/:productId/delete', verifyAccessToken,  ProductController.deleteProductById);
 
 
 
 //PRODUCT CATEGORY ROUTES
-router.post('/category/create', productCategoryController.createProductCategory);
-router.get('/category/search', productCategoryController.searchProductByCategory);
-router.patch('/category/:productCategoryId/update', productCategoryController.updateProductCategoryById);
-router.delete('/category/:productCategoryId/delete', productCategoryController.deleteProductCategoryById);
+router.post('/category/create', verifyAccessToken,  permissions(["admin"]), productCategoryController.createProductCategory);
+router.get('/category/search', verifyAccessToken,  permissions(["user","admin"]), productCategoryController.searchProductByCategory);
+router.patch('/category/:productCategoryId/update', verifyAccessToken,  permissions(["admin"]), productCategoryController.updateProductCategoryById);
+router.delete('/category/:productCategoryId/delete', verifyAccessToken,  permissions(["admin"]), productCategoryController.deleteProductCategoryById);
 
 
 //PRODUCT CATEGORY ROUTES
-router.post('/add-to-cart', cartController.addToCart);
+
 
 // router.get('/category/search', productCategoryController.searchProductByCategory);
 // router.patch('/category/:productCategoryId/update', productCategoryController.updateProductCategoryById);
 // router.delete('/category/:productCategoryId/delete', productCategoryController.deleteProductCategoryById);
+
+
+//SHOPPING CART
+
+
+router.get('/myorder', verifyAccessToken, permissions(["user","admin"]), CartController.getAllOrdersForAUser);
+router.post('/add-to-cart', verifyAccessToken, permissions(["user","admin"]), CartController.addToCart);
+router.patch('/remove-from-cart', verifyAccessToken, permissions(["user","admin"]), CartController.removeFromCart);
+router.patch('/remove-single-item-from-cart', verifyAccessToken, permissions(["user","admin"]), CartController.removeSingleItemFromCart);
+router.delete('/empty-cart', verifyAccessToken, permissions(["user","admin"]), CartController.emptyCart);
+router.post('/checkout', verifyAccessToken, permissions(["user","admin"]), CartController.checkout);
 
 module.exports = router;

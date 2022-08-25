@@ -7,8 +7,7 @@ const postSchema = new mongoose.Schema({
     postCloudinaryPublicId: { type: String, default: null },
     communityId: { type: mongoose.Schema.Types.ObjectId, ref: 'Community'},
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
-    // likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    
+
     comments: [
         { 
             comment:  { type: String },
@@ -16,19 +15,9 @@ const postSchema = new mongoose.Schema({
             createdBy: {  type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         }
     ],
-    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    // comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
-}, 
 
-// {
-//     toJSON: {
-//         transform: (document, returnedObject, options) => {
-//                     returnedObject.id = returnedObject._id
-//                     delete returnedObject._id
-//                     delete returnedObject.__v
-//         }
-//     }
-// },
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+},
 
 { timestamps: true });
 

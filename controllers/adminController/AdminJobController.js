@@ -172,15 +172,39 @@ exports.findJobById  = async (req, res, next) => {
     //http://localhost:2000/api/jobs/jobId/get
     //http://localhost:2000/api/jobs/62902e117ecadf9305054e1a/get
 
-    const jobId = req.params.jobId;
+    const { jobId } = req.params;
 
 try {
     if(!mongoose.Types.ObjectId.isValid(jobId)) {
         return res.status(200).send({ message: "Unknown job parameter"});
     }
-    const job = await JobModel.findById(jobId);
+    const query = [
+        { $match: {_id: mongoose.Types.ObjectId(jobId)} },
+        { $lookup: { from: "jobcategories", localField: "categoryId", foreignField: "_id", as: "category" } },
+        { $unwind: "$category" },
+        { $project: {
+             id: "$_id",
+            _id: 0,
+            "title": 1,
+            "company_name": 1,
+            "image": 1,
+            "description": 1,
+            "position": 1,
+            "qualification": 1,
+            "userId":   1,
+            "createdAt": 1,
+            "category.id": "$category._id",
+            "category.title": "$category.title",
+        } },
+
+        { $unset: "category._id" }
+    ];
+
+    let job = await JobModel.aggregate(query);
+    job = job[0];
+
     if(!job) {
-        return res.status(200).send({ message: "No job found"});
+        return res.status(404).send({ message: "No job found"});
     }
 
     return res.status(200).send(job);
@@ -210,7 +234,7 @@ exports.updateJobById = async (req, res, next) => {
         }
      */
 
-    const jobId = req.params.jobId;
+        const { jobId } = req.params;
 
     try {
         
@@ -232,7 +256,7 @@ exports.updateJobById = async (req, res, next) => {
             console.log(uploaderResponse)
             if(!uploaderResponse) {
                 //Reject if unable to upload image
-                return res.status(400).send({ message: "Unable to delete profile image please try again"});
+                return res.status(400).send({ error: "Unable to delete profile image please try again"});
             }
 
             //Upload Image to cloudinary
@@ -246,7 +270,7 @@ exports.updateJobById = async (req, res, next) => {
         //UPDATE JOB 
          await JobModel.findByIdAndUpdate(jobId, {$set: updateData}, {new: true});
         
-        return res.status(200).send({message: "Job updated successfully"});
+        return res.status(200).send({success: "Job updated successfully"});
 
     } catch (error) {
         // console.log(error)
@@ -259,12 +283,12 @@ exports.deleteJobById  = async (req, res, next) => {
     //DELETE REQUEST 
     //http://localhost:2000/api/jobs/62aa0d254774270c1f61f639/delete
     
-    const jobId = req.params.jobId;
+    const { jobId } = req.params;
 
     try {
 
         if(!mongoose.Types.ObjectId.isValid(jobId)) {
-            return res.status(200).send({ message: "Unknown job parameter"});
+            return res.status(400).send({ message: "Unknown job parameter"});
         }
 
         let job = await JobModel.findById(jobId);

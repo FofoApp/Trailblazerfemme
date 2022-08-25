@@ -17,16 +17,16 @@ const uploadCv = require('./../helpers/multerCVupload');
 //JOB ROUTES
 router.get('/alljobs', JobController.jobs);
 router.get('/lists', JobController.listJobs);
-router.post('/:jobId/apply', verifyAccessToken, JobController.jobApplication);
-router.post('/:jobId/application/upload', verifyAccessToken, uploadCv.array('doc_uploads'), JobController.uploadCoverLetterAndResumee);
-router.post('/:jobId/application/update', verifyAccessToken, uploadCv.array('doc_uploads'), JobController.updateCoverLetterAndResumee);
+router.post('/:jobId/apply', verifyAccessToken, permissions(["user"]), JobController.jobApplication);
+router.post('/:jobId/application/upload', verifyAccessToken, permissions(["user"]), uploadCv.array('doc_uploads'), JobController.uploadCoverLetterAndResumee);
+router.post('/:jobId/application/update', verifyAccessToken, permissions(["user"]), uploadCv.array('doc_uploads'), JobController.updateCoverLetterAndResumee);
 
 
 //ADMIN JOB ROUTES
 // router.get('/',  verifyAccessToken, permissions(["admin"]), AdminJobController.jobs);
 router.patch('/:jobId/update',  verifyAccessToken, permissions(["admin"]), upload.single('jobImage'), AdminJobController.updateJobById);
 router.post('/create',  verifyAccessToken, permissions(["admin"]), upload.single('jobImage'),  AdminJobController.createNewJob);
-router.get('/:jobId/get', verifyAccessToken, permissions(["admin"]), AdminJobController.findJobById);
+router.get('/:jobId/get', verifyAccessToken, permissions(["user", "admin"]), AdminJobController.findJobById);
 router.get('/:jobId/list', verifyAccessToken, permissions(["admin"]), AdminJobController.listJobs);
 router.delete('/:jobId/delete', verifyAccessToken, permissions(["admin"]), AdminJobController.deleteJobById);
 
@@ -34,16 +34,16 @@ router.delete('/:jobId/delete', verifyAccessToken, permissions(["admin"]), Admin
 // router.post('/create', JobController.createNewJob);
 // router.get('/:jobId/get', JobController.findJobById);
 
-router.patch('/:jobId/application/update', verifyAccessToken, JobController.updateJobApplication);
-router.delete('/:jobId/delete', verifyAccessToken, JobController.deleteJobById);
+router.patch('/:jobId/application/update', verifyAccessToken, permissions(["user", "admin"]), JobController.updateJobApplication);
+router.delete('/:jobId/delete', verifyAccessToken, permissions(["admin"]), JobController.deleteJobById);
 
 
 
 //JOB CATEGORY ROUTES
-router.get('/categories', JobCategoryController.listJobCategories);
-router.post('/category/create', JobCategoryController.createNewJobCategory);
-router.get('/category/:jobCategoryId/get', JobCategoryController.findJobCategoryById);
-router.delete('/category/:jobCategoryId/delete', JobCategoryController.deleteJobCategoryById);
-router.patch('/category/:jobCategoryId/update', JobCategoryController.updateJobCategoryById);
+router.get('/categories', verifyAccessToken, permissions(["user", "admin"]), JobCategoryController.listJobCategories);
+router.post('/category/create', verifyAccessToken, permissions(["admin"]), JobCategoryController.createNewJobCategory);
+router.get('/category/:jobCategoryId/get', verifyAccessToken, permissions(["user", "admin"]), JobCategoryController.findJobCategoryById);
+router.delete('/category/:jobCategoryId/delete', verifyAccessToken, permissions(["admin"]), JobCategoryController.deleteJobCategoryById);
+router.patch('/category/:jobCategoryId/update', verifyAccessToken, permissions(["admin"]), JobCategoryController.updateJobCategoryById);
 
 module.exports = router;

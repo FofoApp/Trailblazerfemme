@@ -2,25 +2,20 @@ const mongoose = require('mongoose');
 
 const CartModel = require('../../models/productModel/cartModel');
 const ProductModel = require('../../models/productModel/ProductModel');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
 
 exports.getAllOrdersForAUser = async (req, res, next) => {
-    //http://localhost:2000/api/product/order
-      const owner = req.user.id;
-    // const owner = "628695d03cf50a6e1a34e27b";
 
+    // const owner = req.user.id;
 
     try {
     
         const orders = await CartModel.find({ owner }).sort({ createdAt: -1 });
 
-        if(!orders || orders.length === 0) return res.status(400).send({ error: "No order(s) found"});
+        if(!orders) return res.status(400).send({ error: "No order(s) found"});
 
         return res.status(200).send(orders);
 
     } catch (error) {
-        console.log(error)
         return res.status(500).send({ message: error.message });
     }
 }
@@ -29,14 +24,15 @@ exports.getAllOrdersForAUser = async (req, res, next) => {
 
 exports.addToCart = async (req, res, next) => {
     //http://localhost:2000/api/product/add-to-cart
-    const owner = req.user.id;
-    // const owner = "628695d03cf50a6e1a34e27b";
+    // const owner = req.user.id;
+    const owner = "628695d03cf50a6e1a34e27b";
 
-    let { productId, size, color } = req.body;
+    let { productId, size, quantity, price, color } = req.body;
 
-    let quantity = Number.parseInt(1);
+        quantity = Number.parseInt(quantity);
 
     let keyName = Object.keys({ size, quantity }).join(" ");
+    let sizeSet = false;
 
     try {
 
@@ -50,37 +46,31 @@ exports.addToCart = async (req, res, next) => {
         let cart = carts[0];
         
         //--If Cart Exists ----
+        
+        
+        if(cart) {
 
-        const indexFound = cart && cart.items.findIndex(item => item.productId.id === productId && item.size == size);
+        cart.items.forEach((item) => sizeSet = item.size === size ? item.size === size : false );
 
-        //ADD TO CART IF CART IS EMPTY
-        if(!cart) {
+        //---- check if index exists ----
+         const indexFound = cart?.items.findIndex(item => item.productId.id == productId && item.size == size);
 
-        const cartData = {
-            items: [{
-                productId: productId,
-                quantity: quantity,
-                total: parseInt(productDetails[size] * quantity),
-                price: productDetails[size],
-                colors: color,
-                size: size,
-            }],
-            owner: owner,
-            subTotal: parseInt(productDetails[size] * quantity)
-        }
-    
-        const addCart = new CartModel(cartData);
-        cart = await addCart.save();
+         if (indexFound !== -1 && quantity <= 0) {
 
-        return res.status(200).send(cart);
+            //------this removes an item from the the cart if the quantity is set to zero,We can use this method to remove an item from the list  -------
+            cart.items.splice(indexFound, 1);
 
-        }
+            if (cart.items.length === 0) {
 
-        //IF CART IS NOT EMPTY CHECK IF PRODUCT EXIST
-        //idexFound === -1 if it does not exist
-        //idexFound === 1 if it exist
-        //If item already exist in cart, increment its quantity by 1
-        if (indexFound !== -1) {
+                cart.subTotal = 0;
+
+            } else {
+
+                cart.subTotal = cart.items.map(item => item.total).reduce((acc, next) => acc + next);
+
+            }
+
+        } else if (indexFound !== -1) {
             //----------check if product exist,just add the previous quantity with the new quantity and update the total price-------
 
             cart.items[indexFound].quantity = cart.items[indexFound].quantity + quantity;
@@ -89,14 +79,9 @@ exports.addToCart = async (req, res, next) => {
             cart.items[indexFound].colors = color;
 
             cart.subTotal = cart.items.map(item => item.total).reduce((acc, next) => acc + next);
-            
-            let data = await cart.save();
-            res.status(200).json({cart: data })
-        }
-
-        //If indexFound === -1 
-        //Add an item to the items array of the user
-        if(indexFound === -1) {
+    
+        } else if (quantity > 0) {
+         //----Check if Quantity is Greater than 0 then add item to items Array ----
             cart.items.push({
                 productId: productId,
                 quantity: quantity,
@@ -108,10 +93,41 @@ exports.addToCart = async (req, res, next) => {
 
             cart.owner = owner;
             cart.subTotal = cart.items.map(item => item.total).reduce((acc, next) => acc + next);
-            
-            let data = await cart.save();
-            res.status(200).json({cart: data })
+
+        } else {
+        
+        //----if quantity of price is 0 throw the error -------
+           return res.status(400).json({  error: "Invalid request" });
+
         }
+
+       let data = await cart.save();
+       res.status(200).json({cart: data })
+           
+        //End If statement
+    } else {
+            const cartData = {
+                items: [{
+                    productId: productId,
+                    quantity: quantity,
+                    total: parseInt(productDetails[size] * quantity),
+                    price: productDetails[size],
+                    colors: color,
+                    size: size,
+                }],
+                owner: owner,
+                subTotal: parseInt(productDetails[size] * quantity)
+            }
+    
+    
+            const addCart = new CartModel(cartData);
+            cart = await addCart.save();
+    
+            // let data = await cart.save();
+            return res.status(200).send(cart);
+        }
+
+        // return res.status(200).send({  cart });
 
     } catch (error) {
         console.log(error)
@@ -124,10 +140,10 @@ exports.addToCart = async (req, res, next) => {
 
 exports.removeFromCart = async (req, res, next) => {
     //http://localhost:2000/api/product/remove-from-cart
-    const owner = req.user.id;
-    // const owner = "628695d03cf50a6e1a34e27b";
+    // const owner = req.user.id;
+    const owner = "628695d03cf50a6e1a34e27b";
 
-    let { productId, size,  color } = req.body;
+    let { productId, size,  price, color } = req.body;
 
       let  quantity = Number.parseInt(1);
 
@@ -138,7 +154,7 @@ exports.removeFromCart = async (req, res, next) => {
     
         const productDetails  = await ProductModel.findById(productId);
 
-        const carts = await CartModel.find({ owner: owner }).populate({
+        const carts = await CartModel.find().populate({
             path: "items.productId",
             select: `${keyName} name total, colors images`
         });
@@ -216,8 +232,8 @@ exports.removeFromCart = async (req, res, next) => {
 exports.removeSingleItemFromCart = async (req, res) => {
     //http://localhost:2000/api/product/remove-single-item-from-cart
 
-    const owner = req.user.id;
-    // const owner = "628695d03cf50a6e1a34e27b";
+    // const owner = req.user.id;
+    const owner = "628695d03cf50a6e1a34e27b";
 
     let { productId, size,  price, color } = req.body;
 
@@ -283,66 +299,35 @@ exports.removeSingleItemFromCart = async (req, res) => {
 
 
 exports.emptyCart = async (req, res) => {
-  const owner = req.user.id;
-//   const owner = "628695d03cf50a6e1a34e27b";
+  // const owner = req.user.id;
+  const owner = "628695d03cf50a6e1a34e27b";
 
-  let { productId } = req.body;
+  let { productId, size,  price, color } = req.body;
 
     let  quantity = Number.parseInt(1);
 
-    let keyName = Object.keys({ size, quantity }).join(" ");
+  let keyName = Object.keys({ size, quantity }).join(" ");
+  let sizeSet = false;
 
   try {
   
       const productDetails  = await ProductModel.findById(productId);
 
-      const carts = await CartModel.find({ owner: owner}).populate({
+      const carts = await CartModel.find().populate({
           path: "items.productId",
           select: `${keyName} name total, colors images`
       });
 
         const cart = carts[0];
+        cart.items = [];
+        cart.subTotal = 0
 
-        if(!carts || carts.length === 0) return res.status(400).send({ error: "No item in cart"})
 
-        if(!cart) return res.status(400).send({ error: "Cart is empty"});
+        let data = await cart.save();
 
-        // cart.items = [];
-        // cart.subTotal = 0
-        //let data = await cart.save();
-        const clearedCart = await cart.remove();
-
-        if(!clearedCart) return res.status(400).send({ error: "Unable to clear cart"})
-
-        return res.status(200).json({ success: "Cart cleared" });
+        return res.status(200).json({ success: "Cart Has been emptied" })
     } catch (error) {
        
         res.status(500).json({ error: error.message });
-    }
-}
-
-
-exports.checkout = async (req, res, next) => {
-    //http://localhost:2000/api/product/checkout
-    const { product, stripToken: token } = req.body;
-    
-    try {
-          const customer =  await stripe.customers.create({
-                source:token.id,
-                email: token.email,
-                });
-                
-          const charge = await stripe.charges.create({
-                amount: product.price * 100,
-                currency: "usd",
-                customer: customer.id,
-                receipt_email: token.email,
-                description: `Purchased the ${product.description}`,
-          });
-
-          return res.status(200).send({customer:customer, charge: charge});
-
-    } catch (error) {
-        return res.status(500).send({ error: error.message })
     }
 }
