@@ -90,7 +90,8 @@ exports.createNewPodcast = async (req, res, next) => {
     //http://localhost:2000/api/podcast/create
     /*
     {
-    "title": "Don’t make me think: A common sense approach to career thinking • EP 10",
+    "name": "Don’t make me think: A common sense approach to career thinking • EP 10",
+    "description": "Description",
     "topic": "Black Women In Tech",
     "podcastImage": "image location",
     "about": "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words whichdon't look even slightly believable.",
