@@ -52,9 +52,7 @@ const userSchema = new Schema({
 
     library: [{ type: mongoose.Schema.Types.ObjectId, ref: "Book"}],
 
-}, 
-
-{ timestamps: true });
+},  { timestamps: true });
 
 
 userSchema.set('toJSON', {

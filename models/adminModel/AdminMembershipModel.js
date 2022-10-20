@@ -4,21 +4,19 @@ const mongoose = require('mongoose');
 const membershipSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
     amount: { type: Number, required: true },
-    benefits: { type: [String], default: [] },
+    benefits: { type: String, default: "", trim: true, required: true },
     description: { type: String, required: true },
-}, 
 
-{ timestamps: true });
+},  { timestamps: true });
 
-membershipSchema.methods.toJSON = function() {
-    const membership = this;
-    const membershipObject = membership.toObject();
-
-    membershipObject.id = membershipObject._id
-    delete membershipObject._id
-    delete membershipObject.__v
-    return membershipObject
-}
+membershipSchema.options.toJSON = {
+    transform: function(doc, ret, options) {
+        ret.id = ret._id
+        delete ret._id
+        delete ret.__v
+        return ret;
+     }
+};
 
 const Membership = mongoose.model('Membership', membershipSchema);
 

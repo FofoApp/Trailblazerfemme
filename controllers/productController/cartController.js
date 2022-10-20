@@ -44,7 +44,7 @@ exports.addToCart = async (req, res, next) => {
 
         const carts = await CartModel.find({ owner: owner }).populate({
             path: "items.productId",
-            select: `${keyName} name total, colors images`
+            select: `${keyName} colors name total images`
         });
 
         let cart = carts[0];
