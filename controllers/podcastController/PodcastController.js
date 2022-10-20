@@ -176,18 +176,23 @@ exports.listPodcasts = async (req, res, next) => {
             // return res.status(200).send(podcast);
 
         const query = [
-            { $lookup: { from:'users',  localField: 'hosts', foreignField: "_id", as: 'hosts' } },
-            { $unwind: '$hosts' },
+            {$match: {} },
+            // { $lookup: { from:'users',  localField: 'hosts', foreignField: "_id", as: 'hosts' } },
+            // { $unwind: '$hosts' },
             { $project: {
                 "id": "$_id",
                 "_id": 0,
-                "title": 1, 
+                "name": 1,
+                "topic": 1,
+                "imagePath": 1,
                 "description": 1,
                 "podcastImage": 1,
                 "link": 1,
-                "hosts.id": "$hosts._id",
-                "hosts.fullname": 1, 
-                "hosts.profileImage": 1,
+                "hosts": 1,
+                "tags": 1,
+                // "hosts.id": "$hosts._id",
+                // "hosts.fullname": 1, 
+                // "hosts.profileImage": 1,
                 // "hosts._id": null, 
             } }
         ];
