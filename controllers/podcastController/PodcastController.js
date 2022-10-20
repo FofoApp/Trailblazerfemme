@@ -103,7 +103,7 @@ exports.createNewPodcast = async (req, res, next) => {
     }
 
     */
-   const { podcastCategoryId, podcastHostId } = req.body;
+   const { podcastCategoryId, podcastHostId, name } = req.body;
 
    const file = req.file;
 
@@ -121,7 +121,7 @@ exports.createNewPodcast = async (req, res, next) => {
             return res.status(401).send({ error: "Unknown Podcast Host"})
         }
 
-        const findIfPodcastExist = await PodcastModel.findOne({ title: req.body.title });
+        const findIfPodcastExist = await PodcastModel.findOne({ name });
 
         if(findIfPodcastExist) {
             return res.status(400).send({ error: "Podcast name already exist"});
