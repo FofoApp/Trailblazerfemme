@@ -160,17 +160,21 @@ exports.listPodcasts = async (req, res, next) => {
     //http://localhost:2000/api/podcast/lists
     try {
         
-        // const podcasts = await PodcastModel.find({})
-                                            // .populate({
-                                            //     path: 'hosts',
-                                            //     model: 'User',
-                                            //     select: 'fullname createdAt',
-                                            //     populate: {
-                                            //         path: 'profileId',
-                                            //         model: 'Profile',
-                                            //         select: 'id userId profileImage'
-                                            //     }
-                                            // });
+        // const podcast = await PodcastModel.find({})
+        //                                     .populate({
+        //                                         path: 'hosts',
+        //                                         model: 'User',
+        //                                         select: 'fullname createdAt',
+        //                                         populate: {
+        //                                             path: 'profileId',
+        //                                             model: 'Profile',
+        //                                             select: '_id userId profileImage',
+        //                                 }
+        //                             });
+
+
+            // return res.status(200).send(podcast);
+
         const query = [
             { $lookup: { from:'users',  localField: 'hosts', foreignField: "_id", as: 'hosts' } },
             { $unwind: '$hosts' },
@@ -184,13 +188,13 @@ exports.listPodcasts = async (req, res, next) => {
                 "hosts.id": "$hosts._id",
                 "hosts.fullname": 1, 
                 "hosts.profileImage": 1,
-                "hosts._id": null, 
+                // "hosts._id": null, 
             } }
         ];
 
         const podcasts = await PodcastModel.aggregate(query)
    
-        if(!podcasts) {
+        if(!podcasts || !podcasts.length) {
             return res.status(204).send({ error: "No podcast available"});
         }
   
@@ -213,7 +217,7 @@ exports.searchForPodcast = async (req, res, next) => {
     "searchKeyword": "Omoregie"
     }
    */
-   const { q } = req.body;
+   const { keyword } = req.body;
    let { page, perpage } = req.query;
 
    page = (page) ? parseInt(page) : 1;
@@ -239,9 +243,9 @@ exports.searchForPodcast = async (req, res, next) => {
 
      const query = [
         { $match: { $or: [
-            { title: {  $regex: '.*' + q + '.*',   $options: 'i'  } },
-            { hosts: {  $regex: '.*' + q + '.*',   $options: 'i' } },
-            { topic: {  $regex: '.*' + q + '.*',   $options: 'i' } },
+            { title: {  $regex: '.*' + keyword + '.*',   $options: 'i'  } },
+            { hosts: {  $regex: '.*' + keyword + '.*',   $options: 'i' } },
+            { topic: {  $regex: '.*' + keyword + '.*',   $options: 'i' } },
         ] } },
 
         
@@ -258,7 +262,7 @@ exports.searchForPodcast = async (req, res, next) => {
             "hosts.id": "$hosts._id",
             "hosts.fullname": 1, 
             "hosts.profileImage": 1,
-            "hosts._id": null, 
+            // "hosts._id": null, 
         } }
         
      ];

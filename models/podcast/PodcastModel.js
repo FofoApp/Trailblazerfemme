@@ -48,7 +48,6 @@ podcastSchema.options.toJSON = {
         ret.id = ret._id
         delete ret._id
         delete ret.__v
-        delete ret.suggestedPodcast._id
         delete ret.podcastCloudinaryPublicId
         return ret;
      }
