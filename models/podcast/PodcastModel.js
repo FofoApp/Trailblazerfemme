@@ -23,27 +23,34 @@ const podcastSchema = new mongoose.Schema({
 { timestamps: true });
 
 
-podcastSchema.set('toJSON', {
-    virtuals: true,
+// podcastSchema.set('toJSON', {
+//     virtuals: true,
     
-    transform: function(doc, ret, options){
-        ret.id = ret._id
-        // ret.views = ret.views.length;
-        // ret.suggestedPodcast.id = ret.suggestedPodcast._id;
+//     transform: function(doc, ret, options){
+//         ret.id = ret._id
+//         // ret.views = ret.views.length;
+//         // ret.suggestedPodcast.id = ret.suggestedPodcast._id;
        
+//         delete ret._id
+//         delete ret.__v
+//         delete ret.suggestedPodcast._id;
+//         delete ret.podcastCloudinaryPublicId
+      
+//         return ret;
+        
+//     }
+// })
+
+
+
+podcastSchema.options.toJSON = {
+    transform: function(doc, ret, options) {
+        ret.id = ret._id
         delete ret._id
         delete ret.__v
-        delete ret.suggestedPodcast._id;
-        delete ret.podcastCloudinaryPublicId
-      
         return ret;
-        
-    }
-})
-
-
-
-
+     }
+};
 
 const Podcast = mongoose.model('Podcast', podcastSchema);
 
