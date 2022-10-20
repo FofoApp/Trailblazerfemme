@@ -7,7 +7,8 @@ const podcastSchema = new mongoose.Schema({
     description: { type: String, required: true, trim: true },
     link: { type: String, required: true, trim: true },
     podcastCategoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'PodcastCategory' },
-    hosts: [{type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }],
+    // hosts: [{type: String, trim: true, required: true }],
+    hosts: { type: [String], trim: true, required: true },
 
     views: [{type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     tags: { type: [String ], default: [] },
