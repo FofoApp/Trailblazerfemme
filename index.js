@@ -56,7 +56,7 @@ app.use(hpp());
 app.get('/', recurrentPaymentMiddleware, async (_req, res, next) => {
 
       try {
-      
+           // https://stackoverflow.com/questions/36193289/moongoose-aggregate-match-does-not-match-ids
             return res.status(200).send(`Welcome to Fofo-App`);
 
       } catch (error) {
