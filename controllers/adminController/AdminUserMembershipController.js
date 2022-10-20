@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Membership = require('./../../models/adminModel/AdminMembershipModel');
 
 exports.createUserMembership = async (req, res, next) => {
+    
     const { name, amount, benefits, description } = req.body;
 
      //POST REQUEST || CREATE MEMBERSHIP FOR USERS

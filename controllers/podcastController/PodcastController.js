@@ -1,3 +1,4 @@
+const fs = require('fs');
 const mongoose = require('mongoose');
 const PodcastModel = require('./../../models/podcast/PodcastModel');
 const PodcastCategoryModel = require('./../../models/podcast/PodcastCategoryModel');
@@ -103,6 +104,12 @@ exports.createNewPodcast = async (req, res, next) => {
     */
    const { podcastCategoryId, podcastHostId } = req.body;
 
+   const file = req.file;
+
+   if(!file) {
+    return res.status(400).send({ error: "Please upload an image"});
+   }
+
     try {
 
         if(!mongoose.Types.ObjectId.isValid(podcastCategoryId)) {
@@ -120,8 +127,8 @@ exports.createNewPodcast = async (req, res, next) => {
         }
         
         // //Upload Image to cloudinary
-        const uploaderResponse = await cloudinary.uploader.upload(req.file.path);
-
+        const uploaderResponse = await cloudinary.uploader.upload(file.path);
+        
         if(!uploaderResponse) {
             //Reject if unable to upload image
             return res.status(404).send({ error: "Unable to upload image please try again"});
@@ -135,6 +142,10 @@ exports.createNewPodcast = async (req, res, next) => {
 
         // const createPodcast = new PodcastModel(req.body);
         const createdPodcast = await createPodcast.save();
+
+        //Delete the file from localStorage after upload to server and database
+        if(createdPodcast) fs.unlinkSync(file.path)
+
         return res.status(201).send(createdPodcast);
 
     } catch (error) {

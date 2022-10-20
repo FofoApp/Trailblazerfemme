@@ -17,11 +17,11 @@ const router = express.Router();
 //CHANGE ROUTES:
 //signup, signin, signout
 
-router.post('/create', AdminUserMembershipController.createUserMembership);
-router.get('/:membershipId/find', AdminUserMembershipController.findUserMembershipById);
-router.get('/lists', AdminUserMembershipController.listUserMembership);
-router.patch('/:membershipId/update', AdminUserMembershipController.updateUserMembership);
-router.delete('/:membershipId/delete', AdminUserMembershipController.deleteUserMembership);
+router.post('/create', verifyAccessToken, permissions(["admin"]), AdminUserMembershipController.createUserMembership);
+router.get('/:membershipId/find', verifyAccessToken, AdminUserMembershipController.findUserMembershipById);
+router.get('/lists', verifyAccessToken, AdminUserMembershipController.listUserMembership);
+router.patch('/:membershipId/update', verifyAccessToken, permissions(["admin"]), AdminUserMembershipController.updateUserMembership);
+router.delete('/:membershipId/delete', verifyAccessToken, permissions(["admin"]), AdminUserMembershipController.deleteUserMembership);
 
 // router.post('/login', AuthController.login);
 

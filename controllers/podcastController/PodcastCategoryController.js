@@ -2,6 +2,8 @@ const slugify = require('slugify')
 const PodcastModel = require('./../../models/podcast/PodcastCategoryModel')
 
 exports.createPodcastCategory = async (req, res, next) => {
+    const { name } = req.body;
+
     //http://localhost:2000/api/podcast/category/create
     /*
     {
@@ -13,7 +15,7 @@ exports.createPodcastCategory = async (req, res, next) => {
     //VALIDATE USER INPUT BEFORE PROCESSING
     try {
 
-        const findIfCategoryExist = await PodcastModel.findOne({name: req.body.name});
+        const findIfCategoryExist = await PodcastModel.findOne({ name });
         
         if(findIfCategoryExist) {
             return res.status(401).send({ error: "Category name already exist"});
@@ -37,11 +39,11 @@ exports.PodcastCategories = async (req, res, next) => {
     try {
         const findIfCategoryExist = await PodcastModel.find().select('-createdAt -updatedAt');
 
-        if(!findIfCategoryExist) {
-            return res.status(200).send({ error: "No category found", categories: [] });
+        if(!findIfCategoryExist || !findIfCategoryExist.length) {
+            return res.status(200).send({ error: "No category found" });
         }
         
-        return res.status(200).send({ findIfCategoryExist });
+        return res.status(200).send(findIfCategoryExist);
 
     } catch (error) {
         return res.status(500).send(error.message);
