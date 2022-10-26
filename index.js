@@ -86,7 +86,7 @@ app.post('/api/payment', async (req, res, next) => {
 
             return res.status(200).send({customer:customer, charge: charge})
       } catch (error) {
-            console.log("Error:::", error.message)
+            // console.log("Error:::", error.message)
             return res.status(200).send({error})
       }
       
