@@ -7,13 +7,14 @@ const blogCategorySchema = new mongoose.Schema({
 
 { timestamps: true });
 
-blogCategorySchema.set('toJSON', {
-    transform: function(doc, ret, options){
-        ret.id = ret._id;
-        delete ret._id;
-        delete ret.__v;
-    }
-})
+blogCategorySchema.options.toJSON = {
+    transform: function(doc, ret, options) {
+        ret.id = ret._id
+        delete ret._id
+        delete ret.__v
+        return ret;
+     }
+};
 
 
 const BlogCategory = mongoose.model('BlogCategory', blogCategorySchema);

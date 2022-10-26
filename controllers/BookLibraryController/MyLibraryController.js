@@ -55,7 +55,6 @@ exports.fetchAllBooksInLibrary = async (req, res, next) => {
             { 
                 $project : {
                 "_id":1,
-                "_id": 1,
                 "userId": 1,
                 "bookId": 1,
                 "user._id": 1,

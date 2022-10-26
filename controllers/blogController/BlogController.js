@@ -57,6 +57,7 @@ exports.blog = async (req, res, next) => {
     try {
 
         const categories = await BlogCategoryModel.find({}).select('-__v -createdAt -updatedAt');
+    
         const blogs = await BlogModel.find()
                                         .select('createdAt title blogLikes description blogImagePath createdBy blogviews comments')
                         
@@ -186,11 +187,15 @@ exports.FetchBlogs = async (req, res, next) => {
 
         let query = [
 			{ $lookup: { from: "users", localField: "createdBy", foreignField: "_id", as: "creator" }, },
-
+            {
+                $addFields: { "id" : "$_id",  },
+            },
             {$unwind: '$creator'},
 
             { $lookup: { from: "blogcategories", localField: "blogCategory", foreignField: "_id", as: "category_details" }, },
-
+            {
+                $addFields: { "id" : "$_id", },
+            },
 			{$unwind: '$category_details'},
     ];
 
@@ -228,19 +233,21 @@ exports.FetchBlogs = async (req, res, next) => {
         query.push(
 	    	{ 
 	    		$project : {
-    			"_id":1,
+                "_id":0,
+                "id":1,
     			"createdAt":1,
 	    		"title": 1,
 	    		"short_description":1,
 	    		"description":1,
 				"blogImagePath":1,
+                "category_details.id":"$category_details._id",
+                
 	    		"category_details.name":1,
 				"category_details.slug":1,
-				"category_details._id":1,
-				"creator._id":1 ,
-	    		"creator.email":1 ,
-	    		"creator.fullname":1 ,
-	    		"creator.profileImage":1 ,
+				"creator.id": "$creator._id",
+	    		"creator.email":1,
+	    		"creator.fullname":1,
+	    		"creator.profileImage":1,
 	    		"comments_count":{ $size: {"$ifNull": ["$blogComments",[] ] } },
 	    		"likes_count":{ $size:{"$ifNull": ["$blogLikes", [] ] } }
 	    		}
@@ -320,7 +327,8 @@ exports.FetchBlogById = async (req, res, next) => {
                 _id: 0,
                 title:1, 
                 description:1, 
-                blogImagePath:1, 
+                blogImagePath:1,
+                createdAt:1,
                 "author.id": "$author._id",
                  "author.fullname":1,
                 "author.profileImage":1,
