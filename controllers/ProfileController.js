@@ -27,7 +27,7 @@ exports.profile = async (req, res, next) => {
                 following: { $sum: 1 },
                 booksRead: { $sum: 1 },
              }},
-            { $project: { 
+            { $project: {
                 id: "$_id",
                 _id: 0,
                 fullname: 1,

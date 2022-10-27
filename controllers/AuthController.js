@@ -64,7 +64,9 @@ exports.register = async (req, res, next) => {
         if(doesExist) throw createError.Conflict(`${result.email} already exist`);
        
         const user = new User({...result,  nextPaymentDate: date});
+
         // const follow = await FollowersAndFollowingModel.create({userId: user._id});
+        
         const savedUser = await user.save();
 
         const otpCode = generateFourDigitsOTP();

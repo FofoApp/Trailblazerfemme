@@ -301,12 +301,13 @@ exports.fetchBooks = async (req, res, next) => {
         //     }
 
         // ];
+
        // let total= await BookModel.countDocuments(query);
 
         let total= await BookModel.countDocuments();
 		let page = (req.query.page) ? parseInt(req.query.page) : 1;
 		let perPage = (req.query.perPage) ? parseInt(req.query.perPage) : 10;
-		let skip = (page-1)*perPage;
+		let skip = (page-1) * perPage;
 
         // query.push({ $skip:skip });
 		// query.push({ $limit:perPage });
@@ -318,6 +319,7 @@ exports.fetchBooks = async (req, res, next) => {
         const books = await BookModel.find({})
                                      .select('_id title author bookImage bookLink price ratings store bookCategoryId')
                                     .populate('bookCategoryId', 'title')
+                                    .populate('createdBy', "id fullname email profileImagePath")
                                     .skip(skip)
                                     .limit(perPage)
 
@@ -418,6 +420,7 @@ exports.deleteBookById = async (req, res, next) => {
             return res.status(401).send({ error: "Invalid book"})
         }
         const findBookExist = await BookModel.findById(bookId);
+        
         if(!findBookExist) {
             return res.status(404).send({ error: "Book not found"})
         }

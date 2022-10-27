@@ -92,9 +92,7 @@ exports.createNewPodcast = async (req, res, next) => {
     {
     "name": "Don’t make me think: A common sense approach to career thinking • EP 10",
     "description": "Description",
-    "topic": "Black Women In Tech",
     "podcastImage": "image location",
-    "about": "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words whichdon't look even slightly believable.",
     "hosts": "Omoregie & Johnson",
     "tags": "Career, Black Women",
     "link": "podcastlink.com/podcast/getpodcast"
@@ -103,13 +101,11 @@ exports.createNewPodcast = async (req, res, next) => {
     }
 
     */
-   const { podcastCategoryId, podcastHostId, name } = req.body;
+   const { podcastCategoryId, podcastHostId, name, description, hosts, tags, link } = req.body;
 
    const file = req.file;
 
-   if(!file) {
-    return res.status(400).send({ error: "Please upload an image"});
-   }
+   if(!file) return res.status(400).send({ error: "Please upload an image"});
 
     try {
 
@@ -136,7 +132,7 @@ exports.createNewPodcast = async (req, res, next) => {
         }
 
         const createPodcast = new PodcastModel({
-            ...req.body, podcastCategoryId, podcastHostId,
+            podcastCategoryId, podcastHostId, name, description, hosts, tags, link,
              podcastCloudinaryPublicId: uploaderResponse.public_id,
             podcastImage: uploaderResponse.secure_url
         });

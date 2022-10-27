@@ -7,11 +7,11 @@ const podcastSchema = new mongoose.Schema({
     description: { type: String, required: true, trim: true },
     link: { type: String, required: true, trim: true },
     podcastCategoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'PodcastCategory' },
-    hosts: [{type: String, trim: true, required: true }],
+    hosts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }],
     // hosts: { type: [String], trim: true, required: true },
 
     views: [{type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    tags: { type: [String ], default: [] },
+    tags: { type: String, trim: true, default: "" },
     reviews: [{type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     episodes: [{type: mongoose.Schema.Types.ObjectId, ref: 'PodcastEpisode' }],
     popular: [{type: mongoose.Schema.Types.ObjectId, ref: 'PodcastCategory' }],
@@ -21,26 +21,6 @@ const podcastSchema = new mongoose.Schema({
 
 
 { timestamps: true });
-
-
-// podcastSchema.set('toJSON', {
-//     virtuals: true,
-    
-//     transform: function(doc, ret, options){
-//         ret.id = ret._id
-//         // ret.views = ret.views.length;
-//         // ret.suggestedPodcast.id = ret.suggestedPodcast._id;
-       
-//         delete ret._id
-//         delete ret.__v
-//         delete ret.suggestedPodcast._id;
-//         delete ret.podcastCloudinaryPublicId
-      
-//         return ret;
-        
-//     }
-// })
-
 
 
 podcastSchema.options.toJSON = {
