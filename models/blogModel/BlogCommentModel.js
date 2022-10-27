@@ -3,13 +3,12 @@ const mongoose = require('mongoose');
 const blogCommentSchema = new mongoose.Schema({
     comment: { type: String, required: true },
     blogId: { type: mongoose.Schema.Types.ObjectId, ref: 'Blog' },
-    userWhoComment: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-
-
+    createdDate: { type: Date, default: Date.now },
+    commentedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     
     comments: [
         {
-            text: String,
+            comment: String,
             createdDate: { type: Date, default: Date.now },
             commentedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
         },

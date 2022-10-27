@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const blogModelSchema = new mongoose.Schema({
  name: { type: String, required: true, unique: true  },
  description:{ type: String, required: true },
- blogImagePath: { type: String, required: true },
+ blogImage: { type: String, required: true },
  blogImageCloudinaryPublicId: { type: String, required: true },
 
  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
@@ -15,9 +15,10 @@ const blogModelSchema = new mongoose.Schema({
 
  comments: [
     {
-        comment: String,
+        comment: { type: String, required: true },
         commentDate: { type: Date, default: Date.now() },
-        commentedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+
+        commentedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
         blogId: {type: mongoose.Schema.Types.ObjectId, ref: 'Blog' },
         // userProfile: {type: mongoose.Schema.Types.ObjectId, ref: 'Profile' },
     },

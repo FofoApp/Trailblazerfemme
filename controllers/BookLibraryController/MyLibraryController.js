@@ -33,57 +33,56 @@ exports.fetchAllBooksInLibrary = async (req, res, next) => {
 
         const topAuthors = await BookModel.aggregate(
             [
-                { $group : { _id : "$author", name: { $addToSet: "$author" }, books: { $push: "$title" }, totalBooksWritten: { $sum: 1} } }
+                { $match: {} },
+                // { $group : { _id : "$author", name: { $addToSet: "$author, $title" }, 
+                // books: { $push: "$title $bookImage $price" },
+                {
+                    $group :  {
+                        _id : {
+                            author: "$author",
+                            id: "$_id",
+                            title: "$title",
+                            bookImage: "$bookImage",
+                            price: "$price",
+                            totalBooksWritten: { $sum: 1},
+                        },
+                        
+                    },
+                   
+                },
+                    {$unwind: '$_id'},
+                {
+                    $project: { 
+                        "details": "$_id",
+                        "_id": 0
+                    }
+                }
             ]
          );
 
         //  console.log(topAuthors)
 
         //ALL BOOKS IN MY LIBRARY
-        let query=[
+        let query = [
+            {
+                $match:{  'userId': mongoose.Types.ObjectId(req.user.id) }
+            },
             {
                 $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "user" }
             },
             {$unwind: '$user'},
             {
-                $lookup: { from: "books",  localField: "bookId", foreignField: "_id", as: "book" }
+                $lookup: { from: "books",  localField: "bookId", foreignField: "_id", as: "books" }
             },
-            {$unwind: '$book'},
-            {
-                $match:{  'userId': mongoose.Types.ObjectId(req.user.id) }
-            },
-            { 
-                $project : {
-                "_id":1,
-                "userId": 1,
-                "bookId": 1,
-                "user._id": 1,
-                "user.fullname": 1,
-                "user.email": 1,
-                "user.phonenumber": 1,
-                "user.field": 1,
-                "user.profileImagePath": 1,
-                "user.socialLinks": 1,
-                "user.isPaid": 1,
-                "user.nextPaymentDate": 1,
-                "user.roles": 1,
-                "book._id": 1,
-                "book.title": 1,
-                "book.imagePath": 1,
-                "book.author": 1,
-                "book.price": "1",
-                "book.ratings": 1,
-                "book.store": 1,
-                "book.bookCategoryId": 1,
-
+            {$unwind: '$books'},
             
-
-            //     "comments_count":{$size:{"$ifNull":["$blog_comments",[]]}},
-            //     "likes_count":{$size:{"$ifNull":["$blog_likes",[]]}}
-                } 
-            },
-
         ];
+
+        const myLibrary = await MyLibraryModel.find({ userId: mongoose.Types.ObjectId(req.user.id) })
+            .populate("userId", "fullname profileImage")
+            .populate("bookId", "title author price store bookImage")
+
+        console.log(myLibrary)
 
         let total= await MyLibraryModel.countDocuments(query);
 		let page= (req.query.page) ? parseInt(req.query.page) : 1;
@@ -94,22 +93,26 @@ exports.fetchAllBooksInLibrary = async (req, res, next) => {
 		query.push({ $limit:perPage, });
 
 
-        if(req.body.keyword && req.body.keyword !=''){ 
-			query.push({
-			  $match: { 
-			    $or :[
-			    //   { topic : { $regex: '.*' + req.body.keyword + '.*',  $options: 'i' }  },
-			      { 'book.title' : {$regex: '.*' + req.body.keyword + '.*',  $options: 'i' }  },
-			      { 'book.author' : {$regex: '.*' + req.body.keyword + '.*',  $options: 'i' }  },
-			    ]
-			  }
-			});
-		}
+        // if(req.body.keyword && req.body.keyword !=''){
+		// 	query.push({
+		// 	  $match: {
+		// 	    $or :[
+		// 	    //   { topic : { $regex: '.*' + req.body.keyword + '.*',  $options: 'i' }  },
+		// 	      { 'book.title' : {$regex: '.*' + req.body.keyword + '.*',  $options: 'i' },  },
+		// 	      { 'book.author' : {$regex: '.*' + req.body.keyword + '.*',  $options: 'i' },  },
+		// 	    ]
+		// 	  }
+		// 	});
+		// }
 
-        const findBooksInLibrary = await MyLibraryModel.aggregate(query);
+   
+
+        // const findBooksInLibrary = await MyLibraryModel.aggregate(query);
         let paginationData = { totalRecords:total, currentPage:page, perPage:perPage, totalPages:Math.ceil(total/perPage) }
    
-        return res.status(200).send({ message: "Books", categories: categories, myLibrary: findBooksInLibrary, topAuthors, paginationData });
+        // return res.status(200).send({ message: "Books", categories: categories, myLibrary: findBooksInLibrary, topAuthors, paginationData });
+
+        return res.status(200).send({ message: "Books", categories: categories, myLibrary, topAuthors, paginationData });
     } catch (error) {
         return res.status(500).send({ message: error.message });
     }

@@ -18,7 +18,7 @@ exports.getSpecificBlogAndItsComments = async (req, res, next) => {
             _id: 1, 
             title:1, 
             description:1, 
-            blogImagePath:1, 
+            blogImage:1, 
             profile:1,
              "author._id":1, 
              "author.fullname":1,
@@ -59,7 +59,7 @@ exports.blog = async (req, res, next) => {
         const categories = await BlogCategoryModel.find({}).select('-__v -createdAt -updatedAt');
     
         const blogs = await BlogModel.find()
-                                        .select('createdAt title blogLikes description blogImagePath createdBy blogviews comments')
+                                        .select('createdAt title blogLikes description blogImage createdBy blogviews comments')
                         
                                         .populate({
                                             path: 'createdBy',
@@ -143,7 +143,7 @@ exports.createNewBlog = async (req, res, next) => {
             ...req.body,
             createdBy:blogCreatedBy,            
             blogImageCloudinaryPublicId: uploaderResponse.public_id,
-            blogImagePath: uploaderResponse.secure_url
+            blogImage: uploaderResponse.secure_url
         }
 
         // return res.send(blogData)
@@ -239,7 +239,7 @@ exports.FetchBlogs = async (req, res, next) => {
 	    		"title": 1,
 	    		"short_description":1,
 	    		"description":1,
-				"blogImagePath":1,
+				"blogImage":1,
                 "category_details.id":"$category_details._id",
                 
 	    		"category_details.name":1,
@@ -327,7 +327,7 @@ exports.FetchBlogById = async (req, res, next) => {
                 _id: 0,
                 title:1, 
                 description:1, 
-                blogImagePath:1,
+                blogImage:1,
                 createdAt:1,
                 "author.id": "$author._id",
                  "author.fullname":1,
@@ -432,7 +432,7 @@ exports.updateBlogById = async (req, res, next) => {
             //Upload Image to cloudinary
             uploaderResponse = await cloudinary.uploader.upload(req.file.path);
             updateData['blogImageCloudinaryPublicId'] =  uploaderResponse.public_id;
-            updateData['blogImagePath'] = uploaderResponse.secure_url;
+            updateData['blogImage'] = uploaderResponse.secure_url;
 
             fs.unlinkSync(req?.file?.path);
         }
@@ -515,29 +515,29 @@ exports.listBlogComment = async (req, res, next) => {
 
 exports.blogComment = async (req, res, next) => {
     let { comment } = req.body;
-    const userWhoComment =  mongoose.Types.ObjectId(req.user.id);
+    const commentedBy =  mongoose.Types.ObjectId(req.user.id);
     const blogId = req.params.blogId;
+   
     try {
-        let commentData = { comment, blogId, userWhoComment };
+        let commentData = { comment, blogId, commentedBy };
 
         let profile = await ProfileModel.findOne({ userId: req.user.id});
         
 
         // let  result = await BlogModel.findByIdAndUpdate(req.params.blogId, {$push: { comments: comment }}, {new: true})
-        // .select('title description blogImagePath blogLikes blogviews comments')
+        // .select('title description blogImage blogLikes blogviews comments')
         // .populate("createdBy", "fullname profileImage createdAt")
         // .populate("comments.commentedBy", "fullname commentDate profileImage")
 
         const newComment = new BlogCommentModel(commentData);
+ 
         const savedBlogComment = await newComment.save();
 
-        await BlogModel.findByIdAndUpdate(blogId, { $push: {blogComments: savedBlogComment._id } } );
+        const find = await BlogModel.findByIdAndUpdate(blogId, { $push: { comments: commentData, blogComments: savedBlogComment._id } } );
 
-
-        return res.status(200).send(savedBlogComment);
+        return res.status(200).send(find);
 
         } catch (error) {
-            // console.log(error)
             return res.status(500).send({ error: error.message });
         }
 }
@@ -556,7 +556,7 @@ exports.blogComment = async (req, res, next) => {
 //         comment = { comment: comment, commentedBy};
 
 //         let  result = await BlogModel.findByIdAndUpdate(req.params.blogId, {$push: { comments: comment }}, {new: true})
-//         .select('title description blogImagePath blogLikes blogviews comments')
+//         .select('title description blogImage blogLikes blogviews comments')
 //         .populate("createdBy", "fullname profileImage createdAt")
 //         .populate("comments.commentedBy", "fullname commentDate profileImage")
 
@@ -579,7 +579,6 @@ exports.deleteBlogComment = (req, res, next) => {
             .populate("createdBy", "fullname")
             .exec((err, result) =>{
             if(err) {
-                console.log(err)
                 return res.status(400).json({ error: err });
             }
             return res.status(200).send(result);

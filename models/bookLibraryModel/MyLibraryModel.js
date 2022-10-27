@@ -6,15 +6,16 @@ const myLibrarySchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
-myLibrarySchema.methods.toJSON = function() {
-    const myLibrary = this;
-    const myLibraryObject = myLibrary.toObject();
 
-    myLibraryObject.id = myLibraryObject._id
-    delete myLibraryObject._id
-    delete myLibraryObject.__v
-    return myLibraryObject
-}
+myLibrarySchema.options.toJSON = {
+    // virtuals: true,
+    transform: function(doc, ret, options) {
+        ret.id = ret._id
+        delete ret._id
+        delete ret.__v
+        return ret;
+     }
+};
 
 const MyLibrary = mongoose.model('MyLibrary', myLibrarySchema);
 
