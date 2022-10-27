@@ -1,6 +1,7 @@
 const fs = require('fs');
 const mongoose = require('mongoose');
 const PodcastModel = require('./../../models/podcast/PodcastModel');
+const UserModel = require('./../../models/UserModel');
 const PodcastCategoryModel = require('./../../models/podcast/PodcastCategoryModel');
 const PopularPodcastModel = require('./../../models/podcast/PopularPodcastModel');
 const { cloudinary } = require('./../../helpers/cloudinary');
@@ -173,8 +174,8 @@ exports.listPodcasts = async (req, res, next) => {
 
         const query = [
             {$match: {} },
-            // { $lookup: { from:'users',  localField: 'hosts', foreignField: "_id", as: 'hosts' } },
-            // { $unwind: '$hosts' },
+            { $lookup: { from:'users',  localField: 'hosts', foreignField: "_id", as: 'hosts' } },
+            { $unwind: '$hosts' },
             { $project: {
                 "id": "$_id",
                 "_id": 0,
@@ -183,12 +184,10 @@ exports.listPodcasts = async (req, res, next) => {
                 "description": 1,
                 "podcastImage": 1,
                 "link": 1,
-                "hosts": 1,
                 "tags": 1,
-                // "hosts.id": "$hosts._id",
-                // "hosts.fullname": 1, 
-                // "hosts.profileImage": 1,
-                // "hosts._id": null, 
+                "hosts.id": "$hosts._id",
+                "hosts.fullname": 1, 
+                "hosts.profileImage": 1,
             } }
         ];
 
@@ -213,11 +212,18 @@ exports.searchForPodcast = async (req, res, next) => {
 
    /*
    Search keyword could be either title, hostname or topic
-    {
-    "searchKeyword": "Omoregie"
-    }
+    { "keyword": "Omoregie" }
    */
-   const { keyword } = req.body;
+
+    
+   let keyword = req.body.keyword;
+
+   const search  = [
+            { name: {  $regex: '.*' + keyword + '.*',   $options: 'i'  } },
+            { tags: {  $regex: '.*' + keyword + '.*',   $options: 'i' } },
+    ]
+
+
    let { page, perpage } = req.query;
 
    page = (page) ? parseInt(page) : 1;
@@ -226,53 +232,60 @@ exports.searchForPodcast = async (req, res, next) => {
    let skip = (page - 1) * perpage;
 
    try {
-
-
-
-//    const searchForPodcast = await PodcastModel.find({
-//            $or: [
-//                { title: {  $regex: '.*' + q + '.*',   $options: 'i'  } },
-//                { hosts: {  $regex: '.*' + q + '.*',   $options: 'i' } },
-//                { topic: {  $regex: '.*' + q + '.*',   $options: 'i' } },
-//            ],
-//            }
-
-//    ).skip(skip).limit(perpage);
    
-     //.select('-trendingId -recentSearch -cloudinaryPublicId -createdAt -updatedAt -__v')
+    if(await UserModel.findOne({ fullname: { $regex: '.*' + keyword + '.*',   $options: 'i' } })) {
+       
+        let user = await UserModel.findOne({ fullname: { $regex: '.*' + keyword + '.*',   $options: 'i' } });
+        keyword = user._id.toString();
+        search.push( { hosts: { $in: [keyword] } },)
+    }
 
-     const query = [
-        { $match: { $or: [
-            { title: {  $regex: '.*' + keyword + '.*',   $options: 'i'  } },
-            { hosts: {  $regex: '.*' + keyword + '.*',   $options: 'i' } },
-            { topic: {  $regex: '.*' + keyword + '.*',   $options: 'i' } },
-        ] } },
+   const searchForPodcast = await PodcastModel.find( { $or: search } )
+        .populate({
+            path: 'hosts',
+            model: 'User',
+            select: 'fullname profileImage createdAt',
+        })
+        .skip(skip).limit(perpage)
+        .select("id name description podcastImage link tags")
 
+//    .skip(skip).limit(perpage)
+   
+//      .select('-trendingId -recentSearch -cloudinaryPublicId -createdAt -updatedAt -__v')
+
+    //  const query = [
+    //     { $match: { $or: [
+    //         { name: {  $regex: '.*' + keyword + '.*',   $options: 'i'  } },
+    //         // { hosts: {  $regex: '.*' + keyword + '.*',   $options: 'i' } },
+    //         { tags: {  $regex: '.*' + keyword + '.*',   $options: 'i' } },
+    //     ] } },
+
+    //     { $lookup: { from: "users", localField: '_id', foreignField: "hosts", as: "hosts" } },
+    //     { $unwind: "$hosts" },
+    //     { $project: {
+    //         "id": "$_id",
+    //         "_id": 0,
+    //         "name": 1,
+    //         "description": 1,
+    //         "podcastImage": 1,
+    //         "link": 1,
+    //         "hosts": 1,
+    //         "tags": 1,
+
+    //         "hosts.id": "$hosts._id",
+    //         "hosts.fullname": 1, 
+    //         "hosts.profileImage": 1,
+    //         "hosts._id": null,
+
+    //     } }
         
+    //  ];
 
-        { $lookup: { from: "users", localField: 'hosts', foreignField: "_id", as: "hosts" } },
-        { $unwind: "$hosts" },
-        { $project: {
-            "id": "$_id",
-            "_id": 0,
-            "name": 1,
-            "topic": 1,
-            "description": 1,
-            "podcastImage": 1,
-            "link": 1,
-            "hosts": 1,
-            "tags": 1,
-            // "hosts.id": "$hosts._id",
-            // "hosts.fullname": 1, 
-            // "hosts.profileImage": 1,
-            // "hosts._id": null, 
-        } }
-        
-     ];
+    //  await Actor.find({ $text: { $search: `"${query.name}"`  } })
 
-     const searched = await PodcastModel.aggregate(query);
+    //  const searched = await PodcastModel.aggregate(query);
 
-     return res.status(200).send(searched);
+    //  return res.status(200).send(searched);
 
        if(!searchForPodcast) {
            return res.status(404).send({ message: "Podcast with the search phrase not found!"})

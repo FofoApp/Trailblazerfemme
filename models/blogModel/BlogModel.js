@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 
 const blogModelSchema = new mongoose.Schema({
- title: { type: String, required: true, unique: true  },
+ name: { type: String, required: true, unique: true  },
  description:{ type: String, required: true },
  blogImagePath: { type: String, required: true },
  blogImageCloudinaryPublicId: { type: String, required: true },
@@ -36,29 +36,6 @@ blogModelSchema.virtual('likes').get(function() {
 }).set(function(value) {
     var like = value;
 });
-
-
-// blogModelSchema.set('toJSON', {
-//     virtuals: true,
-//     transform: function(doc, ret, options){
-//         if(ret.comments) {
-//             ret.comments.map((comment) => {
-//                 comment.id = comment._id;
-//                 delete comment._id;
-//                 return comment;
-//             })
-//         }
-//         ret.blogLikes = ret.blogLikes.length;
-//         ret.blogviews = ret.blogviews.length;
-//         ret.id = ret._id;
-//         delete ret._id;
-//         delete ret.__v;
-
-//         return ret;
-//     }
-// })
-
-
 
 blogModelSchema.options.toJSON = {
     // virtuals: true,

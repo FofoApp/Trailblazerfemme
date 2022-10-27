@@ -8,7 +8,7 @@ const podcastSchema = new mongoose.Schema({
     link: { type: String, required: true, trim: true },
     podcastCategoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'PodcastCategory' },
     hosts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }],
-    // hosts: { type: [String], trim: true, required: true },
+    createdBy: { type: String, trim: true, default: "" },
 
     views: [{type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     tags: { type: String, trim: true, default: "" },
@@ -22,6 +22,8 @@ const podcastSchema = new mongoose.Schema({
 
 { timestamps: true });
 
+
+// podcastSchema.index({ name: "text" });
 
 podcastSchema.options.toJSON = {
     transform: function(doc, ret, options) {

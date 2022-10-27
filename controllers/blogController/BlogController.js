@@ -406,6 +406,7 @@ exports.updateBlogById = async (req, res, next) => {
 
         const findBlogExist = await BlogModel.findById(blogId);
 
+        console.log(findBlogExist)
         if(!findBlogExist) {
             return res.status(404).send({ message: "Blog not found" });
         }
@@ -420,7 +421,7 @@ exports.updateBlogById = async (req, res, next) => {
         //DELETE FILE FROM CLOUDINARY IF EXIST
         let updateData = { ...req.body };
      
-        if(findBlogExist.blogImageCloudinaryPublicId && req.file.fieldname && req.file.fieldname === 'blogImage') {
+        if(findBlogExist.blogImageCloudinaryPublicId && req.file?.fieldname && req.file?.fieldname === 'blogImage') {
             let uploaderResponse = await cloudinary.uploader.destroy(findBlogExist.blogImageCloudinaryPublicId); 
             
             if(!uploaderResponse) {
