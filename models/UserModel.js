@@ -55,18 +55,28 @@ const userSchema = new Schema({
 },  { timestamps: true });
 
 
-userSchema.set('toJSON', {
-    // virtuals: true,
-    transform: function(doc, ret, options){
-        ret.id = ret._id;
-        delete ret._id;
+// userSchema.set('toJSON', {
+//     // virtuals: true,
+//     transform: function(doc, ret, options){
+//         ret.id = ret._id;
+//         delete ret._id;
+//         delete ret.password;
+//         delete ret.__v;
+
+//         return ret;
+//     }
+// });
+
+
+userSchema.options.toJSON = {
+    transform: function(doc, ret, options) {
+        ret.id = ret._id
+        delete ret._id
+        delete ret.__v
         delete ret.password;
-        delete ret.__v;
-
         return ret;
-    }
-})
-
+     }
+};
 
 userSchema.pre('save', async function(next) {
     let user = this;

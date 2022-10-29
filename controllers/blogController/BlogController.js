@@ -58,30 +58,282 @@ exports.blog = async (req, res, next) => {
 
         const categories = await BlogCategoryModel.find({}).select('-__v -createdAt -updatedAt');
     
-        const blogs = await BlogModel.find()
-                                        .select('createdAt title blogLikes description blogImage createdBy blogviews comments')
+        // const blogs = await BlogModel.find()
+        //                                 .select('createdAt title blogLikes description blogImage createdBy blogviews comments')
                         
-                                        .populate({
-                                            path: 'createdBy',
-                                            model: 'User',
-                                            select: 'fullname profileImage createdAt',
-                                            // populate: {
-                                            //     path: 'profileId',
-                                            //     model: 'Profile',
-                                            //     select: 'id userId profileImage'
-                                            // }
-                                        })
-                                        .populate({
-                                            path: 'comments.commentedBy',
-                                            model: 'User',
-                                            select: 'fullname profileImage createdAt',
+        //                                 .populate({
+        //                                     path: 'createdBy',
+        //                                     model: 'User',
+        //                                     select: 'fullname profileImage createdAt',
+        //                                     // populate: {
+        //                                     //     path: 'profileId',
+        //                                     //     model: 'Profile',
+        //                                     //     select: 'id userId profileImage'
+        //                                     // }
+        //                                 })
+        //                                 .populate({
+        //                                     path: 'comments.commentedBy',
+        //                                     model: 'User',
+        //                                     select: 'fullname profileImage createdAt',
 
-                                            populate: {
-                                                path: 'profileId',
-                                                model: 'Profile',
-                                                select: 'id userId profileImage'
-                                            }
-                                        }).sort({ createdAt: -1  })
+        //                                     populate: {
+        //                                         path: 'profileId',
+        //                                         model: 'Profile',
+        //                                         select: 'id userId profileImage'
+        //                                     }
+        //                                 }).sort({ createdAt: -1  })
+
+
+        let recent = await BlogModel.aggregate([
+
+            { $match: {} },
+
+            {
+                $lookup: {
+                    from: "users",
+                    localField: 'createdBy',
+                    foreignField: '_id',
+                    as: 'author',
+                }
+            },
+
+            {$unwind: "$author" },
+
+            {
+                $lookup: {
+                    from: "blogcategories",
+                    localField: 'blogCategory',
+                    foreignField: '_id',
+                    as: 'blogCategory',
+                }
+            },
+
+            {$unwind: "$blogCategory" },
+
+            {
+                $lookup: {
+                    from: "blogcomments",
+                    localField: 'blogComments',
+                    foreignField: '_id',
+                    as: 'blogComments',
+                }
+            },
+
+            { $unwind: "$blogComments" },
+
+
+            {
+                $lookup: {
+                    from: "users",
+                    localField: 'blogComments.commentedBy',
+                    foreignField: '_id',
+                    as: 'commentBy',
+                }
+            },
+
+            {$unwind: "$commentBy" },
+
+            {
+                $group: {
+                    _id: "$_id",
+                    name: { $first: "$name" },
+
+                    authorId: { $first: "$author._id" },
+                    authorName: { $first: "$author.fullname" },
+                    profileImage: { $first: "$author.profileImage" },
+
+
+                    blogImage: { $first: "$blogImage" },
+                  
+                    blogviews: { $first: { $size: "$blogviews" } },
+                    blogLikes: { $first: { $size: "$blogLikes" } },
+
+
+                    description: { $first: "$description" },
+                    category: { $first: "$blogCategory.name" },
+                    slug: { $first: "$blogCategory.slug" },
+
+                    comments:{
+                        $push: {
+                        comment: "$blogComments.comment",
+                        commentedBy: "$commentBy",
+                        createdDate: "$blogComments.createdDate",
+                        blogId: "$blogComments.blogId",
+                    }  },
+
+                }
+            },
+
+            {
+                $project: {
+                    id: "$_id",
+                    _id: 0,
+                    name:1,
+
+                    authorId:1,
+                    authorName:1,
+                    profileImage:1,
+
+                    blogLikes:1,
+                    blogviews: 1,
+                    description:1,
+                    category:1,
+                    blogImage:1, 
+                    createdBy:1,
+                    createdAt:1,
+
+                    //     "comments": {
+                    //     "$map": {
+                    //         "input": "$comments",
+                    //         "as": "comment",
+                    //         "in": {
+                    //             "id": "$$comment.commentedBy._id",
+                    //             "commentedBy": "$$comment.commentedBy.fullname",
+                    //             "profileImage": "$$comment.commentedBy.profileImage",
+                    //             "comment": "$$comment.comment",
+                    //             "blogId": "$$comment.blogId",
+                    //         }
+                    //     }
+                    // }
+                    
+                }
+            },
+
+            { $sort: { createdAt: -1 } }
+
+
+            ]);
+                                    
+
+        let popular = await BlogModel.aggregate([
+
+            { $match: {} },
+
+            {
+                $lookup: {
+                    from: "users",
+                    localField: 'createdBy',
+                    foreignField: '_id',
+                    as: 'author',
+                }
+            },
+
+            {$unwind: "$author" },
+
+            {
+                $lookup: {
+                    from: "blogcategories",
+                    localField: 'blogCategory',
+                    foreignField: '_id',
+                    as: 'blogCategory',
+                }
+            },
+
+            {$unwind: "$blogCategory" },
+
+            {
+                $lookup: {
+                    from: "blogcomments",
+                    localField: 'blogComments',
+                    foreignField: '_id',
+                    as: 'blogComments',
+                }
+            },
+
+            { $unwind: "$blogComments" },
+
+
+            {
+                $lookup: {
+                    from: "users",
+                    localField: 'blogComments.commentedBy',
+                    foreignField: '_id',
+                    as: 'commentBy',
+                }
+            },
+
+            {$unwind: "$commentBy" },
+
+            {
+                $group: {
+                    _id: "$_id",
+                    // category: { $first: "$blogCategory" },
+                    name: { $first: "$name" },
+
+                    authorId: { $first: "$author._id" },
+                    authorName: { $first: "$author.fullname" },
+                    profileImage: { $first: "$author.profileImage" },
+
+                    // author: {
+                    //     id: { $first: "$author._id" },
+                    //     fullname: { $first: "$author.fullname" },
+                    //     profileImage: { $first: "$author.profileImage" },
+                    // } ,
+                    blogImage: { $first: "$blogImage" },
+                    // blogLikes: { $first: "$blogLikes" },
+                    blogviews: { $first: { $size: "$blogviews" } },
+                    blogLikes: { $first: { $size: "$blogLikes" } },
+
+
+                    description: { $first: "$description" },
+                    category: { $first: "$blogCategory.name" },
+                    slug: { $first: "$blogCategory.slug" },
+
+                    comments:{
+                        $push: {
+                        comment: "$blogComments.comment",
+                        commentedBy: "$commentBy",
+                        createdDate: "$blogComments.createdDate",
+                        blogId: "$blogComments.blogId",
+                    }  },
+
+                }
+            },
+
+            {
+                $project: {
+                    id: "$_id",
+                    _id: 0,
+                    authorId:1,
+                    authorName:1,
+                    profileImage:1,
+
+
+                    createdAt:1,
+                    name:1,
+                    blogLikes:1,
+                    description:1,
+                    category:1,
+                    blogImage:1, 
+                    createdBy:1,
+                    blogviews: 1,
+                    author: 1,
+
+                    sort : { '$add' : [ '$blogviews', '$blogLikes' ] },
+
+
+
+                        "comments": {
+                        "$map": {
+                            "input": "$comments",
+                            "as": "comment",
+                            "in": {
+                                "id": "$$comment.commentedBy._id",
+                                "commentedBy": "$$comment.commentedBy.fullname",
+                                "profileImage": "$$comment.commentedBy.profileImage",
+                                "comment": "$$comment.comment",
+                                "blogId": "$$comment.blogId",
+                            }
+                        }
+                    }
+                    
+                }
+            },
+
+            { $sort: { sort: -1 } }
+
+
+            ]);
                                     
 
        const newBlog =  await BlogModel.find({}).where('blogviews').size(1)
@@ -93,15 +345,12 @@ exports.blog = async (req, res, next) => {
         // ]);
 
         //SHOW POPULAR BLOG POST IF VIEWS IS GREATER THAN 20
-        const popularBlog = await BlogModel.find(
-            {
-            $expr: {
-                $gt: [{ $size: { $ifNull: ["$blogviews", []] } }, 20]
-            },
-        },
-        
-        ).populate('blogCategory');
-        return res.status(200).send({ categories:categories, recent: blogs, popular:popularBlog });
+
+        // const popularBlog = await BlogModel.find(
+        //     { $expr: { $gt: [{ $size: { $ifNull: ["$blogviews", []] } }, 20] },  },
+        // ).populate('blogCategory');
+
+        return res.status(200).send({ categories:categories,  recent, popular  });
 
     } catch (error) {
         return res.status(500).send({ message: error.message })
@@ -236,7 +485,7 @@ exports.FetchBlogs = async (req, res, next) => {
                 "_id":0,
                 "id":1,
     			"createdAt":1,
-	    		"title": 1,
+	    		"name": 1,
 	    		"short_description":1,
 	    		"description":1,
 				"blogImage":1,
@@ -302,57 +551,247 @@ exports.FetchBlogById = async (req, res, next) => {
 
 
         let blogPost = await BlogModel.aggregate([
-            { $match: { '_id': { '$eq': mongoose.Types.ObjectId(blogId) }  } },
-            { $lookup: { from: "users", localField: 'createdBy', foreignField: "_id", as: "author" } },
+
+            { $match: { $expr: { _id: mongoose.Types.ObjectId(blogId) } } },
+
+            {
+                $lookup: {
+                    from: "users",
+                    localField: 'createdBy',
+                    foreignField: '_id',
+                    as: 'author',
+                }
+            },
+
             {$unwind: "$author" },
-    
-            { $lookup: { from: "blogcomments", 
-                    let: { blogId: "$_id" },
-                    pipeline: [ 
-                    { 
-                        $match: { $expr: {$eq: ["$$blogId", "$blogId"]  }  }  
-                    }, 
-                    {
-                        $lookup: { from: "users", localField: 'userWhoComment', foreignField: "_id", as: "userWhoComment" } ,
-    
-                    },
-                    { $unwind: "$userWhoComment"  }
-                ],
-                as: "comments",
-                    
-            } },
-    
-            { $project: { 
-                id: "$_id",
-                _id: 0,
-                title:1, 
-                description:1, 
-                blogImage:1,
-                createdAt:1,
-                "author.id": "$author._id",
-                 "author.fullname":1,
-                "author.profileImage":1,
-                // "comments": 1,
-                "comments": {
-                    "$map": {
-                        "input": "$comments",
-                        "as": "comment",
-                        "in": {
-                            "id": "$$comment._id",
-                            "comment": "$$comment.comment",
-                            "createdDate": "$$comment.createdAt",
-                            "fullname": "$$comment.userWhoComment.fullname",
-                            "commentUserImage": "$$comment.userWhoComment.profileImage",
-                            "commentUserId": "$$comment.userWhoComment._id",
+            
+
+            {
+                $lookup: {
+                    from: "blogcategories",
+                    localField: 'blogCategory',
+                    foreignField: '_id',
+                    as: 'blogCategory',
+                }
+            },
+
+            {$unwind: "$blogCategory" },
+
+            {
+                $lookup: {
+                    from: "blogcomments",
+                    localField: 'blogComments',
+                    foreignField: '_id',
+                    as: 'blogComments',
+                }
+            },
+
+            { $unwind: "$blogComments" },
+
+            {
+                $lookup: {
+                    from: "users",
+                    localField: 'blogComments.commentedBy',
+                    foreignField: '_id',
+                    as: 'commentBy',
+                }
+            },
+
+            {$unwind: "$commentBy" },
+
+            {
+                $group: {
+                    _id: "$_id",
+                    name: { $first: "$name" },
+
+                    authorId: { $first: "$author._id" },
+                    authorName: { $first: "$author.fullname" },
+                    profileImage: { $first: "$author.profileImage" },
+
+
+                    blogImage: { $first: "$blogImage" },
+                    description: { $first: "$description" },
+                    category: { $first: "$blogCategory.name" },
+                    slug: { $first: "$blogCategory.slug" },
+
+                    comments:{
+                        $push: {
+                        comment: "$blogComments.comment",
+                        commentedBy: "$commentBy",
+                        createdDate: "$blogComments.createdDate",
+                        blogId: "$blogComments.blogId",
+                    }  },
+
+                }
+            },
+                // {$unwind: "$comments.comment" },
+            {
+                $project: {
+                    id: "$_id",
+                    _id: 0,
+                    name: 1,
+
+                    authorId:1,
+                    authorName:1,
+                    profileImage:1,
+
+                    description: 1,
+                    blogImage:1,
+                    category:1,
+                    slug:1,
+                    createdAt:1,
+
+                    "comments": {
+                        "$map": {
+                            "input": "$comments",
+                            "as": "comment",
+                            "in": {
+                                "id": "$$comment.commentedBy._id",
+                                "commentedBy": "$$comment.commentedBy.fullname",
+                                "profileImage": "$$comment.commentedBy.profileImage",
+                                "comment": "$$comment.comment",
+                                "blogId": "$$comment.blogId",
+                            }
                         }
                     }
                 }
-    
-            }  }
-    
+            },
+
             ]);
 
-        return res.status(200).send(blogPost);
+
+        let popular = await BlogModel.aggregate([
+
+            { $match: {} },
+
+            {
+                $lookup: {
+                    from: "users",
+                    localField: 'createdBy',
+                    foreignField: '_id',
+                    as: 'author',
+                }
+            },
+
+            {$unwind: "$author" },
+
+            {
+                $lookup: {
+                    from: "blogcategories",
+                    localField: 'blogCategory',
+                    foreignField: '_id',
+                    as: 'blogCategory',
+                }
+            },
+
+            {$unwind: "$blogCategory" },
+
+            {
+                $lookup: {
+                    from: "blogcomments",
+                    localField: 'blogComments',
+                    foreignField: '_id',
+                    as: 'blogComments',
+                }
+            },
+
+            { $unwind: "$blogComments" },
+
+
+            {
+                $lookup: {
+                    from: "users",
+                    localField: 'blogComments.commentedBy',
+                    foreignField: '_id',
+                    as: 'commentBy',
+                }
+            },
+
+            {$unwind: "$commentBy" },
+
+            {
+                $group: {
+                    _id: "$_id",
+                    // category: { $first: "$blogCategory" },
+                    name: { $first: "$name" },
+
+                    authorId: { $first: "$author._id" },
+                    authorName: { $first: "$author.fullname" },
+                    profileImage: { $first: "$author.profileImage" },
+
+                    // author: {
+                    //     id: { $first: "$author._id" },
+                    //     fullname: { $first: "$author.fullname" },
+                    //     profileImage: { $first: "$author.profileImage" },
+                    // } ,
+                    blogImage: { $first: "$blogImage" },
+                    // blogLikes: { $first: "$blogLikes" },
+                    blogviews: { $first: { $size: "$blogviews" } },
+                    blogLikes: { $first: { $size: "$blogLikes" } },
+
+
+                    description: { $first: "$description" },
+                    category: { $first: "$blogCategory.name" },
+                    slug: { $first: "$blogCategory.slug" },
+
+                    comments:{
+                        $push: {
+                        comment: "$blogComments.comment",
+                        commentedBy: "$commentBy",
+                        createdDate: "$blogComments.createdDate",
+                        blogId: "$blogComments.blogId",
+                    }  },
+
+                }
+            },
+
+            {
+                $project: {
+                    id: "$_id",
+                    _id: 0,
+                    authorId:1,
+                    authorName:1,
+                    profileImage:1,
+
+
+                    createdAt:1,
+                    name:1,
+                    blogLikes:1,
+                    description:1,
+                    category:1,
+                    blogImage:1, 
+                    createdBy:1,
+                    blogviews: 1,
+                    author: 1,
+
+                    sort : { '$add' : [ '$blogviews', '$blogLikes' ] },
+
+
+
+                        "comments": {
+                        "$map": {
+                            "input": "$comments",
+                            "as": "comment",
+                            "in": {
+                                "id": "$$comment.commentedBy._id",
+                                "commentedBy": "$$comment.commentedBy.fullname",
+                                "profileImage": "$$comment.commentedBy.profileImage",
+                                "comment": "$$comment.comment",
+                                "blogId": "$$comment.blogId",
+                            }
+                        }
+                    }
+                    
+                }
+            },
+
+            { $sort: { sort: -1 } }
+
+
+            ]);
+                  
+
+        return res.status(200).send({blogPost, popular});
     } catch (error) {
         return res.status(500).send({ message: error.message })
     }

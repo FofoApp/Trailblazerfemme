@@ -5,6 +5,7 @@ const productSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
 
     description: { type: String, required: true },
+    stock:  { type: Number, maxlength: [20, "Max stock size is 20"], default: 0 },
 
     sm: { type: Number, default: 0 },
     md: { type: Number, default: 0 },
@@ -27,7 +28,17 @@ const productSchema = new mongoose.Schema({
 
     ratings: [{ type: Number, default: 0 }],
 
-    reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
+    // reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
+
+    numOfReviews: { type: Number, default: 0 },
+    reviews: [
+        {
+            user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', require: true },
+            name: { type: String, require: true },
+            rating: { type: Number, require: true },
+            comment: { type: String, require: true },
+        }
+    ],
 
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
 

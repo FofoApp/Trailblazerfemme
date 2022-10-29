@@ -7,16 +7,6 @@ const podcastCategorySchema = new mongoose.Schema({
     podCasts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Podcast'}]
 }, 
 
-// {
-//     toJSON: {
-//         transform: (document, returnedObject, options) => {
-//                     returnedObject.id = returnedObject._id
-//                     delete returnedObject._id
-//                     delete returnedObject.__v
-//         }
-//     }
-// },
-
 { timestamps: true });
 
 
@@ -42,15 +32,16 @@ podcastCategorySchema.pre('save', async function(next) {
 
 });
 
-podcastCategorySchema.methods.toJSON = function() {
-    const podcastCategory = this;
-    const podcastCategoryObject = podcastCategory.toObject();
 
-    podcastCategoryObject.id = podcastCategoryObject._id
-    delete podcastCategoryObject._id
-    delete podcastCategoryObject.__v
-    return podcastCategoryObject
-}
+podcastCategorySchema.options.toJSON = {
+    transform: function(doc, ret, options) {
+        ret.id = ret._id
+        delete ret._id
+        delete ret.__v
+        delete ret.podcastCloudinaryPublicId
+        return ret;
+     }
+};
 
 
 const PodcastCategory = mongoose.model('PodcastCategory', podcastCategorySchema);

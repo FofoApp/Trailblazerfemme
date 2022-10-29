@@ -66,6 +66,7 @@ exports.shop = async (req, res, next) => {
                 ratings: 1,
                 reviews: 1,
                 categoryId: 1,
+                likes:1,
                 createdAt: 1,
 
                 images: {
@@ -387,6 +388,9 @@ exports.getProductById = async (req, res, next) => {
 
          } },
         ]
+
+        //PRODUCTS YOUR MAY LIKE
+        const pYor = await ProductModel.aggregate([ { $sample: { size: 10 } }]);
 
         const product = await ProductModel.aggregate(query);
 

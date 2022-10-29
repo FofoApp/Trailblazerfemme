@@ -29,10 +29,18 @@ exports.podcasts = async (req, res, next) => {
         //RECENTLY PLAYED PODCAST
         const recentlyPlayedPodcast = await PodcastModel.aggregate(
             [
-                { $group : { _id : "$recentlyPlayedPodcast" } },
+                // { $group : { _id : "$recentlyPlayedPodcast" } },
                 {
-                    $lookup: { from: "users",  localField: "recentlyPlayedPodcast", foreignField: "_id", as: "recentlyPlayed" }
+                    $lookup: { from: "users",  localField: "_id", foreignField: "podcastCategoryId", as: "recentlyPlayed" }
                 },
+
+                // {
+                //     $project: {
+                //         _id: 1,
+                //         name: 1,
+                //     }
+                // }
+                
                 // { 
                 //     $project : {
                 //     "_id":1,
@@ -46,6 +54,28 @@ exports.podcasts = async (req, res, next) => {
     
             ]
         );
+
+    // const rt = await UserModel.findById({_id: "628695d03cf50a6e1a34e27b"}, { fullname: 1, _id: 1 })
+    //                           .populate("recentlyPlayedPodcast", { _id: 1, name: 1,  })
+
+
+    const rt =  await UserModel.findById("628695d03cf50a6e1a34e27b", { fullname: 1, _id: 1 })
+                     .populate({
+                        path: "recentlyPlayedPodcast",
+                        select: { _id: 1, name: 1, hosts: 1  },
+
+                        // populate: [
+                        //     {
+                        //         path: "hosts",
+                        //         model: "Podcast"
+                        //     }
+                        // ]
+                          
+                     })
+
+
+    return res.status(200).send({ rt });
+
 
         //POPULAR POPULAR
         const popular = await PopularPodcastModel.find({}).populate("podcastId");
@@ -76,12 +106,45 @@ exports.podcasts = async (req, res, next) => {
         recentlyPlayedPodcast,
         topPodcasters,
         youMightLike,
-        popular
+        popular,
+        
     });
         
         } catch (error) {
             return res.status(500).send({ error: error.message });
         }
+}
+
+
+exports.recentPodcastView = async (req, res, next) => {
+
+    const currentUser = req.user.id;
+    const { podcastId } = req.params;
+
+
+    try {
+
+        if(!mongoose.Types.ObjectId.isValid(currentUser)) {
+            return res.status(403).send({error: "Unknown user"});
+        }
+
+        if(!mongoose.Types.ObjectId.isValid(podcastId)) {
+            return res.status(200).send({ error: "Unknown podcast" }); 
+        }
+
+        let user = await UserModel.findById(currentUser);
+       
+        if(user.recentlyPlayedPodcast.includes(podcastId)) {
+             await UserModel.findByIdAndUpdate(currentUser, { $pull: { recentlyPlayedPodcast: podcastId } }, { new: true });
+        }
+
+         user = await UserModel.findByIdAndUpdate(currentUser, { $sddToSet: { recentlyPlayedPodcast: podcastId } }, { new: true });
+
+         return res.status(200).send({ message: "Listening to podcast" });
+
+    } catch (error) {
+        return res.status(500).send({ error: error.message });
+    }
 }
 
 

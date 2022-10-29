@@ -19,7 +19,7 @@ router.get('/categories', verifyAccessToken,  PodcastCategoryController.PodcastC
 
 
 //PODCAST
-router.get('/', PodcastController.podcasts);
+router.get('/', verifyAccessToken, PodcastController.podcasts);
 router.post('/create', verifyAccessToken, permissions(["admin"]), upload.single('podcastImage'), PodcastController.createNewPodcast);
 router.get('/lists', verifyAccessToken, PodcastController.listPodcasts);
 router.get('/search', verifyAccessToken, PodcastController.searchForPodcast);

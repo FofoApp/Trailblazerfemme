@@ -17,9 +17,9 @@ const uploadCv = require('./../helpers/multerCVupload');
 //JOB ROUTES
 router.get('/alljobs', JobController.jobs);
 router.get('/lists', JobController.listJobs);
-router.post('/:jobId/apply', verifyAccessToken, permissions(["user"]), JobController.jobApplication);
-router.post('/:jobId/application/upload', verifyAccessToken, permissions(["user"]), uploadCv.array('doc_uploads'), JobController.uploadCoverLetterAndResumee);
-router.post('/:jobId/application/update', verifyAccessToken, permissions(["user"]), uploadCv.array('doc_uploads'), JobController.updateCoverLetterAndResumee);
+router.post('/:jobId/apply', verifyAccessToken, permissions(["user", "admin"]), JobController.jobApplication);
+router.post('/:jobId/application/upload', verifyAccessToken, permissions(["user", "admin"]), uploadCv.array('doc_uploads'), JobController.uploadCoverLetterAndResumee);
+router.post('/:jobId/application/update', verifyAccessToken, permissions(["user", "admin"]), uploadCv.array('doc_uploads'), JobController.updateCoverLetterAndResumee);
 
 
 //ADMIN JOB ROUTES

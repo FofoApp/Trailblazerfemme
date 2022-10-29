@@ -79,7 +79,7 @@ exports.jobApplication = async (req, res, next) => {
      */
     const currenUser = req.user.id;
     const { jobId }  = req.params;
-   
+   console.log("I am here")
 
     try {
         if(!mongoose.Types.ObjectId.isValid(currenUser)) {
@@ -105,9 +105,14 @@ exports.jobApplication = async (req, res, next) => {
 
         if(!applied) return res.status(400).send({ error: "Unable to complete job application"});
 
-        return res.status(200).send({success: "User data saved, kindly upload your resumee and cover letter"});
+        return res.status(201).send({success: "User data saved, kindly upload your resumee and cover letter", 
+        data: {
+            id: applied._id,
+
+        } });
 
     } catch (error) {
+      
         return res.status(500).send({ error: error.message });
     }
 }
