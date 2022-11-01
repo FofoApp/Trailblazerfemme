@@ -270,7 +270,7 @@ exports.createNewPodcast = async (req, res, next) => {
         const createPodcast = new PodcastModel({
             podcastCategoryId, podcastHostId, name, description, hosts, tags, link,
              podcastCloudinaryPublicId: uploaderResponse.public_id,
-            podcastImage: uploaderResponse.secure_url
+             duration, podcastImage: uploaderResponse.secure_url
         });
 
         // const createPodcast = new PodcastModel(req.body);
