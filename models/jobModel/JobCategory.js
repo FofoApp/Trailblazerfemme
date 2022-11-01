@@ -1,20 +1,11 @@
 const mongoose = require('mongoose');
 
 const jobCategorySchema = new mongoose.Schema({
-    name: { type: String, required: true },
+    name: { type: String, trim: true, required: true, unique: true },
     slug: { type: String },
     description: { type: String }
 }, 
 
-// {
-//     toJSON: {
-//         transform: (document, returnedObject, options) => {
-//                     returnedObject.id = returnedObject._id
-//                     delete returnedObject._id
-//                     delete returnedObject.__v
-//         }
-//     }
-// },
 
 { timestamps: true });
 

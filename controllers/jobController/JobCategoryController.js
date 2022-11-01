@@ -7,13 +7,15 @@ exports.createNewJobCategory = async (req, res, next) => {
 /**
  * 
  * {
-    "title": "Science",
-    "slug": "science",
+    "name": "Science",
     "description": "Science jobs that are in hot demands"
     }
  */
+
+const { name, description } = req.body;
+
     try {
-        const createNewJobCategory = new JobCategoryModel(req.body);
+        const createNewJobCategory = new JobCategoryModel({ name, description });
         const createdJobCategory = await createNewJobCategory.save();
         if(!createdJobCategory) {
             return res.status(401).send({ message: "Unable to create new job"});
