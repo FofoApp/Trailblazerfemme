@@ -35,7 +35,7 @@ exports.listJobCategories = async (req, res, next) => {
         if(!jobCategories) {
             return res.status(401).send({ message: "Job categories not found"});
         }
-        return res.status(401).send(jobCategories);
+        return res.status(200).send({ jobCategories });
     } catch (error) {
         return res.status(500).send({ message: error.message });
     }
@@ -54,7 +54,7 @@ exports.findJobCategoryById = async (req, res, next) => {
         if(!jobCategory) {
             return res.status(401).send({ message: "Job category not found"});
         }
-        return res.status(401).send(jobCategory);
+        return res.status(401).send({jobCategory});
 
     } catch (error) {
         return res.status(500).send({ message: error.message });

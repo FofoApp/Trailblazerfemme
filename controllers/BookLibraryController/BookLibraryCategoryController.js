@@ -4,16 +4,17 @@ const BookCategoryModel = require('./../../models/bookLibraryModel/BookCategoryM
 
 exports.createNewBookCategory = async (req, res, next) => {
  //Notes:: REMEMBER TO VALIDATE USER INPUTS
- 
+    const { name } = req.body;
+
     try {
 
-        const categoryExist = await BookCategoryModel.findOne({ title: req.body.title });
+        const categoryExist = await BookCategoryModel.findOne({ name });
 
         if(categoryExist) {
 
             return res.status(200).send({ message: "Category name already exist"});
         }
-        const createNewCategory =  new BookCategoryModel(req.body);
+        const createNewCategory =  new BookCategoryModel({ name });
 
         const createdCategory = await createNewCategory.save();
 

@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { ObjectId} = mongoose.Schema;
 const mongoosePaginate = require('mongoose-paginate-v2');
 const bookCategorySchema = new mongoose.Schema({
-    title: { type: String, required: true, unique: true },
+    name: { type: String, required: true, unique: true },
     iconName: { type: String, default: null },
     books: [{ type: mongoose.Schema.Types.ObjectId, ref: "Book"}],
 },
