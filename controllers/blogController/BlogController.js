@@ -404,7 +404,7 @@ exports.createNewBlog = async (req, res, next) => {
     //http://localhost:2000/api/blog/create
     /**
      * {
-        "title": "Blog Title With Blog Category And User",
+        "name": "Blog Title With Blog Category And User",
         "short_description": "Blog short Description",
         "description": "Blog short Description",
         "blogCategory":"6286b37ac420a04878903e9a",
@@ -414,11 +414,11 @@ exports.createNewBlog = async (req, res, next) => {
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
     const blogCreatedBy = req.user.id;
     try {
-        let findBlogExist = await BlogModel.findOne({ title: req.body.title });
+        let findBlogExist = await BlogModel.findOne({ title: req.body.name });
      
 
         if(findBlogExist) {
-            return res.status(401).send({ message: `Blog name ${req.body.title } already exists` });
+            return res.status(401).send({ message: `Blog name ${req.body.name } already exists` });
         }
 
         // //Upload Image to cloudinary
