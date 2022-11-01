@@ -237,7 +237,7 @@ exports.createNewPodcast = async (req, res, next) => {
     }
 
     */
-   const { podcastCategoryId, podcastHostId, name, description, hosts, tags, link } = req.body;
+   const { podcastCategoryId, podcastHostId, name, description, hosts, tags, link, duration } = req.body;
 
    const file = req.file;
 
