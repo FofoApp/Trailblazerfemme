@@ -414,7 +414,7 @@ exports.createNewBlog = async (req, res, next) => {
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
     const blogCreatedBy = req.user.id;
     try {
-        let findBlogExist = await BlogModel.findOne({ title: req.body.name });
+        let findBlogExist = await BlogModel.findOne({ name: req.body.name });
      
 
         if(findBlogExist) {
