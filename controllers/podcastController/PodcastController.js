@@ -5,18 +5,90 @@ const UserModel = require('./../../models/UserModel');
 const PodcastCategoryModel = require('./../../models/podcast/PodcastCategoryModel');
 const PopularPodcastModel = require('./../../models/podcast/PopularPodcastModel');
 const { cloudinary } = require('./../../helpers/cloudinary');
+const PodcastEpisode = require('../../models/podcast/PodcastEpisodeModel');
 
 
 
 
 exports.podcasts = async (req, res, next) => {
 
+    let { 
+        pageRecent = 1, 
+        pageCategory = 1, 
+        pagePopular = 1,
+        pageTopPodcast = 1,
+        pageSuggest = 1,
+    } = req.body;
+
+
+    if(!pageRecent) {
+        pageRecent = parseInt(pageRecent) || 1;
+    }
+
+    if(!pageCategory) {
+        pageCategory = parseInt(pageCategory) || 1;
+    }
+
+    if(!pagePopular) {
+        pagePopular = parseInt(pagePopular) || 1;
+    }
+
+    if(!pageTopPodcast) {
+        pageTopPodcast = parseInt(pageTopPodcast) || 1;
+    }
+
+    if(!pageSuggest) {
+        pageSuggest = parseInt(pageSuggest) || 1;
+    }
+
     //GET REQUEST
     //http://localhost:2000/api/podcast
     try {
-
     //ALL PODCAST CATEGORIES
-    const podcastCategories = await PodcastCategoryModel.find().select('-createdAt -updatedAt -__v');
+    const podcastCategories = await PodcastCategoryModel.paginate({}, { page: pageCategory, limit: 5,  select: "-createdAt -updatedAt -__v"})
+
+    const recentPlayed  = await PodcastModel.paginate({}, { 
+                                    page: pageRecent, 
+                                    limit: 5,  
+                                    select: "id name podcastImage description link",
+                                    populate: {
+                                        path: "hosts",
+                                        model: "User",
+                                        select: "id fullname profileImage"
+                                    },
+                                    sort: { createdAt: -1 },                      
+                                });
+
+    const popular2  = await PodcastModel.paginate({}, {
+                                page: pagePopular, 
+                                limit: 5,
+                                populate: {
+                                    path: "hosts",
+                                    model: "User",
+                                    select: "id fullname profileImage"
+                                },
+                                sort: { createdAt: -1 },   
+                            });
+
+    const top_podcaster  = await PodcastModel.paginate({},{
+                                page: pageTopPodcast,
+                                limit: 5,
+                                select: "id name",
+                                populate: {
+                                    path: "hosts",
+                                    model: "User",
+                                    select: "id fullname profileImage"
+                                }
+                            });
+
+    const you_may_like = await PodcastModel.paginate({ $sample: { size: 40 } },
+                                {
+                                    page: pageSuggest,
+                                    limit: 5, 
+                                    select: "id name podcastImage link description"
+                                }
+                            )
+ 
 
     //TOP PODCASTER
 
@@ -74,7 +146,7 @@ exports.podcasts = async (req, res, next) => {
                      })
 
 
-    return res.status(200).send({ rt });
+    return res.status(200).send({ podcastCategories, recentPlayed, popular: popular2, top_podcaster, you_may_like });
 
 
         //POPULAR POPULAR
@@ -279,12 +351,12 @@ exports.searchForPodcast = async (req, res, next) => {
    */
 
     
-   let keyword = req.body.keyword;
+   let {keyword} = req.body;
 
    const search  = [
             { name: {  $regex: '.*' + keyword + '.*',   $options: 'i'  } },
             { tags: {  $regex: '.*' + keyword + '.*',   $options: 'i' } },
-    ]
+    ];
 
 
    let { page, perpage } = req.query;
@@ -311,6 +383,9 @@ exports.searchForPodcast = async (req, res, next) => {
         })
         .skip(skip).limit(perpage)
         .select("id name description podcastImage link tags")
+
+
+    await UserModel.findByIdAndUpdate(currentUser, { $sddToSet: { recentlySearchedPodcast: searchForPodcast.id } }, { new: true });
 
 //    .skip(skip).limit(perpage)
    
@@ -474,3 +549,5 @@ exports.deletePodcastById = async (req, res, next) => {
    }
 
 }
+
+

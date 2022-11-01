@@ -18,15 +18,15 @@ const jobCategorySchema = new mongoose.Schema({
 
 { timestamps: true });
 
-jobCategorySchema.methods.toJSON = function() {
-    const jobCategory = this;
-    const jobCategoryObject = jobCategory.toObject();
-
-    jobCategoryObject.id = jobCategoryObject._id
-    delete jobCategoryObject._id
-    delete jobCategoryObject.__v
-    return jobCategoryObject
-}
+jobCategorySchema.options.toJSON = {
+    // virtuals: true,
+    transform: function(doc, ret, options){
+        ret.id = ret._id;
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+    }
+};
 
 const JobCategory = mongoose.model('JobCategory', jobCategorySchema);
 

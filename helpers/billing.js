@@ -5,22 +5,25 @@ const axios = require('axios');
 
 
 exports.calculateNextPayment = (chargeType, normalDate) => {
+
     let currentDate;
 
     if(!chargeType) return null;
 
     if(chargeType === 'days') {
-        currentDate = moment(new Date()).add(1, chargeType).format("YYYY-MM-DD hh:mm");
+        currentDate = moment(new Date()).add(1, chargeType).format("YYYY-MM-DD hh:mm:ss");
         return currentDate;
     } else if(chargeType === 'months') {
-        currentDate = moment(new Date()).add(1, chargeType).format("YYYY-MM-DD hh:mm");
+        currentDate = moment(new Date()).add(1, chargeType).format("YYYY-MM-DD hh:mm:ss");
         return currentDate;  
     } else if(chargeType === 'years') {
-        currentDate = moment(new Date()).add(1, chargeType).format("YYYY-MM-DD hh:mm");
+        currentDate = moment(new Date()).add(1, chargeType).format("YYYY-MM-DD hh:mm:ss");
         return currentDate;
-    }  
+    }else {
+        return "Invalid";
+    }
     
-    return "Invalid";
+    
 }
 
 exports.verifyPayment = async (reference) => {

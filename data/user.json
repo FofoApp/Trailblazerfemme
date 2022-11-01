@@ -1,0 +1,146 @@
+{
+    "users":
+    [
+        { 
+            "fullname":"Olawumi Olusegun",
+            "email":"olawumi.olusegun@gmail.com",
+            "password":"$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIy",
+            "phonenumber":"07065066382",
+            "accountVerified": true
+            
+        },
+        {
+            "fullname":"Mandi Nattrass",
+            "email":"mnattrass1@netscape.com",
+            "password":"$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIy",
+            "phonenumber":"611-145-8235",
+            "accountVerified": true
+        },
+        {
+            "fullname":"Karim McPhillips",
+            "email":"kmcphillips2@flavors.me",
+            "password":"$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIy",
+            "phonenumber":"674-296-1648",
+            "accountVerified": true
+        },
+        {
+            "fullname":"Margarethe Tern",
+            "email":"mtern3@china.com.cn",
+            "password":"$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIy",
+            "phonenumber":"386-899-0981",
+            "accountVerified": true
+        },
+        {
+            "fullname":"Jamal Le Sieur",
+            "email":"jle4@ibm.com",
+            "password":"$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIy",
+            "phonenumber":"900-626-7564",
+            "accountVerified": true
+        },
+        {
+            "fullname":"Lexis Hannabuss",
+            "email":"lhannabuss5@123-reg.co.uk",
+            "password":"$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIy",
+            "phonenumber":"582-930-2424",
+            "accountVerified": true
+        },
+        {
+            "fullname":"Fedora Marciskewski",
+            "email":"fmarciskewski6@washingtonpost.com",
+            "password":"$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIy",
+            "phonenumber":"148-191-8122",
+            "accountVerified": true
+        },
+        {
+            "fullname":"Augie Stroud",
+            "email":"astroud7@hostgator.com",
+            "password":"$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIy",
+            "phonenumber":"197-513-8751",
+            "accountVerified": true
+        },
+        {
+            "fullname":"Wald Rainard",
+            "email":"wrainard8@wp.com",
+            "password":"$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIy",
+            "phonenumber":"918-691-5806",
+            "accountVerified": true
+        },
+        {
+            "fullname":"Putnam Samwaye",
+            "email":"psamwaye9@vk.com",
+            "password":"$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIy",
+            "phonenumber":"124-865-6607",
+            "accountVerified": true
+        },
+        {
+            "fullname":"Margarita Phizakarley",
+            "email":"mphizakarleya@geocities.jp",
+            "password":"$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIy",
+            "phonenumber":"286-214-9979",
+            "accountVerified": true
+        },
+        {
+            "fullname":"Kippie Pie",
+            "email":"kpieb@homestead.com",
+            "password":"$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIy",
+            "phonenumber":"848-662-0308",
+            "accountVerified": true
+        },
+        {
+            "fullname":"Brunhilda Younie",
+            "email":"byouniec@amazon.de",
+            "password":"$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIy",
+            "phonenumber":"502-189-5084",
+            "accountVerified": true
+        },
+        {
+            "fullname":"Ken Togwell",
+            "email":"ktogwelld@imdb.com",
+            "password":"$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIy",
+            "phonenumber":"282-440-3262",
+            "accountVerified": true
+        },
+        {
+            "fullname":"Valentia St. Queintain",
+            "email":"vste@parallels.com",
+            "password":"59bEl$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIyonPwP",
+            "phonenumber":"915-507-1004",
+            "accountVerified": true
+        },
+        {
+            "fullname":"Aloysius Desorts",
+            "email":"adesortsf@scribd.com",
+            "password":"$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIy",
+            "phonenumber":"882-300-6969",
+            "accountVerified": true
+        },
+        {
+            "fullname":"Ronnie Mowling",
+            "email":"rmowlingg@businesswire.com",
+            "password":"$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIy",
+            "phonenumber":"272-953-6664",
+            "accountVerified": true
+        },
+        {
+            "fullname":"Nigel Babber",
+            "email":"nbabberh@cbsnews.com",
+            "password":"$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIy",
+            "phonenumber":"860-961-0839",
+            "accountVerified": true
+        },
+        {
+            "fullname":"Micky Kippie",
+            "email":"mkippiei@cam.ac.uk",
+            "password":"$2b$10$2Q/YwKY8yU9o7065N5/3suJqOPCOKmzlq.6E3ckRVD8gGggH7/mIy",
+            "phonenumber":"761-900-7494",
+            "accountVerified": true
+        },
+        {
+            "fullname":"Haskel Woodford",
+            "email":"hwoodfordj@yandex.ru",
+            "password":"bplEjnOY",
+            "phonenumber":"719-658-4808",
+            "accountVerified": true
+        }
+    ]
+}

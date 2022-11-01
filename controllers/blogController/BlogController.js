@@ -7,6 +7,7 @@ const BlogCategoryModel = require('./../../models/blogModel/BlogCategoryModel');
 const BlogLikeModel = require('./../../models/blogModel/BlogLikeModel');
 const ProfileModel = require('./../../models/ProfileImageModel');
 const { cloudinary } = require('./../../helpers/cloudinary');
+const BlogComment = require('./../../models/blogModel/BlogCommentModel');
 
 exports.getSpecificBlogAndItsComments = async (req, res, next) => {
     const testBlog = await BlogModel.aggregate([
@@ -58,30 +59,67 @@ exports.blog = async (req, res, next) => {
 
         const categories = await BlogCategoryModel.find({}).select('-__v -createdAt -updatedAt');
     
-        // const blogs = await BlogModel.find()
-        //                                 .select('createdAt title blogLikes description blogImage createdBy blogviews comments')
+        const hot = await BlogModel.find()
+                                        .select('createdAt name blogLikes description blogImage createdBy blogviews')
                         
-        //                                 .populate({
-        //                                     path: 'createdBy',
-        //                                     model: 'User',
-        //                                     select: 'fullname profileImage createdAt',
-        //                                     // populate: {
-        //                                     //     path: 'profileId',
-        //                                     //     model: 'Profile',
-        //                                     //     select: 'id userId profileImage'
-        //                                     // }
-        //                                 })
-        //                                 .populate({
-        //                                     path: 'comments.commentedBy',
-        //                                     model: 'User',
-        //                                     select: 'fullname profileImage createdAt',
+                                        .populate({
+                                            path: 'createdBy',
+                                            model: 'User',
+                                            select: 'fullname profileImage createdAt',
+                                            // populate: {
+                                            //     path: 'profileId',
+                                            //     model: 'Profile',
+                                            //     select: 'id userId profileImage'
+                                            // }
+                                        })
+                                        .populate({
+                                            path: 'blogCategory',
+                                            model: 'BlogCategory',
+                                            select: 'name createdAt',
+                                        })
+                                        .sort({ createdAt: -1  })
+    
+        const recents = await BlogModel.find()
+                                        .select('createdAt name blogLikes description blogImage createdBy blogviews')
+                        
+                                        .populate({
+                                            path: 'createdBy',
+                                            model: 'User',
+                                            select: 'fullname profileImage createdAt',
+                                            // populate: {
+                                            //     path: 'profileId',
+                                            //     model: 'Profile',
+                                            //     select: 'id userId profileImage'
+                                            // }
+                                        })
+                                        .populate({
+                                            path: 'blogCategory',
+                                            model: 'BlogCategory',
+                                            select: 'name createdAt',
+                                        })
+                                        .sort({ createdAt: -1  })
+        const populars = await BlogModel.find()
+                                        .select('createdAt name blogLikes description blogImage createdBy blogviews')
+                        
+                                        .populate({
+                                            path: 'createdBy',
+                                            model: 'User',
+                                            select: 'fullname profileImage createdAt',
+                                            // populate: {
+                                            //     path: 'profileId',
+                                            //     model: 'Profile',
+                                            //     select: 'id userId profileImage'
+                                            // }
+                                        })
+                                        .populate({
+                                            path: 'blogCategory',
+                                            model: 'BlogCategory',
+                                            select: 'name createdAt',
+                                        })
+                                        .sort({ createdAt: -1  })
 
-        //                                     populate: {
-        //                                         path: 'profileId',
-        //                                         model: 'Profile',
-        //                                         select: 'id userId profileImage'
-        //                                     }
-        //                                 }).sort({ createdAt: -1  })
+
+
 
 
         let recent = await BlogModel.aggregate([
@@ -350,7 +388,10 @@ exports.blog = async (req, res, next) => {
         //     { $expr: { $gt: [{ $size: { $ifNull: ["$blogviews", []] } }, 20] },  },
         // ).populate('blogCategory');
 
-        return res.status(200).send({ categories:categories,  recent, popular  });
+        
+
+        return res.status(200).send({categories, hot: hot[0], recent: recents, popular: populars });
+        // return res.status(200).send({ categories:categories,  recent, popular  });
 
     } catch (error) {
         return res.status(500).send({ message: error.message })
@@ -544,10 +585,51 @@ exports.FetchBlogById = async (req, res, next) => {
             findBlogExist = await BlogModel.updateOne({ _id: findBlogExist.id}, {$addToSet: { "blogviews": currentUser }});
         }
 
-        // let blogPost = await BlogModel.findById(blogId)
-        //                             .populate('createdBy', 'fullname createdAt profileImage blogLikes blogviews')
-        //                             .populate('blogCategory', 'name slug')
-        //                             .populate('blogComments')
+        let blogPosts = await BlogModel.findById(blogId)
+                                    .select('createdAt name blogLikes description blogImage createdBy blogviews')
+                                    .populate('createdBy', 'fullname createdAt profileImage blogLikes blogviews')
+                                    .populate({
+                                        path: 'blogCategory',
+                                        model: 'BlogCategory',
+                                        select: 'name createdAt',
+                                    })
+                                    
+        // let blog_ids = blogPosts.map((item) => item.id);
+
+        let blog_comments = await BlogComment.find({ blogId: "635a5a3b391cac780504e1a9" })
+        .select('comment blogId blogLikes createdAt id')
+        .populate({
+            path: 'commentedBy',
+            model: 'User',
+            select: 'fullname profileImage createdAt',
+            // populate: {
+            //     path: 'profileId',
+            //     model: 'Profile',
+            //     select: 'id userId profileImage'
+            // }
+        });
+
+        const populars = await BlogModel.find()
+        .select('createdAt name blogLikes description blogImage createdBy blogviews')
+
+        .populate({
+            path: 'createdBy',
+            model: 'User',
+            select: 'fullname profileImage createdAt',
+            // populate: {
+            //     path: 'profileId',
+            //     model: 'Profile',
+            //     select: 'id userId profileImage'
+            // }
+        })
+        .populate({
+            path: 'blogCategory',
+            model: 'BlogCategory',
+            select: 'name createdAt',
+        })
+        .sort({ createdAt: -1  })
+
+        const singleBlog = { blog: blogPosts, blog_comments, popular: populars}
 
 
         let blogPost = await BlogModel.aggregate([
@@ -791,7 +873,8 @@ exports.FetchBlogById = async (req, res, next) => {
             ]);
                   
 
-        return res.status(200).send({blogPost, popular});
+        // return res.status(200).send({blogPost, popular});
+        return res.status(200).send(singleBlog);
     } catch (error) {
         return res.status(500).send({ message: error.message })
     }

@@ -6,6 +6,7 @@ const router = express.Router();
 const MyLibraryController = require('./../controllers/BookLibraryController/MyLibraryController');
 const BookLibraryCategoryController = require('../controllers/BookLibraryController/BookLibraryCategoryController');
 const BookController = require('./../controllers/BookLibraryController/BookController');
+const BookReviewController = require('./../controllers/BookLibraryController/BookReviewController');
 
 
 //ROLES AND PERMISION IMPORT
@@ -20,8 +21,9 @@ const upload = require('./../helpers/multer');
 //ROUTES
 router.get('/', verifyAccessToken, permissions(["user", "admin"]), MyLibraryController.fetchAllBooksInLibrary);
 router.get('/search', verifyAccessToken, permissions(["user", "admin"]), MyLibraryController.searchBookInLibrary);
-router.patch('/book/:bookId/read', verifyAccessToken, permissions(["user", "admin"]), MyLibraryController.userReadBook, MyLibraryController.readBook);
+router.get('/book/:authorId/author', verifyAccessToken, permissions(["user", "admin"]), MyLibraryController.searchBooksByAuthorId);
 router.get('/book/:bookId/book', verifyAccessToken, permissions(["user", "admin"]), MyLibraryController.searchBookInLibraryById);
+router.get('/book/:bookId/read', verifyAccessToken, permissions(["user", "admin"]), MyLibraryController.userReadBook, MyLibraryController.readBook);
 router.patch('/book/:bookId/add-book-to-library', verifyAccessToken, permissions(["user", "admin"]), MyLibraryController.addBookToMyLibrary);
 
 
@@ -46,9 +48,12 @@ router.post('/book/create', verifyAccessToken, permissions(["admin"]), upload.si
 router.post('/book/trending', verifyAccessToken, permissions(["user","admin"]), BookController.trendingBooks);
 router.get('/book/search', verifyAccessToken, permissions(["user","admin"]), BookController.searchBook);
 router.get('/book/:bookId/get', verifyAccessToken, permissions(["user","admin"]), BookController.fetchBookById);
+
 router.patch('/book/:bookId/update', verifyAccessToken, permissions(["admin"]), upload.single('bookImage'), BookController.updateBookById);
 router.delete('/book/:bookId/delete', verifyAccessToken, permissions(["admin"]), BookController.deleteBookById);
 
 
+router.get('/book/get_reviews', verifyAccessToken, permissions(["user", "admin"]),  BookReviewController.getReviews);
+router.post('/book/:bookId/create_review', verifyAccessToken, permissions(["user", "admin"]),  BookReviewController.createBookReview, BookReviewController.getReviews);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const PodcastEpisodeModel = require('./../../models/podcast/PodcastEpisodeModel');
 const { cloudinary } = require('./../../helpers/cloudinary');
+const PodcastEpisode = require('./../../models/podcast/PodcastEpisodeModel');
 
 
 exports.createNewPodcastEpisode = async (req, res, next) => {
@@ -169,4 +170,78 @@ exports.deletePodcastEpisodeById = async (req, res, next) => {
        return res.status(500).send({ message: error.message });
    }
 
+}
+
+
+exports.getAllPodcastEpisode = async (req, res) => {
+   
+    let { pageEpisode = 1, podcastId } = req.body;
+
+    if(!pageEpisode) {
+        pageEpisode = paraseInt(pageEpisode) || 1;
+    }
+
+    try {
+
+        if(!mongoose.Types.ObjectId.isValid(podcastId))  return res.status(404).json({ error: "Invalid podcast" });
+        
+        const episodes = await PodcastEpisode.paginate({ podcastId: podcastId }, {
+            page: pageEpisode,
+            limit: 5,
+            select: "id title name duration episode podcastImage podcastLink podcastId",
+            });
+
+        if(!episodes) return res.status(404).json({ error: "No episode found" });
+
+        return res.status(200).json({ episodes });
+
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+}
+
+
+
+exports.getPodcastEpisodeById = async (req, res) => {
+   
+    let { podcastEpisodeId, podcastId } = req.query;
+
+    try {
+
+        if(!mongoose.Types.ObjectId.isValid(podcastId))  return res.status(404).json({ error: "Invalid podcast" });
+        if(!mongoose.Types.ObjectId.isValid(podcastEpisodeId))  return res.status(404).json({ error: "Invalid podcast episode" });
+        
+        const episode = await PodcastEpisode.findOne({ podcastId: podcastId, podcastEpisodeId: podcastEpisodeId})
+                        .select("id title name duration episode podcastImage podcastLink podcastId").exec();
+
+        if(!episode) return res.status(404).json({ error: "No episode found" });
+
+        return res.status(200).json({ episode });
+
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
+}
+
+exports.getPodcastEpisodeByKeyword = async (req, res) => {
+   
+    let { keyword } = req.body;
+
+    try {
+
+            const search_result = await PodcastEpisode.findOne({ 
+            $or: [
+                    { name: { $regex: ".*" + keyword + ".*",  $options: 'i'  }},
+                    { title: { $regex: ".*" + keyword + ".*",  $options: 'i'  }},
+                ]
+                }).select("id title name duration episode podcastImage podcastLink podcastId").exec();
+
+
+        if(!search_result) return res.status(404).json({ error: "No search found" });
+
+        return res.status(200).json({ search_result });
+
+    } catch (error) {
+        return res.status(500).json({ error: error.message })
+    }
 }

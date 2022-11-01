@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const BookModel = require('./../../models/bookLibraryModel/BookModel');
 const BookCategoryModel = require('./../../models/bookLibraryModel/BookCategoryModel');
 const UserModel = require('./../../models/UserModel');
+const BookReview  = require('../../models/bookLibraryModel/BookReviewModel');
 const TrendingBookModel = require('./../../models/bookLibraryModel/TrendingBookModel');
 const { cloudinary } = require('./../../helpers/cloudinary');
 
@@ -344,14 +345,14 @@ exports.fetchBookById = async (req, res, next) => {
         }
         // sess.startTransaction();
 
-        let findBookExist = await BookModel.findByIdAndUpdate(bookId, 
-                            {$addToSet: { 'readers': req.user.id } },
+        let findBookExist = await BookModel.findById(bookId, 
+                            // {$addToSet: { 'readers': req.user.id } },
                             // { session: sess  }
                             )
-                            .select("_id title bookImage author price ratings store bookCategoryId")
+                            .select("_id title bookImage author price ratings store")
                             .populate({           
                                 path: 'readers',
-                                select: 'fullname',
+                                select: 'fullname profileImage createdAt',
                                 model: 'User',
                                 populate: {
                                     path: 'profileId',
@@ -371,13 +372,47 @@ exports.fetchBookById = async (req, res, next) => {
                                 }
 
                             })
-                // await sess.commitTransaction();
+
+        let reviews = await BookReview.find({ bookId })
+        .populate({
+            path: "reviewdBy",
+            model: "User",
+            select: "id fullname profileImage createdAt"
+        })
+        // .limit()
+        // .skip()
+
+        const similar_books = await BookModel.aggregate(
+            [
+                { $sample: { size: 40 } },
+                {
+                    $project: {
+                        id: "$_id",
+                        title: "$title", 
+                        description: "$description",  
+                        ratings: "$ratings",  
+                        bookImage: "$bookImage",   
+                        price: "$price",  
+                        store: "$store",  
+                        _id: 0,
+
+                    }
+                }
+            ])
+
+    if(!reviews) return res.status(404).send({error: "No review found"});
+    let numberOfReviews = await BookReview.countDocuments();
+    reviews.map((review) => {
+        return review.ratings = review.rating / numberOfReviews
+        // return review.reduce((acc, item) => item.ratings + acc, 0) / numberOfReviews
+    })
+        // await sess.commitTransaction();
 
         if(!findBookExist) {
             return res.status(404).send({ error: "Book not found"})
         }
         
-        return res.status(200).send(findBookExist);
+        return res.status(200).send({findBookExist, reviews, similar_books});
 
     } catch (error) {
         // await sess.abortTransaction();

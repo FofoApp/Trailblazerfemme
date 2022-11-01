@@ -4,6 +4,9 @@ const BookCategoryModel = require('./../../models/bookLibraryModel/BookCategoryM
 const BookModel = require('./../../models/bookLibraryModel/BookModel')
 const UserModel = require('./../../models/UserModel')
 
+const APIFeatures = require('./../../helpers/apiFeatures');
+const User = require('./../../models/UserModel');
+
 exports.addBookToMyLibrary = async (req, res, next) => {
     //POST REQUEST 
     //http://localhost:2000/api/library/category/create
@@ -126,10 +129,73 @@ exports.fetchAllBooksInLibrary = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/library
 
+    let { pc = 1, bl = 1, tb = 1 } = req.query;
+
+    if(!pc) {
+        pc = Number(pc) || 1;
+    }
+
+    if(!bl) {
+        bl = Number(bl) || 1;
+    }
+
+    if(!tb) {
+        tb = Number(tb) || 1;
+    }
+
 
     try {
         //ALL BOOK CATEGORIES
-        const categories = await BookCategoryModel.find().select('-createdAt -updatedAt -__v');
+        const categories = await BookCategoryModel.paginate({},
+            {   
+                page: pc,
+                limit: 10,
+                select: '-createdAt -updatedAt -__v'
+            }
+            )
+
+        const books_in_library = await BookModel.paginate({},
+            {   
+                page: bl,
+                limit: 10,
+                select: '-updatedAt -__v'
+            }
+            )
+        
+        const trending_books = await BookModel.paginate({},
+            {   
+                page: tb,
+                limit: 10,
+                select: ' -updatedAt -__v',
+                sort: { createdAt: -1 }
+            })
+
+        // const book_author = books_in_library.map((author) => author.id.toString())
+
+        const topAuth = await BookModel.find({},
+            {   
+                page: tb,
+                limit: 10,
+                select: 'id fullname profileImage',
+                paginate: { 
+                    path: "createdBy",
+                    model: "User",
+                    select: 'id fullname profileImage'
+                },
+                sort: { createdAt: -1 }
+            });
+
+
+        const top_authors = topAuth.map((author) => {
+            if(author.createdBy == undefined || author.createdBy == null) {
+                delete author
+            }
+            return author.createdBy;
+        })
+
+       
+
+
 
         //TOP BOOK AUTHORS
 
@@ -144,6 +210,7 @@ exports.fetchAllBooksInLibrary = async (req, res, next) => {
                     totalBooksWritten: { $sum:1 }
                  }
             },
+            
             {
                 $project: {
                   id: "$_id",
@@ -153,8 +220,10 @@ exports.fetchAllBooksInLibrary = async (req, res, next) => {
                   totalBooksWritten: 1,
                   _id:0
                 }
-              }
+              },
 
+              { $sort: { totalBooksWritten: -1 } },
+              
         ]);
         
         
@@ -212,7 +281,6 @@ exports.fetchAllBooksInLibrary = async (req, res, next) => {
             .populate("userId", "fullname profileImage")
             .populate("bookId", "title author price store bookImage")
 
-        console.log(myLibrary)
 
         let total= await MyLibraryModel.countDocuments(query);
 		let page= (req.query.page) ? parseInt(req.query.page) : 1;
@@ -241,41 +309,128 @@ exports.fetchAllBooksInLibrary = async (req, res, next) => {
         let paginationData = { totalRecords:total, currentPage:page, perPage:perPage, totalPages:Math.ceil(total/perPage) }
    
         // return res.status(200).send({ message: "Books", categories: categories, myLibrary: findBooksInLibrary, topAuthors, paginationData });
-
-        return res.status(200).send({ message: "Books", tAuthor, categories: categories, myLibrary, topAuthors, paginationData });
+        const book_details = {categories, continue_reading: books_in_library[0], myLibrary: books_in_library, trending: trending_books, top_authors: tAuthor,}
+        return res.status(200).send({ book_details, message: "Books", tAuthor, categories: categories, myLibrary, topAuthors, paginationData });
     } catch (error) {
         return res.status(500).send({ message: error.message });
+    }
+}
+
+exports.searchBooksByAuthorId = async (req, res) => {
+    const { authorId } = req.params;
+    try {
+        // let  apiFeatures  = new APIFeatures(BookModel.find(), "Book title book").search();
+        //  apiFeatures  = await apiFeatures.query;
+        // console.log("apiFeatures", apiFeatures)
+
+        const books_by_author = await BookModel.find({ createdBy: authorId })
+        .select('-readers -trendingId -recentSearch -cloudinaryPublicId -createdAt -updatedAt -__v')
+        .populate({
+            path: "bookCategoryId",
+            model:"BookCategory",
+            select: "id title" 
+        })
+        .populate({
+            path: "createdBy",
+            model:"User",
+            select: "id fullname profileImage createdAt "
+        })
+    //   .skip(skip).limit(perPage);
+    return res.status(200).send({ books_by_author })
+    } catch (error) {
+         return res.status(500).send({ error: error.message })
     }
 }
 
 exports.searchBookInLibrary = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/library/search
-    const searchKeyword = req.body.searchKeyword;
+    let keyword = req.body.keyword;
+    const currentUser = req.user.id;
+
+
     try {
 
 		let page= (req.query.page) ? parseInt(req.query.page) : 1;
 		let perPage = (req.query.perPage) ? parseInt(req.query.perPage) : 10;
 		let skip = (page-1)*perPage;
 
-    const findSearchKeyword = await BookModel.find({
-            $or: [
-                { title: {  $regex: '.*' + searchKeyword + '.*',  $options: 'i'  } },
-                { author: { $regex: '.*' + searchKeyword + '.*',  $options: 'i' } },
-                // { topic: { $regex: '.*' + searchKeyword + '.*',  $options: 'i' } },
-            ],
+        const recentSearch = await UserModel.findOne({ _id: currentUser }).populate({
+            path: "recentlySearchedBook",
+            model: "Book",
+            populate: {
+                path: "createdBy",
+                model: "User",
+                select: "id fullname profileImage"
             }
-    ).select('-trendingId -recentSearch -cloudinaryPublicId -createdAt -updatedAt -__v')
-      .skip(skip).limit(perPage);
+        }).limit(5)
+
+        const search_details = recentSearch.recentlySearchedBook;
+        const data  = search_details.map((item) => {
+            return {
+                description: item.description,
+                id: item.id,
+                title: item.title,
+                author: item.author,
+                price: item.price,
+                ratings: item.ratings,
+                store: item.store,
+                bookImage: item.bookImage,
+
+                createdBy: {
+                    fullname: item.createdBy.fullname,
+                    id: item.createdBy.id,
+                    profileImage: item.createdBy.profileImage,
+                    createdAt: item.createdBy.createdAt,
+                }
+
+            }
+        })
+
+    const findSearchKeyword = await BookModel.paginate({
+            $or: [
+                { title: {  $regex: '.*' + keyword + '.*',  $options: 'i'  } },
+                { author: { $regex: '.*' + keyword + '.*',  $options: 'i' } },
+                // { topic: { $regex: '.*' + keyword + '.*',  $options: 'i' } },
+            ],
+            },
+
+            {
+                select: "id title bookImage description author price ratings store createdAt ",
+                populate: {
+                    path: "bookCategoryId",
+                    model:"BookCategory",
+                    select: "id title" 
+                },
+                populate: {
+                    path: "createdBy",
+                    model:"User",
+                    select: "id fullname profileImage createdAt "
+                }
+
+            }
+    )
+    
       
-        if(!findSearchKeyword) {
+        if(!findSearchKeyword || findSearchKeyword.length <= 0) {
             return res.status(404).send({ message: "Book with the search phrase not found!"})
         }
+       
+        // const updateUserSearchBook = await UserModel.findByIdAndUpdate(currentUser, { $addToSet: { recentlySearchedBook: findSearchKeyword.id } })
+        const doc = await UserModel.findById(currentUser);
+        doc.recentlySearchedBook.addToSet(findSearchKeyword.docs[0]._id);
+        await doc.save();
+
+
+        
+
+        
 
         let total = findSearchKeyword ? findSearchKeyword.length : 0;
 
         let paginationData = { totalRecords:total, currentPage:page, perPage:perPage, totalPages:Math.ceil(total/perPage) }
-        return res.status(200).send({ searchedBooks:findSearchKeyword, paginationData})
+        
+        return res.status(200).send({ searchedBooks:findSearchKeyword, recentSearch : data})
     } catch (error) {
         return res.status(500).send({ message: error.message });
     }
@@ -308,7 +463,9 @@ exports.searchBookInLibraryById = async (req, res, next) => {
 
         // const relatedBooks = await BookModel.find({ bookCategoryId: convertMongooseObjectIdToString });
 
-        return res.status(200).send({ message: "Book found", findSearchKeyword, usersWhoRead: extractDetails, similarBooks  })
+        const result = { findSearchKeyword, usersWhoRead: extractDetails, similarBooks }
+
+        return res.status(200).send({message: "Book found", search_result: result})
     } catch (error) {
         return res.status(500).send({ message: error.message });
     }
@@ -317,7 +474,7 @@ exports.searchBookInLibraryById = async (req, res, next) => {
 exports.userReadBook = async (req, res, next) => {
     //PATCH REQUEST
     //http://localhost:2000/api/library/:bookId/read
-    //http://localhost:2000/api/library/628800b0de57eb226b1ef22b/read
+    //http://localhost:2000/api/library/book/628800b0de57eb226b1ef22b/read
 
     const bookId = req.params.bookId;
     const userId = req.user.id;
@@ -356,13 +513,49 @@ exports.readBook = async (req, res, next) => {
             return res.status(404).send({ error: "Unknown book id"});
         }
 
-        const updateBookRead = await BookModel.findByIdAndUpdate(bookId, {$addToSet: {readers: userId }}, { new: true }).select("_id title ratings bookImage price store bookCategoryId");
+        const updateBookRead = await BookModel.findByIdAndUpdate(bookId, {$addToSet: { readers: userId }}, { new: true }).select("id title description ratings bookImage price store readers")
+        .populate({
+            path: "bookCategoryId",
+            model:"BookCategory",
+            select: "id title" 
+        });
+        const user_ids = updateBookRead.readers.map((userId) => userId.toString())
+        
+
+        const book_readers = await UserModel.find({_id: { $in: [...user_ids] }})
+        .select("id fullname profileImage createdAt");
+
+        const book_reviews = [];
+        const similar_books = await BookModel.aggregate(
+            [
+                { $sample: { size: 40 } },
+                {
+                    $project: {
+                        id: "$_id",
+                        title: "$title", 
+                        description: "$description",  
+                        ratings: "$ratings",  
+                        bookImage: "$bookImage",   
+                        price: "$price",  
+                        store: "$store",  
+                        _id: 0,
+
+                    }
+                }
+            ])
+               
+     
+        // .populate({
+        //     path: "createdBy",
+        //     model:"User",
+        //     select: "id fullname profileImage createdAt "
+        // })
         
         if(!updateBookRead) {
             return res.status(401).send({ error: "Unable to process reading request"});
         }
 
-        return res.status(200).send(updateBookRead);
+        return res.status(200).send({book_readers, updateBookRead, book_reviews, similar_books});
 
     } catch (error) {
         return res.status(500).send({ error: error.message });

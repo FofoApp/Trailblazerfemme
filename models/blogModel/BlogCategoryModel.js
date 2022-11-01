@@ -7,6 +7,7 @@ const blogCategorySchema = new mongoose.Schema({
 
 { timestamps: true });
 
+
 blogCategorySchema.options.toJSON = {
     transform: function(doc, ret, options) {
         ret.id = ret._id

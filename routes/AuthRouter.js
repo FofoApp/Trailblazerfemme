@@ -3,6 +3,7 @@ const express = require('express');
 
 const AuthController = require('./../controllers/AuthController');
 const AdminUserController = require('./../controllers/adminController/AdminUserController');
+
 // const { registerSchema } = require('./../validations/userSchema');
 
 const { permissions } = require('./../middlewares/permissionsMiddleware');
@@ -47,6 +48,8 @@ router.post('/logout',  AuthController.logout);
 // router.get('/verifyotp/:id', AuthController.otpPage);
 
 router.post('/reset-password', AuthController.otpPage);
+
+router.post('/verifyotp', AuthController.verifyOtp);
 router.post('/verifyotp', AuthController.verifyOtp);
 router.patch('/update-password/:userId', AuthController.updatePassword);
 

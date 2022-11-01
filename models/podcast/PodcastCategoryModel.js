@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify')
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const podcastCategorySchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true }, 
@@ -43,6 +44,7 @@ podcastCategorySchema.options.toJSON = {
      }
 };
 
+podcastCategorySchema.plugin(mongoosePaginate);
 
 const PodcastCategory = mongoose.model('PodcastCategory', podcastCategorySchema);
 

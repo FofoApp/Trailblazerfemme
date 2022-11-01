@@ -8,6 +8,7 @@ const JWT = require('jsonwebtoken');
 const { cloudinary } = require('./../helpers/cloudinary');
 const sdk = require('api')('@sendchamp/v1.0#1v843jkyvjm1me');
 
+
 const { registerValidation, 
     loginValidation, 
     resetPasswordSchema, 
@@ -27,9 +28,11 @@ const { generateFourDigitsOTP } = require('./../helpers/otpGenerator');
 const { sendGridMail } = require('./../helpers/sendGridMessaging');
 
 const {sendSMS} = require('./../helpers/twilioSMS');
-const {calculateNextPayment}  = require('./../helpers/billing');
+const { calculateNextPayment }  = require('./../helpers/billing');
 const runCron = require('../runCron')
 const moment = require('moment');
+const Membership = require('../models/adminModel/AdminMembershipModel');
+const MembershipSubscriber = require('../models/membershipModel/MembershipSubscribersModel');
 runCron();
 exports.register = async (req, res, next) => {
     //POST REQUEST
@@ -57,7 +60,11 @@ exports.register = async (req, res, next) => {
 
         const result = await registerValidation(req.body);
 
-        const doesExist = await User.findOne({ email: result.email });
+        const doesExist = await User.findOne({ fullname: result?.fullname });
+
+        if(doesExist?.fullname === result?.fullname || doesExist?.email === result?.email) {
+            return res.status(400).json({ message: "A user with name and/or email already exist"})
+        }
 
         const date = calculateNextPayment(annually, moment().format());
         
@@ -104,6 +111,9 @@ exports.register = async (req, res, next) => {
             //     const newOtp = await Otpmodel.create({ userId: savedUser.id, phonenumber: savedUser.phonenumber, otp: otpCode });
             //   });
 
+            const saveOTP = await Otpmodel.create({otp: otpCode, userId: savedUser.id, phonenumber: savedUser.phonenumber});
+
+        if(!saveOTP)return res.status(400).json({ message: "Unable to send otp code"})
 
         const {id, email, roles, username, field, profileImagePath } = savedUser;
 
@@ -153,8 +163,18 @@ exports.login = async (req, res, next) => {
     try {
         const result = await loginValidation(req.body);
         
-        const user = await User.findOne({ email: result.email });
-       
+        const user = await User.findOne({ email: result.email }).populate("membershipSubscriberId", "isActive membershipId amount membershipType createdAt");
+
+        let membership_details = { 
+            subscriptionId: user.subscriptionId,
+             paid: user.paid, 
+             membershipType: user.membershipType, 
+             isActive: user.isActive, 
+             amount: user.amount, 
+             
+            }
+    
+       console.log(membership_details)
         if(!user) {
             throw createError.NotFound("User not registered");
         }
@@ -609,7 +629,7 @@ exports.otpPage = async (req, res, next) => {
 
         // console.log("otp:", otp)
 
-        const {id, phonenumber } = user;
+        const { id, phonenumber } = user;
 
         const otpExist = await Otpmodel.deleteOne({ userId: id });
 
@@ -655,4 +675,5 @@ exports.verifyOtp = async (req, res, next) => {
     }
     
 }
+
 

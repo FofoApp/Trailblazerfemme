@@ -1,11 +1,15 @@
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 
 const membershipSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
     amount: { type: Number, required: true },
-    benefits: { type: String, default: "", trim: true, required: true },
+    accessType: { type: String, required: true},
+    benefits: { type: String, default: "", trim: true },
     description: { type: String, required: true },
+    members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    reviewsIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "MembershipReview" }],
 
 },  { timestamps: true });
 
@@ -17,6 +21,8 @@ membershipSchema.options.toJSON = {
         return ret;
      }
 };
+
+membershipSchema.plugin(mongoosePaginate);
 
 const Membership = mongoose.model('Membership', membershipSchema);
 

@@ -5,37 +5,50 @@ const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
 
-    fullname: { type: String, required: true },
-    email: { type: String, required: true, lowercase: true, unique: true },
-    jobTitle: { type: String, default: null },
-    phonenumber: { type: String, required: true },
-    field: { type: String, required: true },
+    fullname: { type: String, trim: true, required: true, unique: true },
+    email: { type: String, trim: true, required: true, lowercase: true, unique: true },
+    jobTitle: { type: String, trim: true, default: null },
+    phonenumber: { type: String, trim: true, required: true },
+    field: { type: String,  },
     blocked: { type: Boolean, default: false }, // block / unblock users
 
     chargeId: { type: String },
+
+    membershipSubscriberId: [{ type: mongoose.Schema.Types.ObjectId, ref: "MembershipSubscriber" }],
+    isMembershipActive: { type: Boolean, default: false },
+
     membershipName: { type: String, default: null },
-    membershipId: { type: mongoose.Schema.Types.ObjectId, ref: "Membership" },
-    paymentId: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
-    paymentDate: { type: Date },
-    nextPaymentDueDate: { type: Date },
-    paymentType1: { type: Number },                      //1 month or 2month or 3month ...
-    paymentType2: { type: String },                      //monthly | yearly
-    amount: { type: String },                           //$25
-    isPaid: { type: Boolean, default: false },
+    membershipId: { type: mongoose.Schema.Types.ObjectId, ref: "Membership"},
+    communityId: { type: mongoose.Schema.Types.ObjectId, ref: "Membership"},
 
+    subscription_end_date: { type: Date,  },
+    subscription_start_date: { type: Date,   },
+    days_between_next_payment: { type: Number, },
 
-    password: { type: String, required: true },
+    // paymentId: [{ type: mongoose.Schema.Types.ObjectId, ref: "Payment" }],
+    // paymentDate: { type: Date },
+    // nextPaymentDueDate: { type: Date },
+    // paymentType1: { type: Number },                      //1 month or 2month or 3month ...
+    // paymentType2: { type: String },                      //monthly | yearly
+    // amount: { type: Number },                           //$25
+
+    subscriptionId: {type: mongoose.Schema.Types.ObjectId, ref: "MembershipSubscriber", default: null},
+    membershipType: { type: String, default: null },
+    isActive: { type: Boolean, default: false  },
+    paid: { type: Boolean, default: false },
+    amount: { type: Number,  default: 0 }, 
+    password: { type: String, trim: true, required: true },
     accountVerified: { type: Boolean, default: false },
+
     about: { type: String, default: null },
     cityState: { type: String, default: null },
+
     socialLinks: { type: [String] },
     roles: { type: [String], enum: ["user", "admin", "superAdmin"], default: "user"},
-    profileId: { type: mongoose.Schema.Types.ObjectId, ref: "Profile" },
 
+    profileId: { type: mongoose.Schema.Types.ObjectId, ref: "Profile" },
     profileImageCloudinaryPublicId: { type: String  },
     profileImage: { type: String },
-
-    // post: { type: Array },
     
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
@@ -55,17 +68,11 @@ const userSchema = new Schema({
 },  { timestamps: true });
 
 
-// userSchema.set('toJSON', {
-//     // virtuals: true,
-//     transform: function(doc, ret, options){
-//         ret.id = ret._id;
-//         delete ret._id;
-//         delete ret.password;
-//         delete ret.__v;
-
-//         return ret;
-//     }
-// });
+// schema.method("toJSON", function() {
+//     const { __v, _id, ...ret } = this.toObject();
+//     ret.id = _id;
+//     return ret;
+//   });
 
 
 userSchema.options.toJSON = {

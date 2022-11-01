@@ -2,16 +2,16 @@ const mongoose = require('mongoose');
 
 
 const blogModelSchema = new mongoose.Schema({
- name: { type: String, required: true, unique: true  },
- description:{ type: String, required: true },
- blogImage: { type: String, required: true },
- blogImageCloudinaryPublicId: { type: String, required: true },
+    name: { type: String, required: true, unique: true  },
+    description:{ type: String, required: true },
+    blogImage: { type: String, required: true },
+    blogImageCloudinaryPublicId: { type: String, required: true },
 
- createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
- blogCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'BlogCategory', required: true},
- blogComments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BlogComment' }],
- blogLikes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
- blogviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
+    blogCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'BlogCategory', required: true},
+    blogComments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BlogComment' }],
+    blogLikes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    blogviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 
  comments: [
     {
