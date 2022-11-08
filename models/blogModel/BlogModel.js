@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const blogModelSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true  },
@@ -60,6 +60,7 @@ blogModelSchema.options.toJSON = {
     }
 };
 
+blogModelSchema.plugin(mongoosePaginate);
 const Blog = mongoose.model('Blog', blogModelSchema);
 
 module.exports = Blog;

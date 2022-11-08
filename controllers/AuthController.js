@@ -111,7 +111,7 @@ exports.register = async (req, res, next) => {
             //     const newOtp = await Otpmodel.create({ userId: savedUser.id, phonenumber: savedUser.phonenumber, otp: otpCode });
             //   });
 
-            const saveOTP = await Otpmodel.create({otp: otpCode, userId: savedUser.id, phonenumber: savedUser.phonenumber});
+        const saveOTP = await Otpmodel.create({otp: otpCode, userId: savedUser.id, phonenumber: savedUser.phonenumber});
 
         if(!saveOTP)return res.status(400).json({ message: "Unable to send otp code"})
 
@@ -157,28 +157,34 @@ exports.login = async (req, res, next) => {
             "email": "ade@gmail.com",
             "password": "password123"
         }
-
      */
     
     try {
+
         const result = await loginValidation(req.body);
         
         const user = await User.findOne({ email: result.email }).populate("membershipSubscriberId", "isActive membershipId amount membershipType createdAt");
+        
+        if(!user) {
+            throw createError.NotFound("User not registered");
+        }
 
-        let membership_details = { 
+        if(!user.membershipSubscriberId) {
+            throw createError.NotFound("You are not subscribed yet");
+        }
+
+        if(!user.subscriptionId) {
+            throw createError.NotFound("You are not subscribed yet");
+        }
+
+        let membership_details = {
             subscriptionId: user.subscriptionId,
              paid: user.paid, 
              membershipType: user.membershipType, 
              isActive: user.isActive, 
-             amount: user.amount, 
-             
-            }
-    
-       console.log(membership_details)
-        if(!user) {
-            throw createError.NotFound("User not registered");
+             amount: user.amount,
         }
-        
+    
         const isMatch = await user.isValidPassword(result.password);
         
         if(!isMatch) {
@@ -194,11 +200,13 @@ exports.login = async (req, res, next) => {
         if(isRefreshTokenSet) {
             isRefreshTokenSet.remove();
         }
-        const refreshAccessToken = new RefreshAccessToken({
+        
+        const refreshAccessToken = new RefreshAccessToken(
+            {
             userId: user.id,
             accessToken:accessToken,
             refreshToken:refreshToken
-        });
+            });
 
         const savedRefreshAccessToken = await refreshAccessToken.save();
         

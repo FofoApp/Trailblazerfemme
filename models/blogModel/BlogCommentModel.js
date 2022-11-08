@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const blogCommentSchema = new mongoose.Schema({
     comment: { type: String, required: true },
@@ -26,6 +27,8 @@ blogCommentSchema.options.toJSON = {
         return ret;
      }
 };
+
+blogCommentSchema.plugin(mongoosePaginate);
 
 const BlogComment = mongoose.model('BlogComment', blogCommentSchema);
 

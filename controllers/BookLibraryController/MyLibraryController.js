@@ -129,18 +129,21 @@ exports.fetchAllBooksInLibrary = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/library
 
-    let { pc = 1, bl = 1, tb = 1 } = req.query;
+    let { category_page = 1, book_page = 1, trending_page = 1, top_author_page = 1 } = req.query;
 
-    if(!pc) {
-        pc = Number(pc) || 1;
+    if(!category_page) {
+        category_page = Number(category_page) || 1;
     }
 
-    if(!bl) {
-        bl = Number(bl) || 1;
+    if(!book_page) {
+        book_page = Number(book_page) || 1;
     }
 
-    if(!tb) {
-        tb = Number(tb) || 1;
+    if(!trending_page) {
+        trending_page = Number(trending_page) || 1;
+    }
+    if(!top_author_page) {
+        top_author_page = Number(top_author_page) || 1;
     }
 
 
@@ -148,23 +151,60 @@ exports.fetchAllBooksInLibrary = async (req, res, next) => {
         //ALL BOOK CATEGORIES
         const categories = await BookCategoryModel.paginate({},
             {   
-                page: pc,
+                page: category_page,
                 limit: 10,
                 select: '-createdAt -updatedAt -__v'
             }
             )
 
-        const books_in_library = await BookModel.paginate({},
-            {   
-                page: bl,
-                limit: 10,
-                select: '-updatedAt -__v'
-            }
-            )
+            const  transformLibraryData = (array_data) => {
+                const result = array_data?.docs.map((data) => {
+                    
+                    return {
+                        id: data._id,
+                        name: data.name,
+                        price: data.price,
+                        bookLink: data.bookLink,
+                        ratings: data.ratings,
+                        store: data.store,
+                        description: data.description,
+                        bookImage: data.bookImage[0].image_url,
+                        author: {
+                            fullname: data.author[0].fullname,
+                            image: data.author[0].image_url,
+                        }
+                    }
         
-        const trending_books = await BookModel.paginate({},
+                });
+
+                return {
+                    docs: result,
+                    totalDocs: array_data.totalDocs,
+                    limit: array_data.limit,
+                    totalPages: array_data.totalPages,
+                    page: array_data.page,
+                    pagingCounter: array_data.pagingCounter,
+                    hasPrevPage: array_data.hasPrevPage,
+                    hasNextPage: array_data.hasNextPage,
+                    prevPage: array_data.prevPage,
+                    nextPage: array_data.nextPage
+                };
+            }
+
+        let books_in_library = await BookModel.paginate({}, {
+            page: book_page, 
+            limit: 5,
+            select: "-__v -updatedAt -readers -uploadedBy -reviewIds",
+            populate: {
+                path: "bookCategoryId",
+                model: "BookCategory",
+                select: "id name"
+            }
+        });
+        
+        let trending_books = await BookModel.paginate({},
             {   
-                page: tb,
+                page: trending_page,
                 limit: 10,
                 select: ' -updatedAt -__v',
                 sort: { createdAt: -1 }
@@ -172,29 +212,53 @@ exports.fetchAllBooksInLibrary = async (req, res, next) => {
 
         // const book_author = books_in_library.map((author) => author.id.toString())
 
-        const topAuth = await BookModel.find({},
+        let topAuth = await BookModel.paginate({},
             {   
-                page: tb,
+                page: top_author_page,
                 limit: 10,
-                select: 'id fullname profileImage',
-                paginate: { 
-                    path: "createdBy",
-                    model: "User",
-                    select: 'id fullname profileImage'
-                },
-                sort: { createdAt: -1 }
+                select: 'id author',
+                sort: { createdAt: -1 },
+
             });
 
 
-        const top_authors = topAuth.map((author) => {
+        books_in_library = transformLibraryData(books_in_library);
+        trending_books = transformLibraryData(trending_books);
+
+        const top_Auth = topAuth.docs.map((data) => {
+            return {
+                author: {
+                    fullname: data.author[0].fullname,
+                    image_url: data.author[0].image_url,
+                }
+            }
+        })
+
+        const { author, ...others } = topAuth;
+
+        const top_author_details = {
+            docs: top_Auth, 
+
+            totalDocs: others.totalDocs,
+            limit: others.limit,
+            totalPages: others.totalPages,
+            page: others.page,
+            pagingCounter: others.pagingCounter,
+            hasPrevPage: others.hasPrevPage,
+            hasNextPage: others.hasNextPage,
+            prevPage: others.prevPage,
+            nextPage: others.nextPage,
+         }
+
+        return res.status(200).send({ categories, continue_reading: books_in_library.docs[0],  books_in_library, trending_books, top_authors: top_author_details  });
+
+
+        const top_authors = topAuth.docs.map((author) => {
             if(author.createdBy == undefined || author.createdBy == null) {
                 delete author
             }
             return author.createdBy;
         })
-
-       
-
 
 
         //TOP BOOK AUTHORS
@@ -310,7 +374,11 @@ exports.fetchAllBooksInLibrary = async (req, res, next) => {
    
         // return res.status(200).send({ message: "Books", categories: categories, myLibrary: findBooksInLibrary, topAuthors, paginationData });
         const book_details = {categories, continue_reading: books_in_library[0], myLibrary: books_in_library, trending: trending_books, top_authors: tAuthor,}
-        return res.status(200).send({ book_details, message: "Books", tAuthor, categories: categories, myLibrary, topAuthors, paginationData });
+        
+        
+        // return res.status(200).send({ book_details, message: "Books", tAuthor, categories: categories, myLibrary, topAuthors, paginationData });
+        return res.status(200).send(books_in_library);
+    
     } catch (error) {
         return res.status(500).send({ message: error.message });
     }
@@ -420,11 +488,6 @@ exports.searchBookInLibrary = async (req, res, next) => {
         const doc = await UserModel.findById(currentUser);
         doc.recentlySearchedBook.addToSet(findSearchKeyword.docs[0]._id);
         await doc.save();
-
-
-        
-
-        
 
         let total = findSearchKeyword ? findSearchKeyword.length : 0;
 

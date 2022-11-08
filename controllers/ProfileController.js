@@ -104,7 +104,11 @@ exports.getProfileImage = async (req, res, next) => {
 }
 
 exports.uploadProfileImage = async (req, res, next) => {
-    const { userId } = req.params;
+
+    // const { userId } = req.params;
+ 
+    const userId = req.params.userId;
+
     // upload-profile-image/:id
     // http://localhost:2000/api/profile/upload-profile-image/628696153cf50a6e1a34e2c5
 
@@ -112,20 +116,23 @@ exports.uploadProfileImage = async (req, res, next) => {
 
         // const plan = await planValidation({name, price});
        //Find user and ensure user with the speicifed id exist
+
         if(!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(404).send({ message: "User not found!" });
         }
 
-        if(req.user && userId && req.user.id !== userId) {
+        if(req.user && userId && req.user.id.toString() !== userId.toString()) {
             return res.status(400).send({ message: "You are not allowed to perform this operation" });
         }
 
         let findUserById = await UserModel.findById(userId);
+
         if(!findUserById) {
             return res.status(404).send({ message: "User not found"});
         }
 
         let uploaderResponse;
+        
         if(findUserById.profileImage) {
             //If Image is already saved in the Database, Delete Previous from Cloudinary 
             uploaderResponse = await cloudinary.uploader.destroy(findUserById.profileImageCloudinaryPublicId);
@@ -153,9 +160,9 @@ exports.uploadProfileImage = async (req, res, next) => {
         return res.status(201).send({ message: "Profile image saved successfully" });
 
     } catch (error) {
-        console.log(error)
+
         return res.status(500).send({error: error.message });
-        // return next(error)
+  
     }
 
 }

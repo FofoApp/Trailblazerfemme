@@ -40,17 +40,19 @@ exports.testBooks = async (req, res, next) => {
 exports.createNewBook = async (req, res, next) => {
     //NOTE: REMEMBER TO VALIDATE USER INPUTS 
     const currentUser = req.user.id;
-    const bookCategoryId = req.body.bookCategoryId;
+    const { bookCategoryId } = req.body;
 
     /**
+     * 
+     * FORM DATA with: bookImage, authorImage
      * {
-            title: "Book title one",
-            author: "Book author",
+            name: "Book title one",
+            author_name: "Book author name",
             price: 2000,
-            bookLink: "",
-            ratings: 4,
-            bookImage: "image",
-            bookCategoryId: "",
+            bookLink: "www.amazonkindle.com",
+            store: "Amazon",
+            description: "Book description",
+            bookCategoryId: "6287e3da991a8de5c1468b86",
      * }
      */
 
@@ -60,86 +62,78 @@ exports.createNewBook = async (req, res, next) => {
             return res.status(401).send({ error: "Invalid book category"})
         }
 
-        const findBookExist = await BookModel.findOne({ title: req.body.title });
+        const findBookExist = await BookModel.findOne({ name: req.body.name });
        
 
         if(findBookExist) {
-            return res.status(402).send({ message: "Book already exist" });
+            return res.status(402).send({ message: "Book name already exist" });
         }
-        
-        
-        // //Upload Image to cloudinary
-        const uploaderResponse = await cloudinary.uploader.upload(req.file.path);
 
-        if(!uploaderResponse) {
+        const bookImage = req.files.bookImage[0];
+
+        if(!bookImage) return res.status(404).send({ message: "Please upload book image"});
+
+        const authorImage = req.files.authorImage[0];
+        if(!authorImage) return res.status(404).send({ message: "Please upload author image"});
+
+        // //Upload Image to cloudinary
+        const book_image_upload_result = await cloudinary.uploader.upload(bookImage.path);
+        const author_image_upload_result = await cloudinary.uploader.upload(authorImage.path);
+
+        if(!book_image_upload_result) {
             //Reject if unable to upload image
-            return res.status(404).send({ message: "Unable to upload image please try again"});
+            return res.status(404).send({ message: "Unable to upload book image please try again"});
+        }
+
+        if(!author_image_upload_result) {
+            //Reject if unable to upload image
+            return res.status(404).send({ message: "Unable to upload book author image please try again"});
+        }
+
+       const upload_details =  {
+            name: req.body.name,
+            price: req.body.price,
+            bookLink: req.body.bookLink,
+            bookCategoryId: req.body.bookCategoryId,
+            description: req.body.description,
+            store: req.body.store,
+
+            bookImage: [{
+                public_id: book_image_upload_result.public_id,
+                image_url: book_image_upload_result.secure_url,
+            }],
+            
+            author: [{
+                fullname: req.body.author_name,
+                public_id: author_image_upload_result.public_id,
+                image_url: author_image_upload_result.secure_url,
+            }],
+            uploadedBy: currentUser
         }
         
-        const createNewBook = new BookModel({
-            ...req.body,
-             cloudinaryPublicId: uploaderResponse.public_id,
-            bookImage: uploaderResponse.secure_url,
-            createdBy: currentUser
-        });
+        const createNewBook = new BookModel(upload_details);
 
          const createdBook = await createNewBook.save();
 
-        // let query = [
-        //     {
-        //         $lookup: { from: 'bookcategories', localField: 'bookCategoryId', foreignField: '_id', as: "book_category" }
-        //     },
-        //     {  $unwind: '$book_category' },
+         const result = {
+            id: createdBook.id,
+            name: createdBook.name,
+            price: createdBook.price,
+            bookLink: createdBook.bookLink,
+            store: createdBook.store,
+            description: createdBook.description,
+            createdAt: createdBook.createdAt,
+            bookImage: createdBook.bookImage[0].image_url,
+            author: {
+                fullname: createdBook.author[0].fullname,
+                image_url: createdBook.author[0].image_url,
+            },
+         }
 
-        // ];
-       
-
-        // if(req.query.keyword && req.query.keyword !=''){ 
-		// 	query.push({
-		// 	  $match: { 
-		// 	    $or :[
-		// 	      { title : { $regex: '.*' + req.query.keyword + '.*',  $options: 'i' }  },
-		// 	      { author : {$regex: '.*' + req.query.keyword + '.*',  $options: 'i' }  },
-		// 	      { topic : {$regex: '.*' + req.query.keyword + '.*',  $options: 'i' }  },
-		// 	    ]
-		// 	  }
-		// 	});
-		// }
-
-        // if(req.body.keyword && req.body.keyword !=''){ 
-		// 	query.push({
-		// 	  $match: { 
-		// 	    $or :[
-		// 	      { title : { $regex: '.*' + req.body.keyword + '.*',  $options: 'i' }  },
-		// 	      { author : {$regex: '.*' + req.body.keyword + '.*',  $options: 'i' }  },
-		// 	      { topic : {$regex: '.*' + req.body.keyword + '.*',  $options: 'i' }  },
-		// 	    ]
-		// 	  }
-		// 	});
-		// }
-
-        // let total= await BookModel.countDocuments(query);
-		// let page= (req.query.page) ? parseInt(req.query.page) : 1;
-		// let perPage = (req.query.perPage) ? parseInt(req.query.perPage) : 10;
-		// let skip = (page-1)*perPage;
-
-        // query.push({ $skip:skip, });
-		// query.push({ $limit:perPage, });
-
-        // query.push({ $sort: {createdAt:-1} });
-
-        // const books = await BookModel.aggregate(query);
-
-        // let paginationData = { totalRecords:total, currentPage:page, perPage:perPage, totalPages:Math.ceil(total/perPage) }
-
-        // return res.status(200).send({ message: "Book created successfully", books, paginationData});
-       
-        // const joblink = `${req.protocol}://${req.get('host')}/api/jobs/create`;
-
-        return res.status(200).send({ book: createdBook });
+        return res.status(200).send({ book: result });
 
     } catch (error) {
-        // console.log(error)
+        console.log(error)
         return res.status(500).send({ message: error.message });
     }
 }
@@ -159,7 +153,7 @@ exports.searchAllBooks = async (req, res, next) => {
                 { title : { $regex: '.*' + searchKeyword + '.*',  $options: 'i' }  },
                 { author : { $regex: '.*' + searchKeyword + '.*',  $options: 'i' }  },
             ]
-        }).select( "_id title imagePath author price ratings store");
+        }).select( "_id name imagePath author price ratings store");
 
          if(searched.length === 0) return res.status(400).send({ error: "No match found" });
 
@@ -263,19 +257,41 @@ exports.searchBook = async (req, res, next) => {
 
 exports.fetchBooks = async (req, res, next) => {
     //NOTE: REMEMBER TO VALIDATE USER INPUTS 
+    let { cat_page = 1} = req.query;
+    let { bk_page = 1} = req.query;
+
+    if(!cat_page) cat_page = Number(cat_page) || 1;
+    if(!bk_page) bk_page = Number(bk_page) || 1;
+
     try {
 
-        const findBookExist = await BookModel.find({});
+        let categories = await BookCategoryModel.paginate({}, {
+            page: cat_page, 
+            limit: 5,
+            select: "id name title",
+        });
+
+        if(!categories) {
+            return res.status(404).send("No categories found");
+        }
+
+        const findBookExist = await BookModel.paginate({}, {
+            page: bk_page, 
+            limit: 5,
+            select: "-__v -updatedAt -readers -uploadedBy -reviewIds",
+            populate: {
+                path: "bookCategoryId",
+                model: "BookCategory",
+                select: "id name"
+            }
+        });
 
         if(!findBookExist) {
             return res.status(401).send({ error: "Books not found" });
         }
 
-        let categories = await BookCategoryModel.find({}).select('_id title');
 
-        if(!categories) {
-            return res.status(404).send("No categories found")
-        }
+
 
         // let query = [
         //     {
@@ -322,11 +338,38 @@ exports.fetchBooks = async (req, res, next) => {
                                     .populate('bookCategoryId', 'title')
                                     .populate('createdBy', "id fullname email profileImagePath")
                                     .skip(skip)
-                                    .limit(perPage)
+                                    .limit(perPage);
 
         let paginationData = { totalRecords:total, currentPage:page, perPage:perPage, totalPages:Math.ceil(total/perPage) }
+        
+   
 
-        return res.status(200).send({ books, paginationData});
+        const bookdata =  findBookExist.docs.map((data) => {
+
+            return {
+                id: data._id,
+                name: data.name,
+                price: data.price,
+                bookLink: data.bookLink,
+                ratings: data.ratings,
+                store: data.store,
+                description: data.description,
+                bookImage: data.bookImage[0].image_url,
+                author: {
+                    fullname: data.author[0].fullname,
+                    image: data.author[0].image_url,
+                }
+            }
+
+        });
+
+        const { docs, ...others } = findBookExist;
+
+        const book_details = { books: { docs: bookdata, ...others }, }
+        
+        const result = {categories, ...book_details, paginationData  }
+
+        return res.status(200).send(result);
 
     } catch (error) {
         // console.log(error)
@@ -427,19 +470,57 @@ exports.updateBookById = async (req, res, next) => {
     //NOTE: REMEMBER TO VALIDATE USER INPUTS 
 
     try {
-        const bookId = req.params.bookId;
+
+        const { bookId } = req.params;
+
         if(!mongoose.Types.ObjectId.isValid(bookId)) {
             return res.status(401).send({ error: "Invalid book"})
         }
+
         if(req.body.bookCategoryId && !mongoose.Types.ObjectId.isValid(req.body.bookCategoryId)) {
             return res.status(401).send({ error: "Invalid bookCategoryId"});
         }
+
         const findBookExist = await BookModel.findById(bookId);
+
         if(!findBookExist) {
             return res.status(404).send({ error: "Book not found"})
         }
 
-         await BookModel.updateOne({_id: bookId}, { $set: { ...req.body }});
+        let update_data = { ...req.body,}
+
+        const bookImage = req?.files?.bookImage[0];
+        const authorImage = req?.files?.authorImage[0];
+
+        if(bookImage) {
+
+            let delete_response = await cloudinary.uploader.destroy(findBookExist.bookImage[0].public_id);
+
+            if(!delete_response)  return res.status(404).send({ error: "Unable to delete book image"});
+
+            const book_image_upload_result = await cloudinary.uploader.upload(bookImage.path);
+
+            update_data.bookImage =  [{
+                public_id: book_image_upload_result.public_id,
+                image_url: book_image_upload_result.secure_url,
+            }];
+        }
+
+        if(authorImage) {
+            let delete_response = await cloudinary.uploader.destroy(findBookExist.authorImage[0].public_id);
+
+            if(!delete_response)  return res.status(404).send({ error: "Unable to delete author image"});
+
+            const author_image_upload_result = await cloudinary.uploader.upload(authorImage.path);
+
+            update_data.author =  [{
+                fullname: req?.body?.author_name,
+                public_id: author_image_upload_result.public_id,
+                image_url: author_image_upload_result.secure_url,
+            }];
+        }
+
+        await BookModel.updateOne({_id: bookId}, { $set: { update_data }});
         
         return res.status(200).send("Book updated successfully");
     } catch (error) {
@@ -459,9 +540,20 @@ exports.deleteBookById = async (req, res, next) => {
         if(!findBookExist) {
             return res.status(404).send({ error: "Book not found"})
         }
+
+        let book_response = await cloudinary.uploader.destroy(findBookExist.bookImage[0].public_id);
+
+        if(!book_response)  return res.status(404).send({ error: "Unable to delete book image"});
+
+        let author_response = await cloudinary.uploader.destroy(findBookExist.authorImage[0].public_id);
+
+        if(!author_response)  return res.status(404).send({ error: "Unable to delete author image"});
+
+
         await BookModel.deleteOne({_id: bookId });
 
         return res.status(200).send({ message: "Book deleted successfully" });
+
     } catch (error) {
         return res.status(500).send({ message: error.message });
     }

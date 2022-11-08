@@ -23,7 +23,7 @@ router.get('/', verifyAccessToken, PodcastController.podcasts);
 router.post('/create', verifyAccessToken, permissions(["admin"]), upload.single('podcastImage'), PodcastController.createNewPodcast);
 router.get('/lists', verifyAccessToken, PodcastController.listPodcasts);
 router.get('/search', verifyAccessToken, PodcastController.searchForPodcast);
-router.get('/:podcastId/search', PodcastController.searchPodcastById);
+router.get('/:podcastId/search', verifyAccessToken, PodcastController.searchPodcastById);
 router.patch('/:podcastId/update', verifyAccessToken, permissions(["admin"]), PodcastController.updatePodcastById);
 router.delete('/:podcastId/delete', verifyAccessToken, permissions(["admin"]), PodcastController.deletePodcastById);
 

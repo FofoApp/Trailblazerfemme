@@ -2,10 +2,10 @@
 
 exports.permissions = (permissions) => (req, res, next) => {
     
-    const { roles } = req.user;
-
-    if(!permissions.includes(roles)) {
-        return res.status(401).send({ messsage: "Unauthorized"});
+    const { role } = req.user;
+    
+    if(!permissions.includes(role)) {
+        return res.status(401).send({ messsage: "Unauthorized user"});
     }
 
     next();

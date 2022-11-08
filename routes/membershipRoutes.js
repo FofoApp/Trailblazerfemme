@@ -21,7 +21,7 @@ const router = express.Router();
 
 
 router.post('/create_review', verifyAccessToken, permissions(["user", "admin"]),  MembershipReviewController.createMembershipReview, MembershipReviewController.getReviews);
-router.post('/subscribe', MembershipController.chooseMembershipPlan);
+router.post('/subscribe',  verifyAccessToken, permissions(["user", "admin"]), MembershipController.chooseMembershipPlan);
 router.post('/create', verifyAccessToken, permissions(["admin"]), AdminUserMembershipController.createUserMembership);
 router.get('/:membershipId/find', verifyAccessToken, AdminUserMembershipController.findUserMembershipById);
 router.get('/lists', verifyAccessToken, AdminUserMembershipController.listUserMembership);

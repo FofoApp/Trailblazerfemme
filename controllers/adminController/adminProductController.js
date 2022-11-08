@@ -1,11 +1,12 @@
-const createError = require('http-errors');
 const mongoose = require('mongoose');
+const createError = require('http-errors');
 
 const ProductModel = require('./../../models/productModel/ProductModel');
 
 exports.createNewProduct =  async (req, res, next) => {
 
     const urls = [];
+
     let publicIdArray = [];
 
     //NOTE:: VALIDATE USER INPUTS BEFORE PROCESSING
@@ -28,7 +29,7 @@ exports.createNewProduct =  async (req, res, next) => {
 try {
     const result = await productValidation(req.body);
 
-    if(req.method === 'POST'){
+    if(req.method === 'POST' && req?.files) {
         const files = req.files;
         
         for(const file of files) {
@@ -104,12 +105,14 @@ const getProductById = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/product/628cae1ec6a0f70b715a869a/product
 
-    const productId = req.params.productId;
+    const { productId } = req.params;
     
     try {
+
         if(!mongoose.Types.ObjectId.isValid(productId)) {
             return res.status(401).send({ message: "Invalid product parameter"});
         }
+
         const product = await ProductModel.findOne({ _id: productId });
         return res.status(200).send(product);
 
@@ -124,7 +127,7 @@ exports.updateProductById = async (req, res, next) => {
     //PATCH REQUEST
     //http://localhost:2000/api/product/628cae1ec6a0f70b715a869a/update
 
-    const productId = req.params.productId;
+    const { productId } = req.params;
 try {
     
     const result = await productValidation(req.body, true);
@@ -147,13 +150,14 @@ exports.deleteProductById = async (req, res, next) => {
     //DELETE REQUEST
     //http://localhost:2000/api/product/628cae1ec6a0f70b715a869a/delete
 
-    const productId = req.params.productId;
+    const { productId } = req.params;
+
 try {
 
     if(!mongoose.Types.ObjectId.isValid(productId)) {
         return res.status(401).send({ message: "Invalid product parameter"});
     }
-    await ProductModel.findByIdAndUpdate({ _id: productId }, {$set: { ...req.body} }, { new: true } );
+    await ProductModel.findByIdAndUpdate(productId);
 
     return res.status(200).send({message: "Product deleted successfully"});
 } catch (error) {

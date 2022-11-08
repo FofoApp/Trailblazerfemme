@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const blogCategorySchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true }
@@ -17,7 +17,7 @@ blogCategorySchema.options.toJSON = {
      }
 };
 
-
+blogCategorySchema.plugin(mongoosePaginate);
 const BlogCategory = mongoose.model('BlogCategory', blogCategorySchema);
 
 module.exports = BlogCategory;

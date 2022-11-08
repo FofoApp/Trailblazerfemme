@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const { isValidObjectId } = require("mongoose");
 const PodcastEpisodeModel = require('./../../models/podcast/PodcastEpisodeModel');
 const { cloudinary } = require('./../../helpers/cloudinary');
 const PodcastEpisode = require('./../../models/podcast/PodcastEpisodeModel');
@@ -26,11 +26,11 @@ exports.createNewPodcastEpisode = async (req, res, next) => {
         const podcastId = req.body.podcastId;
         // const podcastHostId = req.user ? req.user.id : req.body.podcastHostId;        
 
-        if(!mongoose.Types.ObjectId.isValid(podcastId)) {
+        if(!isValidObjectId(podcastId)) {
             return res.status(401).send({ message: "Unknown Podcast"})
         }
 
-        // if(!mongoose.Types.ObjectId.isValid(podcastHostId)) {
+        // if(!isValidObjectId(podcastHostId)) {
         //     return res.status(401).send({ message: "Unknown Podcast Host"})
         // }
 
@@ -128,7 +128,7 @@ exports.updatePodcastEpisodeById = async (req, res, next) => {
 
    try {
 
-    if(!mongoose.Types.ObjectId.isValid(podcastEpisodeId)) {
+    if(!isValidObjectId(podcastEpisodeId)) {
         return res.status(400).send({ message: "Invalid episode parameter"})
     }
 
@@ -154,7 +154,7 @@ exports.deletePodcastEpisodeById = async (req, res, next) => {
 
    try {
        
-    if(!mongoose.Types.ObjectId.isValid(podcastId)) {
+    if(!isValidObjectId(podcastId)) {
         return res.status(400).send({ message: "Invalid Episode parameter"})
     }
 
@@ -183,7 +183,7 @@ exports.getAllPodcastEpisode = async (req, res) => {
 
     try {
 
-        if(!mongoose.Types.ObjectId.isValid(podcastId))  return res.status(404).json({ error: "Invalid podcast" });
+        if(!isValidObjectId(podcastId))  return res.status(404).json({ error: "Invalid podcast" });
         
         const episodes = await PodcastEpisode.paginate({ podcastId: podcastId }, {
             page: pageEpisode,
@@ -208,8 +208,8 @@ exports.getPodcastEpisodeById = async (req, res) => {
 
     try {
 
-        if(!mongoose.Types.ObjectId.isValid(podcastId))  return res.status(404).json({ error: "Invalid podcast" });
-        if(!mongoose.Types.ObjectId.isValid(podcastEpisodeId))  return res.status(404).json({ error: "Invalid podcast episode" });
+        if(!isValidObjectId(podcastId))  return res.status(404).json({ error: "Invalid podcast" });
+        if(!isValidObjectId(podcastEpisodeId))  return res.status(404).json({ error: "Invalid podcast episode" });
         
         const episode = await PodcastEpisode.findOne({ podcastId: podcastId, podcastEpisodeId: podcastEpisodeId})
                         .select("id title name duration episode podcastImage podcastLink podcastId").exec();

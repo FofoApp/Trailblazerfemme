@@ -1,3 +1,4 @@
+const { isValidObjectId } = require("mongoose");
 const slugify = require('slugify')
 const PodcastModel = require('./../../models/podcast/PodcastCategoryModel')
 
@@ -57,6 +58,10 @@ exports.updatePodcastCategoryById = async (req, res, next) => {
     const {name} = req.body;
     try {
 
+        if(!isValidObjectId(podcastCateogryId)) {
+            return res.status(403).send({error: "Invalid request"});
+        }
+
         const slug = slugify(name, {
             replacement: '-',  // replace spaces with replacement character, defaults to `-`
             remove: undefined, // remove characters that match regex, defaults to `undefined`
@@ -84,6 +89,11 @@ exports.deletePodcastCategoryById = async (req, res, next) => {
     //VALIDATE USER INPUT BEFORE PROCESSING
     const {podcastCateogryId} = req.params;
     try {
+
+        if(!isValidObjectId(podcastCateogryId)) {
+            return res.status(403).send({error: "Invalid request"});
+        }
+
         const deletePodcastCategory = await PodcastModel.findByIdAndDelete(podcastCateogryId);
         
         if(!deletePodcastCategory) {
@@ -100,8 +110,13 @@ exports.deletePodcastCategoryById = async (req, res, next) => {
 
 exports.recentlyPlayedPodcast = async (req, res, next) => {
     //VALIDATE USER INPUT BEFORE PROCESSING
+    const { podcastId } = req.params;
     try {
-        const deletePodcastCategory = await PodcastModel.findByIdAndDelete(req.params.podcastId);
+
+        if(!isValidObjectId(podcastId)) {
+            return res.status(403).send({error: "Invalid request"});
+        }
+        const deletePodcastCategory = await PodcastModel.findByIdAndDelete();
         
         if(!deletePodcastCategory) {
             return res.status(401).send({ message: "Unable to delete podcast category" });

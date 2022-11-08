@@ -1,5 +1,5 @@
 const fs = require('fs');
-const mongoose = require('mongoose');
+const { isValidObjectId } = require("mongoose");
 const PodcastModel = require('./../../models/podcast/PodcastModel');
 const UserModel = require('./../../models/UserModel');
 const PodcastCategoryModel = require('./../../models/podcast/PodcastCategoryModel');
@@ -196,11 +196,11 @@ exports.recentPodcastView = async (req, res, next) => {
 
     try {
 
-        if(!mongoose.Types.ObjectId.isValid(currentUser)) {
+        if(!isValidObjectId(currentUser)) {
             return res.status(403).send({error: "Unknown user"});
         }
 
-        if(!mongoose.Types.ObjectId.isValid(podcastId)) {
+        if(!isValidObjectId(podcastId)) {
             return res.status(200).send({ error: "Unknown podcast" }); 
         }
 
@@ -245,11 +245,11 @@ exports.createNewPodcast = async (req, res, next) => {
 
     try {
 
-        if(!mongoose.Types.ObjectId.isValid(podcastCategoryId)) {
+        if(!isValidObjectId(podcastCategoryId)) {
             return res.status(401).send({ error: "Unknown Podcast Category"})
         }
 
-        if(!mongoose.Types.ObjectId.isValid(podcastHostId)) {
+        if(!isValidObjectId(podcastHostId)) {
             return res.status(401).send({ error: "Unknown Podcast Host"})
         }
 
@@ -287,6 +287,7 @@ exports.createNewPodcast = async (req, res, next) => {
 }
 
 exports.listPodcasts = async (req, res, next) => {
+    
     //NOTE VALIDATE USER INPUTS BEFORE PROCESSING
     //GET REQUEST
     //http://localhost:2000/api/podcast/lists
@@ -443,6 +444,7 @@ exports.searchForPodcast = async (req, res, next) => {
 
 
 exports.searchPodcastById = async (req, res, next) => {
+ 
     //NOTE VALIDATE USER INPUTS BEFORE PROCESSING
     //GET REQUEST
    //http://localhost:2000/api/podcast/podcastId/search
@@ -452,7 +454,7 @@ exports.searchPodcastById = async (req, res, next) => {
    
    try {
 
-    if(!mongoose.Types.ObjectId.isValid(podcastId)) {
+    if(!isValidObjectId(podcastId)) {
         return res.status(400).send({ message: "Invalid podcast parameter"});
     }
 
@@ -502,7 +504,7 @@ exports.updatePodcastById = async (req, res, next) => {
 
    try {
 
-    if(!mongoose.Types.ObjectId.isValid(podcastId)) {
+    if(!isValidObjectId(podcastId)) {
         return res.status(400).send({ error: "Invalid podcast parameter"})
     }
 
@@ -532,7 +534,7 @@ exports.deletePodcastById = async (req, res, next) => {
 
    try {
        
-    if(!mongoose.Types.ObjectId.isValid(podcastId)) {
+    if(!isValidObjectId(podcastId)) {
         return res.status(400).send({ message: "Invalid podcast parameter"})
     }
 

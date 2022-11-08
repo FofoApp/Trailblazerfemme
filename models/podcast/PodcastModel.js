@@ -15,6 +15,8 @@ const podcastSchema = new mongoose.Schema({
     views: [{type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     tags: { type: String, trim: true, default: "" },
     reviews: [{type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    rating: { type: Number },
+    numReviews: { type: Number },
     episodes: [{type: mongoose.Schema.Types.ObjectId, ref: 'PodcastEpisode' }],
     popular: [{type: mongoose.Schema.Types.ObjectId, ref: 'PodcastCategory' }],
     recentlyPlayed: [{type: mongoose.Schema.Types.ObjectId, ref: 'Podcast' }],

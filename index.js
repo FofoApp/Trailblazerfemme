@@ -69,6 +69,7 @@ app.get('/', recurrentPaymentMiddleware, async (_req, res, next) => {
 app.post('/api/payment', async (req, res, next) => {
 
       const { product, stripToken: token } = req.body;
+      const price = product.price;
     
       try {
             const customer =  await stripe.customers.create({
@@ -77,7 +78,7 @@ app.post('/api/payment', async (req, res, next) => {
                   });
                   
             const charge = await stripe.charges.create({
-                  amount: product.price * 100,
+                  amount: Number(price) * 100,
                   currency: "usd",
                   customer: customer.id,
                   receipt_email: token.email,
@@ -86,7 +87,7 @@ app.post('/api/payment', async (req, res, next) => {
 
             return res.status(200).send({customer:customer, charge: charge})
       } catch (error) {
-            // console.log("Error:::", error.message)
+            console.log("Error:::", error.message)
             return res.status(200).send({error})
       }
       
