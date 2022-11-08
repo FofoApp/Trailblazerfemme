@@ -178,11 +178,11 @@ exports.login = async (req, res, next) => {
         }
 
         let membership_details = {
-            subscriptionId: user.subscriptionId,
-             paid: user.paid, 
-             membershipType: user.membershipType, 
-             isActive: user.isActive, 
-             amount: user.amount,
+            subscriptionId: user?.subscriptionId,
+             paid: user?.paid, 
+             membershipType: user?.membershipType, 
+             isActive: user?.isActive, 
+             amount: user?.amount,
         }
     
         const isMatch = await user.isValidPassword(result.password);

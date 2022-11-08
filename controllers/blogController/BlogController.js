@@ -620,7 +620,7 @@ exports.FetchBlogById = async (req, res, next) => {
                                     
         // let blog_ids = blogPosts.map((item) => item.id);
 
-        let blog_comments = await BlogComment.find({ blogId: "635a5a3b391cac780504e1a9" })
+        let blog_comments = await BlogComment.find({ blogId: blogId })
         .select('comment blogId blogLikes createdAt id')
         .populate({
             path: 'commentedBy',
@@ -1066,21 +1066,19 @@ exports.blogComment = async (req, res, next) => {
    
     try {
 
-        let commentData = { comment, blogId, commentedBy };
+        let commentData = { comment, commentedBy, blogId, };
 
         let user = await UserModel.findOne({ _id: req.user.id});
 
         const newComment = new BlogCommentModel(commentData);
  
         const savedBlogComment = await newComment.save();
-
-        // const updateComment = { comments: commentData, blogComments: savedBlogComment._id };
-       
-        // const updateBlog = await BlogModel.findByIdAndUpdate(blogId, { $push: updateComment }, { new: true } );
+        
         let updateBlog = await BlogModel.findById(blogId);
-        updateBlog.comments.push(commentData);
 
         updateBlog.blogComments = savedBlogComment._id;
+
+        updateBlog.comments.push(commentData);
 
         // return res.status(200).send({ updateBlog });
 

@@ -380,6 +380,12 @@ exports.fetchBooks = async (req, res, next) => {
 exports.fetchBookById = async (req, res, next) => {
     // let sess = await mongoose.startSession();
     //NOTE: REMEMBER TO VALIDATE USER INPUTS 
+
+    let { review_page = 1, who_read_page = 1 } = req.query;
+
+    if(review_page) review_page = Number(review_page);
+    if(who_read_page) who_read_page = Number(who_read_page);
+
     try {
         const { bookId } = req.params;
 
@@ -388,11 +394,11 @@ exports.fetchBookById = async (req, res, next) => {
         }
         // sess.startTransaction();
 
-        let findBookExist = await BookModel.findById(bookId, 
+        let findBookExist = await BookModel.findById(bookId,
                             // {$addToSet: { 'readers': req.user.id } },
                             // { session: sess  }
                             )
-                            .select("_id title bookImage author price ratings store")
+                            .select("_id name title bookImage author price ratings store")
                             .populate({           
                                 path: 'readers',
                                 select: 'fullname profileImage createdAt',
@@ -414,48 +420,121 @@ exports.fetchBookById = async (req, res, next) => {
                                     select: "title bookImage author store"
                                 }
 
-                            })
+                            });
 
-        let reviews = await BookReview.find({ bookId })
-        .populate({
-            path: "reviewdBy",
-            model: "User",
-            select: "id fullname profileImage createdAt"
-        })
-        // .limit()
-        // .skip()
 
-        const similar_books = await BookModel.aggregate(
-            [
-                { $sample: { size: 40 } },
-                {
-                    $project: {
-                        id: "$_id",
-                        title: "$title", 
-                        description: "$description",  
-                        ratings: "$ratings",  
-                        bookImage: "$bookImage",   
-                        price: "$price",  
-                        store: "$store",  
-                        _id: 0,
+                            const find_book_exist = {
+                                id: findBookExist.id,
+                                price: findBookExist.price,
+                                name: findBookExist.name,
+                                ratings: findBookExist.ratings,
+                                store: findBookExist.store,
+                                bookCategoryId: findBookExist.bookCategoryId,
+                                bookImage: findBookExist.bookImage[0].image_url,
+                                author: {
+                                    fullname: findBookExist.author[0].fullname,
+                                    image_url: findBookExist.author[0].image_url,
+                                },
 
-                    }
-                }
-            ])
+                                bookCategoryId: findBookExist.bookCategoryId,
+                            }
+
+                        let reviews = await BookReview.paginate({ bookId }, {
+                            page: review_page,
+                            limit: 5,
+                            populate: {
+                                path: "reviewdBy",
+                                model: "User",
+                                select: "id fullname profileImage createdAt"
+                            }
+                        });
+
+                        let revs = reviews.docs.map((review) => {
+                            return {
+                                id: review.id,
+                                reviewedBy: {
+                                    fullname: review?.reviewdBy?.fullname,
+                                    image_url: review?.reviewdBy?.profileImage,
+                                },
+                                comment: review?.comment,
+                                createdAt: review?.createdAt,
+                            }
+                        })
+
+                        let who_read = await BookModel.paginate({ bookId }, {
+                            page: who_read_page,
+                            limit: 5,
+                            populate: {
+                                path: "readers",
+                                model: "User",
+                                select: "id fullname profileImage createdAt"
+                            }
+                        });
+
+                        let bb = [];
+
+                           who_read.docs.map((read) => {
+                                if(read.readers.length <= 0) return;
+
+                                     bb = read.readers.map((reader2) => {
+                                        return {
+                                            fullname: reader2?.fullname,
+                                            image_url: reader2?.profileImage,
+                                            id: reader2?.id,
+                                        }
+                                })
+                        });
+
+
+                        let  similar_books = await BookModel.paginate({
+                            $sample: { size: 40 },
+
+                        });
+
+                        const similar_books_data = similar_books.docs.map((book) => {
+
+                            return {
+                                    id: book.id,
+                                    price: book.price, 
+                                    name: book.name, 
+                                    ratings: book.ratings,
+                                    store: book.store,
+                                    bookCategoryId: book.bookCategoryId,
+                                    bookImage: book.bookImage[0].image_url,
+                                    author: {
+                                        fullname: book.author[0].fullname,
+                                        image_url: book.author[0].image_url,
+                                    },
+
+                                    bookCategoryId: book.bookCategoryId,
+                                    // readers: book.readers,
+                            }
+                        })
 
     if(!reviews) return res.status(404).send({error: "No review found"});
-    let numberOfReviews = await BookReview.countDocuments();
-    reviews.map((review) => {
-        return review.ratings = review.rating / numberOfReviews
-        // return review.reduce((acc, item) => item.ratings + acc, 0) / numberOfReviews
-    })
+
+
         // await sess.commitTransaction();
 
         if(!findBookExist) {
             return res.status(404).send({ error: "Book not found"})
         }
+
+
         
-        return res.status(200).send({findBookExist, reviews, similar_books});
+        const { docs, ...others } = similar_books;
+        const { docs: doc1, ...others2 } = who_read;
+        const { docs: doc2, ...others3 } = reviews;
+
+        const book_details = { book: find_book_exist,
+            people_who_read: { docs: bb, ...others2 },
+            reviews: { docs: revs, ...others3 },
+            similar_books: { docs: similar_books_data, ...others }, 
+        }
+        
+        const result = { ...book_details  }
+
+        return res.status(200).send(result);
 
     } catch (error) {
         // await sess.abortTransaction();

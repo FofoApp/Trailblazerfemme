@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+const mongoosePaginate = require("mongoose-paginate-v2");
 const { ObjectId } = mongoose.Schema;
 
 const bookReviewSchema = new mongoose.Schema({
@@ -23,7 +23,7 @@ bookReviewSchema.options.toJSON = {
 };
 
 
-
+bookReviewSchema.plugin(mongoosePaginate);
 const BookReview  = mongoose.model('BookReview', bookReviewSchema);
 
 module.exports = BookReview;
