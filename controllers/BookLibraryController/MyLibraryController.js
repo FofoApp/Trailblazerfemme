@@ -128,23 +128,26 @@ exports.fetchAllBooksInLibrary = async (req, res, next) => {
     //FOR AUTHENTICATED USERS
     //GET REQUEST
     //http://localhost:2000/api/library
+    //http://localhost:2000/api/library?category_page=1&book_page=1&trending_page=1&top_author_page=1
 
     let { category_page = 1, book_page = 1, trending_page = 1, top_author_page = 1 } = req.query;
 
-    if(!category_page) {
-        category_page = Number(category_page) || 1;
+    if(category_page) {
+        category_page = Number(category_page);
     }
 
-    if(!book_page) {
-        book_page = Number(book_page) || 1;
+    if(book_page) {
+        book_page = Number(book_page);
     }
 
-    if(!trending_page) {
-        trending_page = Number(trending_page) || 1;
+    if(trending_page) {
+        trending_page = Number(trending_page);
     }
-    if(!top_author_page) {
-        top_author_page = Number(top_author_page) || 1;
+    if(top_author_page) {
+        top_author_page = Number(top_author_page);
     }
+
+    console.log({category_page, book_page, trending_page, top_author_page})
 
 
     try {

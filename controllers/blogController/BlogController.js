@@ -59,7 +59,7 @@ exports.blog = async (req, res) => {
    
     const userId = req.user.id;
     let { blogId } = req.params;
-    let { category = 1, hot = 1, recent = 1, populars = 1 } = req.query;
+    let { category_page = 1, hot_page = 1, recent_page = 1, populars_page = 1 } = req.query;
 
  
     //Hot
@@ -67,20 +67,20 @@ exports.blog = async (req, res) => {
     //popular
 
 
-    if(!category) category = Number(category) || 1;
-    if(!hot) hot = Number(hot) || 1;
-    if(!recent) recent = Number(recent) || 1;
-    if(!populars) populars = Number(populars) || 1;
+    if(!category_page) category_page = Number(category_page) || 1;
+    if(!hot_page) hot_page = Number(hot_page) || 1;
+    if(!recent_page) recent_page = Number(recent_page) || 1;
+    if(!populars_page) populars_page = Number(populars_page) || 1;
 
 
 
     try {
 
-        const categories = await BlogCategoryModel.paginate({}, { page: category, limit: 5,  select: "-createdAt -updatedAt -__v"})
+        const categories = await BlogCategoryModel.paginate({}, { page: category_page, limit: 5,  select: "-createdAt -updatedAt -__v"})
     
         const hotm = await BlogModel.paginate({}, 
             { 
-                page: hot, limit: 5,  
+                page: hot_page, limit: 5,  
                 select: "createdAt name blogLikes description blogImage createdBy blogviews",
                 populate: {
                     path: 'createdBy',
@@ -99,7 +99,7 @@ exports.blog = async (req, res) => {
     
         const recents = await BlogModel.paginate({},
                 {
-                    page: recent, limit: 5,
+                    page: recent_page, limit: 5,
                     select: "createdAt name blogLikes description blogImage createdBy blogviews",
                     populate: {
                         path: 'createdBy',
@@ -118,7 +118,7 @@ exports.blog = async (req, res) => {
 
         const populars = await BlogModel.paginate({},
             {
-                page: recent, limit: 5,
+                page: populars_page, limit: 5,
                 select: "createdAt name blogLikes description blogImage createdBy blogviews",
                 populate: {
                     path: 'createdBy',
@@ -402,7 +402,7 @@ exports.blog = async (req, res) => {
         // ).populate('blogCategory');
 
 
-        return res.status(200).send({categories, hot: hotm[0], recent: recents, popular: populars });
+        return res.status(200).send({categories, hot: hotm.docs[0], recent: recents, popular: populars });
         // return res.status(200).send({ categories:categories,  recent, popular  });
 
     } catch (error) {
@@ -485,93 +485,83 @@ exports.FetchBlogs = async (req, res, next) => {
     // http://localhost:2000/api/blog/lists?sortBy=title&sortOrder=asc
     // http://localhost:2000/api/blog/lists
 
+    const userId = req.user.id;
+    let { blogId } = req.params;
+    let { category_page = 1, hot_page = 1, recent_page = 1, populars_page = 1 } = req.query;
+    // http://localhost:2000/api/blog/lists?category_page=1&recent_page=1&populars_page=1
+ 
+    //Hot
+    //Recent
+    //popular
+
+
+    if(!category_page) category_page = Number(category_page) || 1;
+    if(!hot_page) hot_page = Number(hot_page) || 1;
+    if(!recent_page) recent_page = Number(recent_page) || 1;
+    if(!populars_page) populars_page = Number(populars_page) || 1;
+
 
     try {
 
-        // const blogCat = await 
+        const categories = await BlogCategoryModel.paginate({}, { page: category_page, limit: 5,  select: "-createdAt -updatedAt -__v"})
+    
+        const hotm = await BlogModel.paginate({}, 
+            { 
+                page: 1, limit: 1,
+                select: "createdAt name blogLikes description blogImage createdBy blogviews",
+                populate: {
+                    path: 'createdBy',
+                    model: 'User',
+                    select: 'fullname profileImage createdAt',
+                },
+                populate: {
+                    path: 'blogCategory',
+                    model: 'BlogCategory',
+                    select: 'name createdAt',
+                },
+                sort: { createdAt: -1 },
+            }
+            );
+
+    
+        const recents = await BlogModel.paginate({},
+                {
+                    page: recent_page, limit: 5,
+                    select: "createdAt name blogLikes description blogImage createdBy blogviews",
+                    populate: {
+                        path: 'createdBy',
+                        model: 'User',
+                        select: 'fullname profileImage createdAt',
+                    },
+                    populate: {
+                        path: 'blogCategory',
+                        model: 'BlogCategory',
+                        select: 'name createdAt',
+                    },
+                    sort: { createdAt: -1 },
+                }
+             );
 
 
-        let query = [
-			{ $lookup: { from: "users", localField: "createdBy", foreignField: "_id", as: "creator" }, },
+        const populars = await BlogModel.paginate({},
             {
-                $addFields: { "id" : "$_id",  },
-            },
-            {$unwind: '$creator'},
+                page: populars_page, limit: 5,
+                select: "createdAt name blogLikes description blogImage createdBy blogviews",
+                populate: {
+                    path: 'createdBy',
+                    model: 'User',
+                    select: 'fullname profileImage createdAt',
+                },
+                populate: {
+                    path: 'blogCategory',
+                    model: 'BlogCategory',
+                    select: 'name createdAt',
+                },
+                sort: { createdAt: -1 },
+            });
 
-            { $lookup: { from: "blogcategories", localField: "blogCategory", foreignField: "_id", as: "category_details" }, },
-            {
-                $addFields: { "id" : "$_id", },
-            },
-			{$unwind: '$category_details'},
-    ];
 
-        if(req.query.keyword && req.query.keyword !==''){ 
-			query.push({
-			  $match: { 
-			    $or :[
-			      { title : { $regex: '.*' + req.query.keyword + '.*',  $options: 'i' }  },
-			      { 'category_details.name' : {$regex: '.*' + req.query.keyword + '.*',  $options: 'i' }  }
-			    ]
-			  }
-			});
-		}
-
-		if(req.query.category && req.query.category !== ''){		
-			query.push({
-			    $match: { 
-			    	'category_details.slug':{$regex: '.*' + req.query.category + '.*',  $options: 'i' },
-			    }	
-			});
-		}
-
-        if(req.query.userId && req.query.userId !== ''){		
-			query.push({ $match: { created_by: mongoose.Types.ObjectId(req.query.userId), } });
-		}
-
-        let total= await BlogModel.countDocuments(query);
-		let page= (req.query.page) ? parseInt(req.query.page) : 1;
-		let perPage = (req.query.perPage) ? parseInt(req.query.perPage) : 10;
-		let skip = (page - 1) * perPage;
-
-        query.push({ $skip:skip, });
-		query.push({ $limit:perPage, });
-
-        query.push(
-	    	{ 
-	    		$project : {
-                "_id":0,
-                "id":1,
-    			"createdAt":1,
-	    		"name": 1,
-	    		"short_description":1,
-	    		"description":1,
-				"blogImage":1,
-                "category_details.id":"$category_details._id",
-                
-	    		"category_details.name":1,
-				"category_details.slug":1,
-				"creator.id": "$creator._id",
-	    		"creator.email":1,
-	    		"creator.fullname":1,
-	    		"creator.profileImage":1,
-	    		"comments_count":{ $size: {"$ifNull": ["$blogComments",[] ] } },
-	    		"likes_count":{ $size:{"$ifNull": ["$blogLikes", [] ] } }
-	    		}
-	    	}
-	    );
-
-        if(req.query.sortBy && req.query.sortOrder){
-			var sort = {};
-			sort[req.query.sortBy] = (req.query.sortOrder == 'asc' ) ? 1 : -1;
-			query.push({ $sort: sort });
-		} else {
-			query.push({ $sort: {createdAt: -1 } });	
-		}
-
-        const findBlogExist = await BlogModel.aggregate(query);
-        let paginationData = { totalRecords:total, currentPage:page, perPage:perPage, totalPages:Math.ceil(total/perPage) }
-
-        return res.status(200).send({ blogs: findBlogExist, paginationData: paginationData  });
+            return res.status(200).send({categories, hot: hotm.docs[0], recent: recents, popular: populars });
     } catch (error) {
         return res.status(500).send({ message: error.message })
     }

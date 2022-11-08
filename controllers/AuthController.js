@@ -170,11 +170,11 @@ exports.login = async (req, res, next) => {
         }
 
         if(!user.membershipSubscriberId) {
-            throw createError.NotFound("You are not subscribed yet");
+            throw createError.Unauthorized("You are not subscribed yet");
         }
 
         if(!user.subscriptionId) {
-            throw createError.NotFound("You are not subscribed yet");
+            throw createError.Unauthorized("You are not subscribed yet");
         }
 
         let membership_details = {
