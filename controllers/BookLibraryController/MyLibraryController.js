@@ -230,18 +230,15 @@ exports.fetchAllBooksInLibrary = async (req, res, next) => {
 
         const top_Auth = topAuth.docs.map((data) => {
             return {
-                author: {
-                    fullname: data.author[0].fullname,
-                    image_url: data.author[0].image_url,
-                }
+                fullname: data.author[0].fullname,
+                image_url: data.author[0].image_url,
             }
         })
 
         const { author, ...others } = topAuth;
 
         const top_author_details = {
-            docs: top_Auth, 
-
+            docs: top_Auth,
             totalDocs: others.totalDocs,
             limit: others.limit,
             totalPages: others.totalPages,
