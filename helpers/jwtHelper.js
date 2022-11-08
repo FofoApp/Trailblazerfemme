@@ -160,7 +160,7 @@ exports.verifyAccessToken =  async (req, res, next) => {
     const user = await UserModel.findById(payload.id).exec();
 
     const user_data = {
-        id: user._id,
+        id: user.id,
         fullname: user.fullname,
         role: user.roles[0],
         iat: payload.iat,
@@ -170,6 +170,7 @@ exports.verifyAccessToken =  async (req, res, next) => {
     }
 
     req.user = user_data;
+    
     next();
 
     } catch (error) {
