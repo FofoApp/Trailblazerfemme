@@ -1068,16 +1068,22 @@ exports.blogComment = async (req, res, next) => {
 
         let commentData = { comment, blogId, commentedBy };
 
-        let profile = await UserModel.findOne({ _id: req.user.id});
+        let user = await UserModel.findOne({ _id: req.user.id});
 
         const newComment = new BlogCommentModel(commentData);
  
         const savedBlogComment = await newComment.save();
 
-        const updateComment = { comments: commentData, blogComments: savedBlogComment._id };
+        // const updateComment = { comments: commentData, blogComments: savedBlogComment._id };
        
-        const updateBlog = await BlogModel.findByIdAndUpdate(blogId, { $push: updateComment }, { new: true } );
-       
+        // const updateBlog = await BlogModel.findByIdAndUpdate(blogId, { $push: updateComment }, { new: true } );
+        let updateBlog = await BlogModel.findById(blogId);
+        updateBlog.comments.push(commentData);
+
+        updateBlog.blogComments = savedBlogComment._id;
+
+        // return res.status(200).send({ updateBlog });
+
         const commented_data = {
             comment: savedBlogComment.comment,
             createdAt: savedBlogComment.createdAt,
@@ -1088,10 +1094,10 @@ exports.blogComment = async (req, res, next) => {
         }
 
         const createdBy = {
-                fullname: profile.fullname,
-                createdAt: profile.createdAt,
-                profileImage: profile.profileImage,
-                id: profile.id
+                fullname: user.fullname,
+                createdAt: user.createdAt,
+                profileImage: user.profileImage,
+                id: user.id
         }
 
         const sendResult = { ...commented_data, createdBy }
