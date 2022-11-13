@@ -14,7 +14,7 @@
     // router.get('/:blogId/details', verifyAccessToken, BlogController.getSpecificBlogAndItsComments);
     router.post('/create', verifyAccessToken, permissions(["admin"]), upload.single('blogImage'),  BlogController.createNewBlog);
     router.get('/lists', verifyAccessToken, BlogController.FetchBlogs);
-    router.get('/:blogId/show', verifyAccessToken, verifyAccessToken, BlogController.FetchBlogById);
+    router.get('/:blogId/show', verifyAccessToken, BlogController.FetchBlogById);
     router.patch('/:blogId/update', verifyAccessToken, permissions(["admin"]),  upload.single('blogImage'), BlogController.updateBlogById);
     
     //COMMENT AND DELETE COMMENT

@@ -2,15 +2,29 @@ const mongoose = require('mongoose');
 const mongoosePaginate = require('mongoose-paginate-v2');
 
 const courseSchema = new mongoose.Schema({
-    title: { type: String, required: true },
+
+    name: { type: String, required: true },
     description: { type: String, required: true },
     accessType: { type: String, required: true },
     duration: { type: String, required: true },
-    course_image: { type: [String], default: [] },
+
+    courseImage: [{
+        public_id: { type: String, required: true },
+        image_url: { type: String, required: true },
+     }],
+
+     createdBy: [{
+        fullname: { type: String, required: true },
+        public_id: { type: String, required: true },
+        image_url: { type: String, required: true },
+    }],
+
+    rating: { type: Number },
+    numReviews: { type: Number },
+    
     courseLikes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User"}],
-    createdBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }],
-    new_joined: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }],
-    categoryId: {type: mongoose.Schema.Types.ObjectId, ref: 'JobCategory'},
+    new_joined: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    // categoryId: {type: mongoose.Schema.Types.ObjectId, ref: 'JobCategory'},
     reviewIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "CourseReview"}],
     
 }, { timestamps: true });

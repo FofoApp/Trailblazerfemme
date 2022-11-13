@@ -1,4 +1,4 @@
-const { isValidObjectId } = require("mongoose");
+const mongoose = require("mongoose");
 
 const PodcastReview  = require('../../models/bookLibraryModel/PodcastReviewModel');
 const PodcastModel = require('../../models/bookLibraryModel/PodcastModel');
@@ -15,15 +15,15 @@ exports.createPodcastReview = async (req, res, next) => {
     const review_data = {
         podcastId,
         reviewdBy: currentUser,
-        fullname: req.user.username,
+        fullname: req.user.fullname,
         rating: Number(rating),
         comment
     }
 
     try {
         
-        if(!isValidObjectId(currentUser))return res.status(400).send({error: "User not found"});
-        if(!isValidObjectId(podcastId))return res.status(400).send({error: "Podcast not found"});
+        if(!mongoose.Types.ObjectId.isValid(currentUser))return res.status(400).send({error: "User not found"});
+        if(!mongoose.Types.ObjectId.isValid(podcastId))return res.status(400).send({error: "Podcast not found"});
 
         let podcast = await PodcastModel.findById(podcastId);
       

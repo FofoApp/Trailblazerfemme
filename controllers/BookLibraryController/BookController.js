@@ -276,7 +276,7 @@ exports.fetchBooks = async (req, res, next) => {
         }
 
         const findBookExist = await BookModel.paginate({}, {
-            page: bk_page, 
+            page: bk_page,
             limit: 5,
             select: "-__v -updatedAt -readers -uploadedBy -reviewIds",
             populate: {
@@ -287,7 +287,7 @@ exports.fetchBooks = async (req, res, next) => {
         });
 
         if(!findBookExist) {
-            return res.status(401).send({ error: "Books not found" });
+             res.status(401).send({ error: "Books not found" });
         }
 
 
@@ -342,7 +342,6 @@ exports.fetchBooks = async (req, res, next) => {
 
         let paginationData = { totalRecords:total, currentPage:page, perPage:perPage, totalPages:Math.ceil(total/perPage) }
         
-   
 
         const bookdata =  findBookExist.docs.map((data) => {
 
@@ -422,6 +421,7 @@ exports.fetchBookById = async (req, res, next) => {
 
                             });
 
+                    //TRANSFORM findBookExist DATA TO RETURN FEW OBJECTS
 
                             const find_book_exist = {
                                 id: findBookExist.id,
@@ -511,13 +511,13 @@ exports.fetchBookById = async (req, res, next) => {
                             }
                         })
 
-    if(!reviews) return res.status(404).send({error: "No review found"});
+    if(!reviews) res.status(404).send({error: "No review found"});
 
 
         // await sess.commitTransaction();
 
         if(!findBookExist) {
-            return res.status(404).send({ error: "Book not found"})
+             res.status(404).send({ error: "Book not found"})
         }
 
 
@@ -526,7 +526,8 @@ exports.fetchBookById = async (req, res, next) => {
         const { docs: doc1, ...others2 } = who_read;
         const { docs: doc2, ...others3 } = reviews;
 
-        const book_details = { book: find_book_exist,
+        const book_details = { 
+            book: find_book_exist,
             people_who_read: { docs: bb, ...others2 },
             reviews: { docs: revs, ...others3 },
             similar_books: { docs: similar_books_data, ...others }, 

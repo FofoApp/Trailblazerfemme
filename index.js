@@ -36,7 +36,7 @@ const JobRoutes = require('./routes/jobRoutes');
 const MembershipRoutes = require('./routes/membershipRoutes');
 const AdminDashboardRoutes = require('./routes/AdminDashboardRoutes');
 const PaymentRoutes = require('./routes/paymentRoutes');
-// const BookRoutes = require('./routes/BookRoutes');
+const CourseRoutes = require('./routes/CourseRoutes');
 
 const { recurrentPaymentMiddleware } = require('./middlewares/recurrentPaymentMiddleware');
 
@@ -98,6 +98,7 @@ app.use('/api/pay', PaymentRoutes);
 app.use('/api/blog', BlogRoutes);
 app.use('/api/library', MyLibraryRoutes);
 app.use('/api/podcast', PodcastRoutes);
+app.use('/api/course', CourseRoutes);
 app.use('/api/blog', BlogCommentRoutes);
 app.use('/api/product', ProductRoutes);
 app.use('/api/posts', PostRoutes);

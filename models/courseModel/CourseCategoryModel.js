@@ -1,14 +1,16 @@
 const mongoose = require('mongoose');
 const mongoosePaginate = require('mongoose-paginate-v2');
-const jobCategorySchema = new mongoose.Schema({
+
+
+const courseCategorySchema = new mongoose.Schema({
     name: { type: String, trim: true, required: true},
     slug: { type: String },
-    description: { type: String }
+    courses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }]
 },
 
 { timestamps: true });
 
-jobCategorySchema.options.toJSON = {
+courseCategorySchema.options.toJSON = {
     transform: function(doc, ret, options) {
         ret.id = ret._id
         delete ret._id
@@ -17,8 +19,8 @@ jobCategorySchema.options.toJSON = {
      }
 };
 
-jobCategorySchema.plugin(mongoosePaginate);
+courseCategorySchema.plugin(mongoosePaginate);
 
-const JobCategory = mongoose.model('JobCategory', jobCategorySchema);
+const CourseCategory = mongoose.model('CourseCategory', courseCategorySchema);
 
-module.exports = JobCategory;
+module.exports = CourseCategory;
