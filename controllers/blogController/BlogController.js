@@ -82,16 +82,17 @@ exports.blog = async (req, res) => {
             { 
                 page: hot_page, limit: 5,  
                 select: "createdAt name blogLikes description blogImage createdBy blogviews",
-                populate: {
+                populate: [{
                     path: 'createdBy',
                     model: 'User',
                     select: 'fullname profileImage createdAt',
-                },
-                populate: {
-                    path: 'blogCategory',
-                    model: 'BlogCategory',
-                    select: 'name createdAt',
-                },
+                    }, 
+                    {
+                        path: 'blogCategory',
+                        model: 'BlogCategory',
+                        select: 'name createdAt',
+                    }
+            ],
                 sort: { createdAt: -1 },
             }
             );
@@ -101,16 +102,17 @@ exports.blog = async (req, res) => {
                 {
                     page: recent_page, limit: 5,
                     select: "createdAt name blogLikes description blogImage createdBy blogviews",
-                    populate: {
+                    populate: [{
                         path: 'createdBy',
                         model: 'User',
                         select: 'fullname profileImage createdAt',
-                    },
-                    populate: {
-                        path: 'blogCategory',
-                        model: 'BlogCategory',
-                        select: 'name createdAt',
-                    },
+                        },
+                        {
+                            path: 'blogCategory',
+                            model: 'BlogCategory',
+                            select: 'name createdAt',
+                        }
+                ],
                     sort: { createdAt: -1 },
                 }
              );
@@ -120,16 +122,18 @@ exports.blog = async (req, res) => {
             {
                 page: populars_page, limit: 5,
                 select: "createdAt name blogLikes description blogImage createdBy blogviews",
-                populate: {
+                populate: [
+                    {
                     path: 'createdBy',
                     model: 'User',
                     select: 'fullname profileImage createdAt',
-                },
-                populate: {
-                    path: 'blogCategory',
-                    model: 'BlogCategory',
-                    select: 'name createdAt',
-                },
+                    },
+                    {
+                        path: 'blogCategory',
+                        model: 'BlogCategory',
+                        select: 'name createdAt',
+                    }
+            ],
                 sort: { createdAt: -1 },
             });
 
@@ -506,19 +510,22 @@ exports.FetchBlogs = async (req, res, next) => {
         const categories = await BlogCategoryModel.paginate({}, { page: category_page, limit: 5,  select: "-createdAt -updatedAt -__v"})
     
         const hotm = await BlogModel.paginate({}, 
-            { 
+            {
                 page: 1, limit: 1,
-                select: "createdAt name blogLikes description blogImage createdBy blogviews",
-                populate: {
+
+                select: "createdAt name blogLikes description blogImage  blogviews",
+                populate: [
+                    {
                     path: 'createdBy',
                     model: 'User',
-                    select: 'fullname profileImage createdAt',
-                },
-                populate: {
-                    path: 'blogCategory',
-                    model: 'BlogCategory',
-                    select: 'name createdAt',
-                },
+                    select: 'id fullname profileImage createdAt',
+                    },
+                    {
+                        path: 'blogCategory',
+                        model: 'BlogCategory',
+                        select: 'name createdAt',
+                    }
+            ],
                 sort: { createdAt: -1 },
             }
             );
@@ -528,16 +535,18 @@ exports.FetchBlogs = async (req, res, next) => {
                 {
                     page: recent_page, limit: 5,
                     select: "createdAt name blogLikes description blogImage createdBy blogviews",
-                    populate: {
+                    populate: [
+                        {
                         path: 'createdBy',
                         model: 'User',
                         select: 'fullname profileImage createdAt',
-                    },
-                    populate: {
-                        path: 'blogCategory',
-                        model: 'BlogCategory',
-                        select: 'name createdAt',
-                    },
+                        },
+                        {
+                            path: 'blogCategory',
+                            model: 'BlogCategory',
+                            select: 'name createdAt',
+                        }
+                ],
                     sort: { createdAt: -1 },
                 }
              );
@@ -547,16 +556,18 @@ exports.FetchBlogs = async (req, res, next) => {
             {
                 page: populars_page, limit: 5,
                 select: "createdAt name blogLikes description blogImage createdBy blogviews",
-                populate: {
+                populate: [
+                    {
                     path: 'createdBy',
                     model: 'User',
                     select: 'fullname profileImage createdAt',
-                },
-                populate: {
-                    path: 'blogCategory',
-                    model: 'BlogCategory',
-                    select: 'name createdAt',
-                },
+                    },
+                    {
+                        path: 'blogCategory',
+                        model: 'BlogCategory',
+                        select: 'name createdAt',
+                    }
+            ],
                 sort: { createdAt: -1 },
             });
 
@@ -576,6 +587,7 @@ exports.FetchBlogById = async (req, res, next) => {
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
     try {
         let { blogId } = req.params;
+
         let currentUser = req.user.id;
 
         let { comments = 1 } = req.query;
@@ -952,7 +964,6 @@ exports.updateBlogById = async (req, res, next) => {
 
         const findBlogExist = await BlogModel.findById(blogId);
 
-        console.log(findBlogExist)
         if(!findBlogExist) {
             return res.status(404).send({ message: "Blog not found" });
         }
@@ -1192,7 +1203,7 @@ exports.blogLikes = async (req, res, next) => {
 
       
         if (findBlogExist.createdBy.toString() === currentUser.toString()) {
-            message = "You can't like/unlike you own post";
+            message = "You cannot like/unlike you own post";
             return res.status(200).send({message})
         }
 
@@ -1210,7 +1221,7 @@ exports.blogLikes = async (req, res, next) => {
 
         findBlogExist.save();
         
-        return res.status(200).send({message})
+        return res.status(200).send({ message })
     } catch (error) {
         return res.status(200).send({ error: error.message })
     }
