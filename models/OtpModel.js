@@ -9,27 +9,17 @@ const otpSchema = new mongoose.Schema({
 //GET DELETED AFTER FIVE MINUTES
 }, 
 
-// {
-//     toJSON: {
-//         transform: (document, returnedObject, options) => {
-//                     returnedObject.id = returnedObject._id
-//                     delete returnedObject._id
-//                     delete returnedObject.__v
-//         }
-//     }
-// },
 
 { timestamps: true });
 
-otpSchema.methods.toJSON = function() {
-    const otp = this;
-    const otpObject = otp.toObject();
-
-    otpObject.id = otpObject._id
-    delete otpObject._id
-    delete otpObject.__v
-    return otpObject
-}
+otpSchema.options.toJSON = {
+    transform: function(doc, ret, options) {
+        ret.id = ret._id
+        delete ret._id
+        delete ret.__v
+        return ret;
+     }
+};
 
 const Otp = mongoose.model('Otp', otpSchema);
 

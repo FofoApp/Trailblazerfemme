@@ -13,7 +13,8 @@ const { registerValidation,
     loginValidation, 
     resetPasswordSchema, 
     passwordOnlySchema, 
-    otpValidation } = require('../validations/userValidationSchema');
+    otpValidation
+} = require('../validations/userValidationSchema');
 const User = require('./../models/UserModel');
 const Otpmodel = require('../models/OtpModel');
 const RefreshAccessToken = require('./../models/RefreshAccessTokenModel');
@@ -21,8 +22,6 @@ const RefreshAccessToken = require('./../models/RefreshAccessTokenModel');
 const FollowersAndFollowingModel = require('./../models/FollowersAndFollowingModel');
 
 const { signInAccessToken, signInRefreshToken, verifyRefreshToken, resetPasswordToken } = require('./../helpers/jwtHelper');
-
-
 
 const { generateFourDigitsOTP } = require('./../helpers/otpGenerator');
 const { sendGridMail } = require('./../helpers/sendGridMessaging');
@@ -60,11 +59,49 @@ exports.register = async (req, res, next) => {
 
         const result = await registerValidation(req.body);
 
-        const doesExist = await User.findOne({ fullname: result?.fullname });
+        const doesExist = await User.findOne({ fullname: result?.fullname, email: result?.email });
 
-        if(doesExist?.fullname === result?.fullname || doesExist?.email === result?.email) {
-            return res.status(400).json({ message: "A user with name and/or email already exist"})
+        if(doesExist?.fullname === result?.fullname || doesExist?.email === result?.email && doesExist.accountVerified === false) {
+
+            const otpCode = generateFourDigitsOTP();
+
+            const otpExist = await Otpmodel.deleteOne({ userId: doesExist._id });
+    
+            const newOtp = await Otpmodel.create({ userId: doesExist.id, phonenumber: doesExist.phonenumber, otp: otpCode });
+
+            const { _id: id, email, roles, fullname: username, field } = doesExist;
+
+            const userObject = {  id, email, roles, username, field };
+
+            if(doesExist.profileImagePath) {
+                userObject.profileImagePath = doesExist.profileImagePath
+            }
+              
+            const accessToken = signInAccessToken(userObject);
+
+            const refreshToken = signInRefreshToken(userObject);
+    
+            let refreshAccessToken = await RefreshAccessToken.findOne({ userId: doesExist.id });
+            
+            if(refreshAccessToken) {
+                await refreshAccessToken.remove();
+            }
+
+
+            // return res.json({ accessToken })
+    
+            refreshAccessToken = new RefreshAccessToken({ userId: doesExist.id,  accessToken, refreshToken});
+            
+            await refreshAccessToken.save();
+    
+            return res.status(200).send({ accessToken, refreshToken, userId: doesExist.id, stage: 1, otp: otpCode,  message: "Otp has been sent to your phone"});
+    
+
+            // return res.status(400).json({ error: "A user with name and/or email already exist"})
         }
+
+
+        // const otpUserExist = await Otpmodel.findOne({ userId: doesExist.id });
 
         const date = calculateNextPayment(annually, moment().format());
         
@@ -111,7 +148,7 @@ exports.register = async (req, res, next) => {
             //     const newOtp = await Otpmodel.create({ userId: savedUser.id, phonenumber: savedUser.phonenumber, otp: otpCode });
             //   });
 
-        const saveOTP = await Otpmodel.create({otp: otpCode, userId: savedUser.id, phonenumber: savedUser.phonenumber});
+        const saveOTP = await Otpmodel.create({ otp: otpCode, userId: savedUser.id, phonenumber: savedUser.phonenumber});
 
         if(!saveOTP)return res.status(400).json({ message: "Unable to send otp code"})
 
@@ -129,14 +166,15 @@ exports.register = async (req, res, next) => {
             await refreshAccessToken.remove();
         }
 
-        refreshAccessToken = new RefreshAccessToken({userId: savedUser.id,  accessToken, refreshToken});
+        refreshAccessToken = new RefreshAccessToken({ userId: savedUser.id,  accessToken, refreshToken});
         
         await refreshAccessToken.save();
 
-        return res.status(200).send({accessToken, refreshToken, userId: savedUser.id, otp: otpCode,  message: "Otp has been sent to your phone"});
+        return res.status(200).send({accessToken, refreshToken, userId: savedUser.id, stage: 1, otp: otpCode,  message: "Otp has been sent to your phone"});
 
        
     } catch (error) {
+        console.log(error)
         if(error.isJoi === true) {
             //unprocessible entry errors: server can't understand or process the entries
             error.status = 422;
@@ -169,13 +207,13 @@ exports.login = async (req, res, next) => {
             throw createError.NotFound("User not registered");
         }
 
-        if(!user.membershipSubscriberId) {
-            throw createError.Unauthorized("You are not subscribed yet");
-        }
+        // if(!user.membershipSubscriberId) {
+        //     throw createError.Unauthorized("You are not subscribed yet");
+        // }
 
-        if(!user.subscriptionId) {
-            throw createError.Unauthorized("You are not subscribed yet");
-        }
+        // if(!user.subscriptionId) {
+        //     throw createError.Unauthorized("You are not subscribed yet");
+        // }
 
         let membership_details = {
             subscriptionId: user?.subscriptionId,
@@ -191,8 +229,8 @@ exports.login = async (req, res, next) => {
             throw createError.Unauthorized('Username/password not valid'); 
         }
 
-        const accessToken = await signInAccessToken(user);
-        const refreshToken = await signInRefreshToken(user);
+        const accessToken =  signInAccessToken(user);
+        const refreshToken = signInRefreshToken(user);
 
         //if Refresh tokenn is set
         const isRefreshTokenSet = await RefreshAccessToken.findOne({userId: user.id});
@@ -210,7 +248,7 @@ exports.login = async (req, res, next) => {
 
         const savedRefreshAccessToken = await refreshAccessToken.save();
         
-        return res.status(200).send({accessToken, refreshToken});
+        return res.status(200).send({accessToken, refreshToken });
 
     } catch (error) {
         if(error.isJoi === true) {           
@@ -229,8 +267,8 @@ exports.refreshToken = async (req, res, next) => {
             throw createError.BadRequest();
         }
         const userId = await verifyRefreshToken(refreshToken);
-        const accessToken = await signInAccessToken(userId);
-        const refToken = await signInRefreshToken(userId);
+        const accessToken = signInAccessToken(userId);
+        const refToken = signInRefreshToken(userId);
         return res.send({ accessToken: accessToken, refreshToken: refToken });
     } catch (error) {
         next(error);
@@ -643,7 +681,7 @@ exports.otpPage = async (req, res, next) => {
 
         const newOtp = await Otpmodel.create({ userId: id, phonenumber, otp: otpCode });
 
-        const userData = { userId: newOtp.userId, otp: newOtp.otp  };
+        const userData = { userId: newOtp.userId, otp: newOtp.otp,  };
 
         return res.status(200).send(userData);
 
@@ -657,25 +695,29 @@ exports.otpPage = async (req, res, next) => {
 exports.verifyOtp = async (req, res, next) => {
     
     try {
-        
-        // const otp = await otpValidation({otp: req.body.otp});
+
+
         const { otp } = req.body;
+
         if(otp.length < 4 || otp.length > 4 ) return res.status(200).send({ error: 'Input valid 4 digit otp code'})
         
-        const isOtpFound = await Otpmodel.findOne({otp: otp});
+        const isOtpFound = await Otpmodel.findOne({ otp: otp })
 
         if(!isOtpFound) {
-            return res.status(200).send({ error: 'Invalid otp'})
+            return res.status(404).send({ error: 'OTP not found'})
         }
+
+        const user = await User.findOne({_id: isOtpFound.userId})
+
+        if(!user) return res.status(400).send({ error: "Unprocessible OTP ", stage: 1 });
         
-        const verified = await User.findByIdAndUpdate(isOtpFound.userId, {$set: { accountVerified: true }}, { new: true});
+        const verified = await User.findByIdAndUpdate(isOtpFound.userId, { $set: { accountVerified: true }}, { new: true});
        
-        
         if(verified) {
             await Otpmodel.findByIdAndDelete(isOtpFound.id)
             
         }
-        return res.status(200).send("Otp verified");
+        return res.status(200).send({ message: "Otp verified", stage: 2 });
 
     } catch (error) {
         

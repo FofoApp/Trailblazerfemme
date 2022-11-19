@@ -1,18 +1,28 @@
 // const otpGenerator = require('otp-generator')
 
 
-exports.generateFourDigitsOTP = () => {
+exports.generateFourDigitsOTP = (otp_length = 5) => {
     // const OTP = otpGenerator.generate(4, {digits: true, alphabets: false, upperCaseAlphabets: false, specialChars: false });
-    
-    var digits = '0123456789';
-    var otpLength = 4;
-    var otp = '';
+     //FIRST METHOD 
 
-    for (let i = 0; i < otpLength; i++ ) {
-        var index = Math.floor(Math.random() * (digits.length));
-        otp +=  digits[index];
+    // var digits = '0123456789';
+    // var otpLength = 4;
+    // var otp = '';
+
+    // for (let i = 0; i < otpLength; i++ ) {
+    //     var index = Math.floor(Math.random() * (digits.length));
+    //     otp +=  digits[index];
+    // }
+    // return otp;
+
+    //SECOND METHOD 
+    let OTP = '';
+    for(let i = 1; i < otp_length; i++) {
+        const randomValue =  Math.round(Math.random() * 9);
+        OTP += randomValue;
     }
-    return otp;
+
+    return OTP;
 }
 
 exports.generateSixDigitsOTP = () =>  {

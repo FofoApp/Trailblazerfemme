@@ -7,42 +7,44 @@ const UserModel = require('./../models/UserModel');
 const isValidObjectId  = mongoose.Types.ObjectId;
 
 exports.signInAccessToken = (userData) => {
-    return new Promise((resolve, reject) => {
+
+    try {
         const payload = {
-            id: userData._id,
+            id: userData.id.toString(),
             username: userData.fullname,
             email: userData.email,
             roles: userData.roles,
-            profileImagePath: userData.profileImagePath,
+            profileImagePath: userData.profileImagePath || null,
             roles: userData.roles[0],
             // iss: "yourwebsitename.com"
         }
         const secret =  process.env.ACCESS_TOKEN_SECRET;
-
+    
+       
+    
         const option = {
-            expiresIn: '30m',
-            issuer: "yourwebsitename.com",
-            audience: userData.id
-    };
+                        expiresIn: '30m',
+                        issuer: "yourwebsitename.com",
+                        audience: userData.id.toString(),
+                    };
+    
+        return JWT.sign(payload, secret, option)
 
-        JWT.sign(payload, secret, option, (err, token) => {
-            if(err){
-                console.log(err)
-                // return reject(createError.InternalServerError());
-            }
-            resolve(token);
-        });
-    })
+    } catch (error) {
+        return res.status(500).json({ error: "Token error"})
+    }
+ 
 }
 
 exports.signInRefreshToken = (userData) => {
-    return new Promise((resolve, reject) => {
+
+    try {
         const payload = {
-            id: userData._id,
+            id: userData.id.toString(),
             username: userData.fullname,
             email: userData.email,
             roles: userData.roles,
-            profileImagePath: userData.profileImagePath,
+            // profileImagePath: userData.profileImagePath,
             roles: userData.roles[0],
             // iss: "yourwebsitename.com"
         }
@@ -51,21 +53,16 @@ exports.signInRefreshToken = (userData) => {
         const option = {
             expiresIn: '1yr',
             issuer: "yourwebsitename.com",
-            audience: userData.id
+            audience: userData.id.toString(),
     };
 
-    JWT.sign(payload, secret, option, (err, token) => {
-        if(err){
-            return reject(createError.InternalServerError());
-        }
-        if(err) {
-            //SAVETOKEN IN DATABASE
-            reject(createError.InternalServerError());
-            return 
-        }
-        resolve(token);
+    return JWT.sign(payload, secret, option)
 
-    });
+} catch (error) {
+
+    return res.status(500).json({ error: "Token error"})
+
+}
 
         // JWT.sign(payload, secret, option, (err, token) => {
         //     if(err){
@@ -81,7 +78,6 @@ exports.signInRefreshToken = (userData) => {
         //     });
 
         // });
-    });
 
 }
 

@@ -47,10 +47,10 @@ router.post('/logout',  AuthController.logout);
 
 // router.get('/verifyotp/:id', AuthController.otpPage);
 
-router.post('/reset-password', AuthController.otpPage);
+router.post('/reset-password', AuthController.resetPassword);
 
-router.post('/verifyotp', AuthController.verifyOtp);
-router.post('/verifyotp', AuthController.verifyOtp);
+router.post('/verifyotp', verifyAccessToken, AuthController.verifyOtp);
+router.post('/resend-otp', AuthController.otpPage);
 router.patch('/update-password/:userId', AuthController.updatePassword);
 
 router.patch('/user/:userId/update', verifyAccessToken,  AuthController.updateUser);
