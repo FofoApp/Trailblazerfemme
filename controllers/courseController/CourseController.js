@@ -90,7 +90,7 @@ exports.findAllCourses = async (req, res) => {
         // }
 
         const keyword = req.query.keyword
-        ? { name: { $regex: req.query.keyword, $options: 'i' } } 
+        ? { name: { $regex: '.*' + req.query.keyword + '.*', $options: 'i' } } 
         : {}
 
 
