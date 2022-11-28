@@ -101,6 +101,11 @@ app.use(hpp());
 // });
 
 
+app.get('/', (req, res) => {
+      return res.status(200).json({ message: 'Welcome to FOFO App'})
+})
+
+
 
 app.use('/api/pay', PaymentRoutes);
 app.use('/api/stripe', StripeRoutes);
