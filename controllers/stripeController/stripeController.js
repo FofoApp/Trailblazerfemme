@@ -1,8 +1,6 @@
 require('dotenv').config()
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
-
-
 exports.stripeCheckout = async (req, res) => {
     
     // const completeUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
