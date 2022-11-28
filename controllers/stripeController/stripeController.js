@@ -105,7 +105,7 @@ exports.webhooks = async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let endpointSecret
 
-    endpointSecret = stripe__webhook_endpoint
+    endpointSecret = process.env.STRIPE_WEBHOOK_ENDPOINT
     let event;
     let data
     let eventType
