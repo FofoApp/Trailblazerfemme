@@ -1,5 +1,6 @@
 require('dotenv').config()
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+const stripe__webhook_endpoint = process.env.STRIPE_WEBHOOK_ENDPOINT
 
 
 
@@ -104,7 +105,7 @@ exports.webhooks = async (req, res) => {
     const sig = req.headers['stripe-signature'];
     let endpointSecret
 
-    endpointSecret = "whsec_c469ebeaa230cc07e4a1a3fdb9968ae98c6cb609f9f64fad44a827f2dc83338d";
+    endpointSecret = stripe__webhook_endpoint
     let event;
     let data
     let eventType

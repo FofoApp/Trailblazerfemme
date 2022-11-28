@@ -141,10 +141,44 @@ exports.findAllCourses = async (req, res) => {
 }
 
 exports.searchCourse = async (req, res) => {
+    const { name, title } = req.query
+    
+    const query = {}
+    const conditions = []
+
+    //METHOD: 1
+
+    if(name) conditions.push({ name: { $reqex: '.*' + name + '.*',  $options: 'i' } })
+    if(title) conditions.push({ title: { $reqex: '.*' + title + '.*', $options: 'i' } })
+
+    if(name || title) query.$or = filter
+
+    //METHOD: 2
+
+    if(req.query) {
+
+        for(let key in req.query) {
+            if(req.query.hasOwnProperty(key)) {
+                const search_keyword = req.query[key]
+                conditions.push( { search_keyword: { $regex: '.*' + search_keyword + '.*', $options: 'i' }  } )
+                query.$or = conditions
+
+            }else {
+                query = {}
+            }
+        }
+        
+    }
+
+
     try {
-        
+
+        const result = await CourseModel.paginate(query, {});
+
+        return res.status(500).send({ result })
+
     } catch (error) {
-        
+        return res.status(500).json({ error: error.message })
     }
 }
 
