@@ -34,12 +34,11 @@ exports.chooseMembershipPlan = async (req, res, next) => {
         const subscriber = await MembershipSubscriber.findOne({ userId: userId, isActive: true });
        
 
-        if(subscriber?.userId.toString() === userId.toString() && subscriber?.isActive === true ) {
-            return res.status(404).send({ error: "You still have an active plan"});
+        if(subscriber?.userId.toString() === userId.toString() && subscriber.membershipType !== 'Free' && subscriber?.isActive  ) {
+            return res.status(400).send({ error: "You still have an active plan"});
         }
 
         // const date = calculateNextPayment(annually, moment().format());
-
 
         const start_date = moment();
         const end_date = moment().add(1, 'years');
@@ -77,7 +76,7 @@ exports.chooseMembershipPlan = async (req, res, next) => {
             } 
         }, { new: true }).exec();
         
-        return res.status(200).send({ save_new_subscriber  });
+        return res.status(201).send({ save_new_subscriber, stage: 4, message: "Membership subscription successful"  });
 
     } catch (error) {
         console.log(error)

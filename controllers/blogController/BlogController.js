@@ -499,10 +499,10 @@ exports.FetchBlogs = async (req, res, next) => {
     //popular
 
 
-    if(!category_page) category_page = Number(category_page) || 1;
-    if(!hot_page) hot_page = Number(hot_page) || 1;
-    if(!recent_page) recent_page = Number(recent_page) || 1;
-    if(!populars_page) populars_page = Number(populars_page) || 1;
+    category_page = Number(category_page);
+    hot_page = Number(hot_page);
+    recent_page = Number(recent_page);
+    populars_page = Number(populars_page);
 
 
     try {
@@ -513,7 +513,7 @@ exports.FetchBlogs = async (req, res, next) => {
             {
                 page: 1, limit: 1,
 
-                select: "createdAt name blogLikes description blogImage  blogviews",
+                select: "createdAt name blogLikes blogComments comments_count description blogImage  blogviews",
                 populate: [
                     {
                     path: 'createdBy',
@@ -530,11 +530,12 @@ exports.FetchBlogs = async (req, res, next) => {
             }
             );
 
+
     
         const recents = await BlogModel.paginate({},
                 {
                     page: recent_page, limit: 5,
-                    select: "createdAt name blogLikes description blogImage createdBy blogviews",
+                    select: "createdAt name blogLikes blogComments comments_count  description blogImage createdBy blogviews",
                     populate: [
                         {
                         path: 'createdBy',
@@ -555,7 +556,7 @@ exports.FetchBlogs = async (req, res, next) => {
         const populars = await BlogModel.paginate({},
             {
                 page: populars_page, limit: 5,
-                select: "createdAt name blogLikes description blogImage createdBy blogviews",
+                select: "createdAt name blogLikes blogComments comments_count description blogImage createdBy blogviews",
                 populate: [
                     {
                     path: 'createdBy',
@@ -574,6 +575,7 @@ exports.FetchBlogs = async (req, res, next) => {
 
             return res.status(200).send({categories, hot: hotm.docs[0], recent: recents, popular: populars });
     } catch (error) {
+        console.log(error)
         return res.status(500).send({ message: error.message })
     }
 }
@@ -592,7 +594,7 @@ exports.FetchBlogById = async (req, res, next) => {
 
         let { comments = 1 } = req.query;
 
-        if(!comments) comments = Number(comments) || 1;
+        comments = Number(comments);
 
 
         if(!mongoose.Types.ObjectId.isValid(blogId)){
@@ -609,7 +611,7 @@ exports.FetchBlogById = async (req, res, next) => {
         }
 
         let blogPosts = await BlogModel.findById(blogId)
-                                    .select('createdAt name blogLikes description blogImage createdBy blogviews')
+                                    .select('createdAt name blogLikes description blogComments blogImage createdBy blogviews')
                                     .populate('createdBy', 'fullname createdAt profileImage blogLikes blogviews')
                                     .populate({
                                         path: 'blogCategory',
@@ -646,7 +648,7 @@ exports.FetchBlogById = async (req, res, next) => {
         });
 
         const populars = await BlogModel.find()
-        .select('createdAt name blogLikes description blogImage createdBy blogviews')
+        .select('createdAt name blogLikes description blogComments blogImage createdBy blogviews')
 
         .populate({
             path: 'createdBy',

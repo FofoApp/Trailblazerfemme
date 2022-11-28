@@ -44,7 +44,7 @@ exports.signInRefreshToken = (userData) => {
             username: userData.fullname,
             email: userData.email,
             roles: userData.roles,
-            // profileImagePath: userData.profileImagePath,
+            profileImagePath: userData.profileImagePath || null,
             roles: userData.roles[0],
             // iss: "yourwebsitename.com"
         }

@@ -31,17 +31,24 @@ const blogModelSchema = new mongoose.Schema({
 { timestamps: true });
 
 
-blogModelSchema.virtual('likes').get(function() {
+// blogModelSchema.virtual('likes').get(function() {
     
-    return this.blogLikes;
-}).set(function(value) {
-    var like = value;
-});
+//     return this.blogLikes;
+// }).set(function(value) {
+//     var like = value;
+// });
+
+// blogModelSchema.virtual('likes_count').get(function() {
+//     if (this.blogLikes) {
+//       return this.blogLikes.length ? this.blogLikes.length : 0;
+//     }
+//   });
+
+
 
 blogModelSchema.options.toJSON = {
     // virtuals: true,
     transform: function(doc, ret, options){
-     
         if(ret.comments) {
             ret.comments.map((comment) => {
                 comment.id = comment._id;
@@ -49,9 +56,10 @@ blogModelSchema.options.toJSON = {
                 return comment;
             })
         }
-        
-        ret.blogLikes = ret.blogLikes.length;
-        ret.blogviews = ret.blogviews.length;
+
+        ret.blogComments = ret.blogComments.length ? ret.blogComments.length : 0
+        ret.blogLikes = ret.blogLikes.length ? ret.blogLikes.length : 0;
+        ret.blogviews = ret.blogviews.length ? ret.blogviews.length : 0;
         ret.id = ret._id;
         delete ret._id;
         delete ret.__v;
@@ -59,6 +67,7 @@ blogModelSchema.options.toJSON = {
         return ret;
     }
 };
+
 
 blogModelSchema.plugin(mongoosePaginate);
 const Blog = mongoose.model('Blog', blogModelSchema);

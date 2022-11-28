@@ -37,64 +37,73 @@ const MembershipRoutes = require('./routes/membershipRoutes');
 const AdminDashboardRoutes = require('./routes/AdminDashboardRoutes');
 const PaymentRoutes = require('./routes/paymentRoutes');
 const CourseRoutes = require('./routes/CourseRoutes');
+const StripeRoutes = require('./routes/StripeRoutes');
 
 const { recurrentPaymentMiddleware } = require('./middlewares/recurrentPaymentMiddleware');
 
 const app = express();
 app.use(morgan('tiny'));
 
+app.use(
+      cors({
+        origin: ["http://localhost:2000", "https://checkout.stripe.com"],
+      })
+    );
 
 app.use(cors())
 app.use(mongoSanitize());
 app.use(xss());
+app.use('/api/stripe/webhook', express.raw({type: "*/*"}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(hpp());
 
 
 
-app.get('/', recurrentPaymentMiddleware, async (_req, res, next) => {
+// app.get('/', recurrentPaymentMiddleware, async (_req, res, next) => {
 
-      try {
-           // https://stackoverflow.com/questions/36193289/moongoose-aggregate-match-does-not-match-ids
-            return res.status(200).send(`Welcome to Fofo-App`);
+//       try {
+//            // https://stackoverflow.com/questions/36193289/moongoose-aggregate-match-does-not-match-ids
+//             return res.status(200).send(`Welcome to Fofo-App`);
 
-      } catch (error) {
-            return res.status(500).send(`${error.message}`);
-      }
-});
+//       } catch (error) {
+//             return res.status(500).send(`${error.message}`);
+//       }
+// });
 
 
 
-app.post('/api/payment', async (req, res, next) => {
+// app.post('/api/payment', async (req, res, next) => {
 
-      const { product, stripToken: token } = req.body;
-      const price = product.price;
+//       const { product, stripToken: token } = req.body;
+//       const price = product.price;
     
-      try {
-            const customer =  await stripe.customers.create({
-                  source:token.id,
-                  email: token.email,
-                  });
+//       try {
+//             const customer =  await stripe.customers.create({
+//                   source:token.id,
+//                   email: token.email,
+//                   });
                   
-            const charge = await stripe.charges.create({
-                  amount: Number(price) * 100,
-                  currency: "usd",
-                  customer: customer.id,
-                  receipt_email: token.email,
-                  description: `Purchased the ${product.description}`,
-            });
+//             const charge = await stripe.charges.create({
+//                   amount: Number(price) * 100,
+//                   currency: "usd",
+//                   customer: customer.id,
+//                   receipt_email: token.email,
+//                   description: `Purchased the ${product.description}`,
+//             });
 
-            return res.status(200).send({customer:customer, charge: charge})
-      } catch (error) {
-            console.log("Error:::", error.message)
-            return res.status(200).send({error})
-      }
+//             return res.status(200).send({customer:customer, charge: charge})
+//       } catch (error) {
+//             console.log("Error:::", error.message)
+//             return res.status(200).send({error})
+//       }
       
-});
+// });
+
 
 
 app.use('/api/pay', PaymentRoutes);
+app.use('/api/stripe', StripeRoutes);
 app.use('/api/blog', BlogRoutes);
 app.use('/api/library', MyLibraryRoutes);
 app.use('/api/podcast', PodcastRoutes);

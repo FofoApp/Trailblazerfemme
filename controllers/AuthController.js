@@ -453,7 +453,7 @@ exports.uploadProfilePicture = async (req, res, next) => {
 
             fs.unlinkSync(req.file.path);
 
-            return res.status(200).send({message: 'Profile Image Updated successfully'});
+            return res.status(200).send({message: 'Profile Image Updated successfully', stage: 3 });
         }
 
    
