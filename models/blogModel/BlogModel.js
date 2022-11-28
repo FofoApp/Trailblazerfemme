@@ -38,11 +38,11 @@ const blogModelSchema = new mongoose.Schema({
 //     var like = value;
 // });
 
-// blogModelSchema.virtual('likes_count').get(function() {
-//     if (this.blogLikes) {
-//       return this.blogLikes.length ? this.blogLikes.length : 0;
-//     }
-//   });
+
+
+blogModelSchema.virtual('articleCount').get(function () {
+    return this.blogComments.length;
+});
 
 
 

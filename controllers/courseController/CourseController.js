@@ -83,15 +83,27 @@ exports.createNewCourse = async (req, res) => {
 exports.findAllCourses = async (req, res) => {
     try {
 
+        // let query = {};
+
+        // if(req.query.keyword) {
+        //     query.name  = { $regex: new RegExp(req.query.keyword), $options: "i" }
+        // }
+
+        const keyword = req.query.keyword
+        ? { name: { $regex: req.query.keyword, $options: 'i' } } 
+        : {}
+
+
         const categories = await CourseCategory.paginate({}, {
             page: 1,
             limit: 10,
             select: "id name"
         })
 
-        let courses  = await CourseModel.paginate({}, {
+        let courses  = await CourseModel.paginate(keyword, {
             
         });
+
         if(!courses || courses.length === 0) return res.status(404).json({ error: "No course found"});
 
        const course_details = courses?.docs.map((course) => {

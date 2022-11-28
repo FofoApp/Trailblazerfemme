@@ -513,7 +513,7 @@ exports.FetchBlogs = async (req, res, next) => {
             {
                 page: 1, limit: 1,
 
-                select: "createdAt name blogLikes blogComments comments_count description blogImage  blogviews",
+                select: "createdAt name blogLikes blogComments description blogImage  blogviews",
                 populate: [
                     {
                     path: 'createdBy',
@@ -529,13 +529,11 @@ exports.FetchBlogs = async (req, res, next) => {
                 sort: { createdAt: -1 },
             }
             );
-
-
     
         const recents = await BlogModel.paginate({},
                 {
                     page: recent_page, limit: 5,
-                    select: "createdAt name blogLikes blogComments comments_count  description blogImage createdBy blogviews",
+                    select: "createdAt name blogLikes blogComments  description blogImage createdBy blogviews",
                     populate: [
                         {
                         path: 'createdBy',
@@ -556,7 +554,7 @@ exports.FetchBlogs = async (req, res, next) => {
         const populars = await BlogModel.paginate({},
             {
                 page: populars_page, limit: 5,
-                select: "createdAt name blogLikes blogComments comments_count description blogImage createdBy blogviews",
+                select: "createdAt name blogLikes blogComments description blogImage createdBy blogviews",
                 populate: [
                     {
                     path: 'createdBy',
