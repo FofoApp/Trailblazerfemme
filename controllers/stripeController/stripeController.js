@@ -1,4 +1,3 @@
-require('dotenv').config()
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
 exports.stripeCheckout = async (req, res) => {
@@ -6,7 +5,6 @@ exports.stripeCheckout = async (req, res) => {
     // const completeUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
     // const success_url = `${req.headers.origin}/?success=true`;
     // const cancel_url = `${req.headers.origin}/?canceled=true`;\
-    //CLI_ACCOUNT_ID = acct_1Kzz4mBSyohQ7ttb
 
     const customer = await stripe.customers.create({
         metadata: {
