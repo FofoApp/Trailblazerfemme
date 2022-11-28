@@ -1,6 +1,5 @@
 require('dotenv').config()
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
-const stripe__webhook_endpoint = process.env.STRIPE_WEBHOOK_ENDPOINT
 
 
 
