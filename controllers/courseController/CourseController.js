@@ -113,6 +113,9 @@ exports.findAllCourses = async (req, res) => {
         let courseImg = courseImage[0]["image_url"];
         let courseImgId = courseImage[0]["_id"];
 
+        // const ratings_avg = reviewIds.reduce((acc, item) => item.rating + acc, 0 ) / reviewIds.length
+        
+
         const author = createdBy.map(({_id, fullname, public_id, image_url }) => ({ id: _id, fullname,  image_url   }))
         
         return {
@@ -189,14 +192,20 @@ exports.findCourseById = async (req, res) => {
     try {
 
         let course = await CourseModel.findById(courseId).lean()
-
+       
         if(!course) return res.status(404).send({ error: "Course not found "});
+
+        let course_rev = await CourseReview.find({ courseId })
         
         const createdBy = course.createdBy.map(({ _id, fullname, public_id, image_url }) => ({ id: _id, fullname, image_url   }))
         
         course.id = course._id
         course["courseImage"] = course.courseImage[0].image_url
         course["courseImgId"] = course.courseImage[0]._id
+   
+
+        course['ratings_avg'] = course_rev.reduce((acc, item) => item.rating + acc, 0 ) / course_rev.length
+
 
         delete course._id
         delete course.__v
@@ -225,11 +234,13 @@ exports.findCourseById = async (req, res) => {
     
             let courseImg = courseImage[0]["image_url"];
             let courseImgId = courseImage[0]["_id"];
+
+            let ratings_avg = course_rev.reduce((acc, item) => item.rating + acc, 0 ) / course_rev.length
     
             const author = createdBy.map(({ _id, fullname, public_id, image_url }) => ({ id: _id, fullname,  image_url   }))
             
             return { id, name,  description, accessType, duration, courseImage: courseImg, 
-                    courseImageId: courseImgId, createdBy: author, createdAt }
+                    courseImageId: courseImgId, createdBy: author, createdAt, ratings_avg }
            })
 
 

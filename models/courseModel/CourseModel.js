@@ -32,6 +32,9 @@ const courseSchema = new mongoose.Schema({
 
 courseSchema.options.toJSON = {
     transform: function(doc, ret, options) {
+
+        // ret.ratings_avg = ret.rating ? ret.blogviews.length : 0;
+
         ret.id = ret._id
         delete ret._id
         delete ret.__v
