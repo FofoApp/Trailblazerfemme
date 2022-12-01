@@ -215,7 +215,7 @@ exports.findCourseById = async (req, res) => {
         delete course.updatedAt
 
         //COURSE REVIEWS
-        const course_reviews = await CourseReview.paginate({}, {
+        const course_reviews = await CourseReview.paginate({ courseId }, {
             select: "-updatedAt -__v",
             populate: {
                 path: "reviewdBy",
@@ -226,7 +226,7 @@ exports.findCourseById = async (req, res) => {
 
         //SIMILAR COURSE
 
-        const similar_course = await CourseModel.paginate({$sample: { size: 40 } }, { });
+        const similar_course = await CourseModel.paginate({ $sample: { size: 40 } }, { });
 
         const course_details = similar_course?.docs.map((course) => {
 
