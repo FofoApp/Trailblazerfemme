@@ -204,7 +204,7 @@ exports.findCourseById = async (req, res) => {
         course["courseImgId"] = course.courseImage[0]._id
    
 
-        course['ratings_avg'] = course_rev.reduce((acc, item) => item.rating + acc, 0 ) / course_rev.length
+        course['ratings_avg'] = (course_rev.reduce((acc, item) => item.rating + acc, 0 ) / course_rev.length) || 0
 
 
         delete course._id
