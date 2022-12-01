@@ -235,7 +235,7 @@ exports.findCourseById = async (req, res) => {
             let courseImg = courseImage[0]["image_url"];
             let courseImgId = courseImage[0]["_id"];
 
-            let ratings_avg = course_rev.reduce((acc, item) => item.rating + acc, 0 ) / course_rev.length
+            let ratings_avg = (course_rev.reduce((acc, item) => item.rating + acc, 0 ) / course_rev.length) || 0
     
             const author = createdBy.map(({ _id, fullname, public_id, image_url }) => ({ id: _id, fullname,  image_url   }))
             
