@@ -183,7 +183,7 @@ exports.listProducts = async (req, res, next) => {
             name: { $regex: '.*' + req.query.search + ".*", $options: 'i' } 
         } : {}
 
-        console.log(req.query.search)
+        const product_category = await productCategoryModel.find({})
         
         const products2 = await ProductModel.paginate(search)
 
@@ -193,7 +193,7 @@ exports.listProducts = async (req, res, next) => {
             return res.status(200).send({ error: "No product found", products: [] });
         }
 
-        return res.status(200).send({ success: true, products: products2 });
+        return res.status(200).send({ success: true, categories: product_category, products: products2 });
     } catch (error) {
         return res.status(500).send({ error: error.message });
     }
