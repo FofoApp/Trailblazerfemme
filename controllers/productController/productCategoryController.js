@@ -3,13 +3,32 @@ const ProductCategoryModel = require('./../../models/productModel/productCategor
 const { productValidation, productCategoryValidation } = require('./../../validations/productValidation');
 
 
-const createProductCategory = async (req, res, next) => {
+
+exports.categories = async(req, res) => {
+
+    try {
+        const categories = await ProductCategoryModel.find({}).select("-updatedAt")
+        if(!categories) {
+            return res.status(404).send({ error: 'No response found '})
+
+        }
+
+        return res.status(200).send({ categories })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send({ error: error.message })
+    }
+}
+
+
+exports.createProductCategory = async (req, res, next) => {
     //VALIDATE USER INPUT BEFORE PROCESSING
 
     try {
+
         const result = await productCategoryValidation(req.body);
 
-        const findIfCategoryExist = await ProductCategoryModel.findOne({name: result.name});
+        const findIfCategoryExist = await ProductCategoryModel.findOne({ name: result.name });
 
         if(findIfCategoryExist) {
             return res.status(401).send({message: "Product Category already exsit"});
@@ -28,7 +47,7 @@ const createProductCategory = async (req, res, next) => {
 }
 
 
-const allProductCategories = async (req, res, next) => {
+exports.allProductCategories = async (req, res, next) => {
     //VALIDATE USER INPUT BEFORE PROCESSING
     //POST REQUEST
     //http://localhost:2000/api/product/category/create
@@ -57,7 +76,9 @@ const allProductCategories = async (req, res, next) => {
     }
 }
 
-const searchProductByCategory = async (req, res, next) => {
+
+
+exports.searchProductByCategory = async (req, res, next) => {
     //VALIDATE USER INPUT BEFORE PROCESSING
     //GET REQUEST
     //http://localhost:2000/api/product/category/search
@@ -73,7 +94,7 @@ const searchProductByCategory = async (req, res, next) => {
 
         let page = (req.query.page) ? parseInt(req.query.page) : 1;
         let perPage = (req.query.perPage) ? parseInt(req.query.perPage) : 10;
-        let skip = (page-1)*perPage;
+        let skip = (page-1) * perPage;
  
     const searchForProductCategory = await ProductCategoryModel.find({
             $or: [
@@ -102,7 +123,7 @@ const searchProductByCategory = async (req, res, next) => {
 }
 
 
-const updateProductCategoryById = async (req, res, next) => {
+exports.updateProductCategoryById = async (req, res, next) => {
     //VALIDATE USER INPUT BEFORE PROCESSING
     //PATCH REQUEST
     //http://localhost:2000/api/product/category/628cbc4949fca217cbf8962e/update
@@ -132,12 +153,12 @@ const updateProductCategoryById = async (req, res, next) => {
 
 
 
-const deleteProductCategoryById = async (req, res, next) => {
+exports.deleteProductCategoryById = async (req, res, next) => {
     //VALIDATE USER INPUT BEFORE PROCESSING
     //PATCH REQUEST
     //http://localhost:2000/api/product/category/628cbc7a49fca217cbf89667/delete
 
-    const productCategoryId = req.params.productCategoryId;
+    const { productCategoryId } = req.params;
 
     try {
         if(!mongoose.Types.ObjectId.isValid(productCategoryId)) {
@@ -147,9 +168,9 @@ const deleteProductCategoryById = async (req, res, next) => {
 
         const result = await productCategoryValidation(req.body, true);
 
-        const findIfCategoryExistAndUpdate = await ProductCategoryModel.findByIdAndDelete({_id: productCategoryId});
+        const findIfCategoryExistAndDelete = await ProductCategoryModel.findByIdAndDelete(productCategoryId);
 
-        if(findIfCategoryExistAndUpdate) {
+        if(!findIfCategoryExistAndDelete) {
             return res.status(401).send({message: "Unable to update product category"});
         }
 
@@ -160,11 +181,3 @@ const deleteProductCategoryById = async (req, res, next) => {
     }
 }
 
-
-module.exports = {
-    createProductCategory,
-    searchProductByCategory,
-    allProductCategories,
-    updateProductCategoryById,
-    deleteProductCategoryById
-}

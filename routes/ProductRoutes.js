@@ -11,6 +11,7 @@ const upload = require('./../helpers/multer');
 const uploadCv = require('./../helpers/multerCVupload');
 
 //PRODUCT ROUTES
+
 router.get('/', verifyAccessToken, permissions(["user","admin"]), ProductController.shop);
 router.get('/order', verifyAccessToken, permissions(["user","admin"]), CartController.getAllOrdersForAUser);
 router.get('/reviews', verifyAccessToken, permissions(["user","admin"]), ProductController.getAllReviews);
@@ -19,7 +20,7 @@ router.post('/review', verifyAccessToken, permissions(["user","admin"]), Product
 router.get('/lists', verifyAccessToken, permissions(["user","admin"]), ProductController.listProducts);
 
 router.get('/:categoryId', verifyAccessToken, permissions(["user","admin"]), ProductController.getProductsByCategory);
-router.get('/:productId/product', verifyAccessToken, permissions(["user","admin"]), ProductController.getProductById);
+router.get('/:productId/get', verifyAccessToken, permissions(["user","admin"]), ProductController.getProductById);
 
 
 
@@ -38,6 +39,8 @@ router.delete('/:productId/delete', verifyAccessToken, permissions(["admin"]), P
 
 
 //PRODUCT CATEGORY ROUTES
+
+router.get('/categories/get', verifyAccessToken,  permissions(["admin"]), productCategoryController.categories);
 router.post('/category/create', verifyAccessToken,  permissions(["admin"]), productCategoryController.createProductCategory);
 router.get('/category/search', verifyAccessToken,  permissions(["user","admin"]), productCategoryController.searchProductByCategory);
 router.patch('/category/:productCategoryId/update', verifyAccessToken,  permissions(["admin"]), productCategoryController.updateProductCategoryById);

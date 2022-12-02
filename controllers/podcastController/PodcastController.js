@@ -352,7 +352,7 @@ exports.searchForPodcast = async (req, res, next) => {
    */
 
     
-   let {keyword} = req.body;
+   let { keyword } = req.body;
 
    const search  = [
             { name: {  $regex: '.*' + keyword + '.*',   $options: 'i'  } },

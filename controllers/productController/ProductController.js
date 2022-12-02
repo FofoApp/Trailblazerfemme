@@ -5,6 +5,8 @@ const productCategoryModel = require('../../models/productModel/productCategoryM
 const ReviewModel = require('../../models/productModel/productReviewModel');
 const { cloudinary } = require('./../../helpers/cloudinary');
 const { productValidation } = require('./../../validations/productValidation');
+const ProductCategory = require('../../models/productModel/productCategoryModel');
+const { truncate } = require('fs/promises');
 
 exports.shop = async (req, res, next) => {
 
@@ -106,104 +108,66 @@ exports.createNewProduct = async (req, res, next) => {
 
     /*
     {
-    "name": "Wrist-Watch",
-    "description": "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which able",
-    "price": [{ "s": 2000,  "m": 3000, "l": 4000, "xl": 5000, "xxl": 6000, "xxxl": 7000 } ],
-    "colour": ["Yellow", "Blue"],
-
-    "images": [{  "image1": "default.jpg",  "image2": "default.jpg",  "image3": "default.jpg" }],
-    "quantity": 5,
-    "categoryId": "628cbc4949fca217cbf8962e"
-    }
-
-    name: "",
-    description: "",
-    colour: "",
-
-    priceS: "",
-    priceM: "",
-    priceL: "",
-    priceXL: "",
-    priceXXL: "",
-    priceXXXL: "",
-
-    image1: "",
-    image2: "",
-    image3: "",
-    quantity: "",
-    categoryId: ""
 
     */
 
-
-  // const result = await productValidation(req.body);
-    let { name, quantity, categoryId, colors, description, 
-        sm = 0, md = 0, lg = 0, xl = 0, xxl = 0, xxxl = 0, 
-        smQ = 0, mdQ = 0, lgQ = 0, xlQ = 0, xxlQ = 0, xxxlQ = 0        
-    } = req.body;
-
-    sm = +sm;
-    md = +md;
-    lg = +lg;
-    xl = +xl;
-    xxl = +xxl;
-    xxxl = +xxxl;
-
-    smQ = +smQ;
-    mdQ = +mdQ;
-    lgQ = +lgQ;
-    xlQ = +xlQ;
-    xxlQ = +xxlQ;
-    xxxlQ = +xxxlQ;
-
-    quantity = +quantity;
-
-    colors = colors.split(",");
+    let { name, qty = 0, price = 0, size, category, color,description } = req.body;
    
     try {
 
-        let product = await ProductModel.findOne({ name: name });
+        let product = await ProductModel.findOne({ name });
+
         if(product) return res.status(400).send({ error: "Product name already taken"});
 
-        let urls = [];
+        const product_category = await ProductCategory.findById(category)
+
+        if(!product_category) return res.status(400).send({ error: "Product category not found"});
+
+        let product_images = [];
+
         const files = req.files;
+
         if(files.length > 3) {
             return res.status(200).send({ error: "Maximum file upload cannot be more than 3"})
         }
+
         for (const file of files) {
         const { path } = file;
-
          // Upload Image to cloudinary
-        const uploaderResponse = await cloudinary.uploader.upload(path);
-        const publicId =  uploaderResponse.public_id;
-        const imgUrl = uploaderResponse.secure_url;
-        const imgs = { publicId, imgUrl};
+        const { public_id, secure_url  } = await cloudinary.uploader.upload(path);
 
-        urls.push(imgs);
+        product_images.push({ public_id, secure_url });
 
         }
 
-        const images = urls;
+        const product_data = {
+            name,
+            category,
+            description,
+            product_images,
+            product_variation: [
+                { price: Number(price), qty: Number(qty), size,  color }
+            ]
+        }
 
-        const productData = {  sm, md, lg, xl, xxl, xxxl,  smQ, mdQ, lgQ, xlQ, xxlQ, xxxlQ,
-            colors, name, categoryId,  
-            description, quantity,
-            images
-        };
         
-        product = new ProductModel(productData);
-        
-        const uploadProduct  = await product.save();
+        const new_product = new ProductModel(product_data);
 
-        if(!uploadProduct) return res.status(400).send(savedProduct);
+        const savedProduct  = await new_product.save();
 
-        return res.status(201).send(uploadProduct);
+        product_category.products.addToSet(savedProduct._id)
+
+        await product_category.save()
+
+        if(!savedProduct) return res.status(400).send({ success: false, error: "Unable to create product"});
+
+        return res.status(201).send({ success: true, product: savedProduct});
 
 
 
 
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         return res.status(500).send({ error: error.message })
     }
 
@@ -215,80 +179,21 @@ exports.listProducts = async (req, res, next) => {
     //http://localhost:2000/api/product/lists
     try {
 
-        const query = [
-            { $match: {} },
+        const search = req.query.search ? {
+            name: { $regex: '.*' + req.query.search + ".*", $options: 'i' } 
+        } : {}
 
-            // { $addFields: { $addFields: { sm: { "$" }  } }  },
-            // { $unwind: "$images" },
+        console.log(req.query.search)
+        
+        const products2 = await ProductModel.paginate(search)
 
-            { $addFields: {
-                sm: { price: "$sm", qty: "$smQ" },
-                md: { price: "$md", qty: "$mdQ" },
-                lg: { price: "$lg", qty: "$lgQ" },
-                xl: { price: "$xl", qty: "$xlQ" },
-                xxl: { price: "$xxl", qty: "$xxlQ" },
-                xxxl: { price: "$xxxl", qty: "$xxxlQ" },
-            } },
+        // const products = await ProductModel.find({}).populate('category', "name _id")
 
-            // {  prices: { $push: { sm: "$sm", md: "$md", lg: "$lg", xl: "$xl", xxl: "$xxl", xxxl: "$xxxl" }  }   },
-
-            { $project: {
-                _id : 0,
-                id: "$_id",
-                name: 1,
-                sm: 1,
-                md: 1,
-                lg: 1,
-                xl: 1,
-                xxl: 1,
-                xxxl: 1,
-                prices: 1,
-                description: 1,
-                colors: 1,
-                quantity: 1,
-                ratings: 1,
-                reviews: 1,
-                categoryId: 1,
-                createdAt: 1,
-
-                // sm: 1, 
-                // md: 1, 
-                // lg: 1, 
-                // xl: 1, 
-                // xxl: 1, 
-                // xxxl: 1,  
-                // smQ: 1, 
-                // mdQ: 1, 
-                // lgQ: 1, 
-                // xlQ: 1, 
-                // xxlQ: 1, 
-                // xxxlQ: 1,
-             
-                images: {
-                    "$map": {
-                        "input": "$images",
-                        "as": "image", 
-                        "in": {
-                            "id": "$$image._id",
-                            "imgUrl": "$$image.imgUrl",
-                        }
-                    }
-                },
-             } },
-
-
-
-
-            
-        ]
-
-        const products = await ProductModel.aggregate(query);
-
-        if(!products) {
-            return res.status(200).send({ error: "No product found"});
+        if(!products2 || products2.docs.length === 0) {
+            return res.status(200).send({ error: "No product found", products: [] });
         }
 
-        return res.status(200).send(products);
+        return res.status(200).send({ success: true, products: products2 });
     } catch (error) {
         return res.status(500).send({ error: error.message });
     }
@@ -329,72 +234,15 @@ exports.getProductById = async (req, res, next) => {
             return res.status(401).send({ error: "Invalid product parameter"});
         }
 
-        const query = [
-            { $match: { _id: mongoose.Types.ObjectId(productId) } },
-            { $lookup: { from: "reviews", localField: "_id", foreignField: "ratedProduct", as: "reviews"} },
-            // { $unwind: "reviews" },
-            { $addFields: {
-                sm: { price: "$sm", qty: "$smQ" },
-                md: { price: "$md", qty: "$mdQ" },
-                lg: { price: "$lg", qty: "$lgQ" },
-                xl: { price: "$xl", qty: "$xlQ" },
-                xxl: { price: "$xxl", qty: "$xxlQ" },
-                xxxl: { price: "$xxxl", qty: "$xxxlQ" },
-            } },
-        { $project: {
-            _id : 0,
-            id: "$_id",
-            name: 1,
-            sm: 1,
-            md: 1,
-            lg: 1,
-            xl: 1,
-            xxl: 1,
-            xxxl: 1,
-            prices: 1,
-            description: 1,
-            colors: 1,
-            quantity: 1,
-            reviews: 1,
-            categoryId: 1,
-            createdAt: 1,
-         
-            images: {
-                "$map": {
-                    "input": "$images",
-                    "as": "image", 
-                    "in": {
-                        "id": "$$image._id",
-                        "imgUrl": "$$image.imgUrl",
-                    }
-                }
-            },
-            reviews: {
-                "$map": {
-                    "input": "$reviews",
-                    "as": "review",
-                    "in": {
-                        "id": "$$review._id",
-                        "rateCount": "$$review.rateCount",
-                        "rateComment": "$$review.rateComment",
-                        "ratedBy": "$$review.ratedBy",
-                        "ratedProduct": "$$review.ratedProduct",
-                        "createdAt": "$$review.createdAt"
-                    }
-                }
-            }
-
-
-
-         } },
-        ]
 
         //PRODUCTS YOUR MAY LIKE
-        const pYor = await ProductModel.aggregate([ { $sample: { size: 10 } }]);
+        const product_you_may_like = await ProductModel.find({
+            $sample: { size: 10 }
+        })
 
-        const product = await ProductModel.aggregate(query);
+        const product = await ProductModel.findById(productId);
 
-        return res.status(200).send(product);
+        return res.status(200).send({ product, product_you_may_like, });
 
     } catch (error) {
         return res.status(500).send({ error: error.message })
@@ -407,7 +255,10 @@ exports.updateProductById = async (req, res, next) => {
         //http://localhost:2000/api/product/628cae1ec6a0f70b715a869a/update
 
         const { productId } = req.params;
-        const { imageId } = req.body;
+
+        let {  name, qty = 0, price = 0, size, category, color, description, imageIds } = req.body;
+
+        if(imageIds) imageIds = imageIds.split(',')
 
     try {
         
@@ -420,54 +271,71 @@ exports.updateProductById = async (req, res, next) => {
         //     return res.status(401).send({ error: "Invalid image Id"});
         // }
 
-        let uploaderResponse;
+        const product_data = {}
+        const product_object = {}
+        const product_variation = []
+
+
         let product = await ProductModel.findById(productId)
-      
+
+        let product_images = [];
+
+        const files = req.files;
+
+        console.log(files)
+
+        if(files.length > 3) {
+            return res.status(200).send({ error: "Maximum file upload cannot be more than 3"})
+        }
         
-        if(req.files && req.files.length > 0) {
-            //Filter the public_id with imageId
-            const public_id = product.images.filter((imagePublicId) => `${imagePublicId._id}` === imageId );
-            if(!public_id) return res.status(400).send({ error: "Image not found"})
+        if(files.length > 0 && imageIds) {
 
-            //Delete Image from Cloudinary
-            const publicId = public_id[0]?.publicId;
-            uploaderResponse = await cloudinary.uploader.destroy(publicId);
-            
-            if(!uploaderResponse) return res.status(400).send({ error: "Unable to delete image"})
-           
-            //Delete Image string from database
-            product = await ProductModel.findByIdAndUpdate(productId, {$pull: { images: {_id: mongoose.Types.ObjectId(imageId)} }  }, { new: true});
-    
-            let urls = [];
+            //DELETE OLD IMAGES
+            // imageIds.forEach(id => product.product_images.pull({ _id: { $elemMatch: id } }));
 
-            const files = req.files;
+            // product.pullAll({ _id: { $in: imageIds } })
 
-            for (const file of files) {
+            const result = await ProductModel.findByIdAndUpdate(productId, 
+                { $pull: {"product_images" : { "_id": { $in: imageIds } } }  
+            });
 
+            console.log(result)
+            //UPLOAD NEW IMAGE
+            for(const file of files) {
             const { path } = file;
-
             // Upload Image to cloudinary
-           
-            uploaderResponse = await cloudinary.uploader.upload(path);
-            const publicId =  uploaderResponse.public_id;
-            const imgUrl = uploaderResponse.secure_url;
-            const imgs = { publicId, imgUrl };
-            urls.push(imgs);
-            
-            const images = urls;
-            
-            product = await ProductModel.findByIdAndUpdate(productId, {$push: { images: images }  }, { new: true});
-            
+            const { public_id, secure_url  } = await cloudinary.uploader.upload(path);
+
+            product_images.push({ public_id, secure_url });
+    
             fs.unlinkSync(path);
-                
-            }
+    
+        }
+        
+        
         }
 
-        const updateProduct = await ProductModel.findByIdAndUpdate(productId, { $set: req.body }, { new: true } );
+        if(name) product_data["name"] = name
 
-        if(!updateProduct) return res.status(400).send("Unable to update product");
+        if(price) product_object['price'] = Number(price)
+        if(qty) product_object["qty"] = Number(qty)
+        if(size) product_object["size"] = size
+        if(color) product_object["color"] = color
 
-        return res.status(200).send("Product updated successfully");
+
+        if(category) product_data["category"] = category
+        if(description) product_data["description"] = description
+        if(product_images && product_images.length > 0) product_data["product_images"] = product_images
+
+        product_variation.push(product_object)
+
+        if(!!Object.keys(product_object).length) product_data["product_variation"] = product_variation
+
+        const updatedProduct = await ProductModel.findByIdAndUpdate(productId, { $set: product_data }, { new: truncate} );
+
+        if(!updatedProduct) return res.status(400).send("Unable to update product");
+
+        return res.status(200).send({ success: true, product: updatedProduct, });
 
     } catch (error) {
 
@@ -508,15 +376,15 @@ exports.deleteProductById = async (req, res, next) => {
 
         }
 
-        if(product && product.images && product.images.length > 0) {
+        if(product && product.product_images && product.product_images.length > 0) {
             
-        product.images.forEach((imagePublicId) => {
-            const deletedImages = multiDelete(imagePublicId.publicId);
-            if(!deletedImages) return res.status(400).send({ error: "Unable to unset images"})
-        });
+            product.product_images.forEach((imagePublicId) => {
+                const deletedImages = multiDelete(imagePublicId.public_id);
+                if(!deletedImages) return res.status(400).send({ error: "Unable to unset images"})
+            });
 
-        //Delete all product images from cloudinary       
-        await product.remove();
+            //Delete all product images from cloudinary       
+            await product.remove();
 
         }
 

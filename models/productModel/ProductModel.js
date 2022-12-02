@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+const mongoosePaginate = require('mongoose-paginate-v2')
 const productSchema = new mongoose.Schema({
 
     name: { type: String, required: true, unique: true },
@@ -7,28 +7,21 @@ const productSchema = new mongoose.Schema({
     description: { type: String, required: true },
     stock:  { type: Number, maxlength: [20, "Max stock size is 20"], default: 0 },
 
-    sm: { type: Number, default: 0 },
-    md: { type: Number, default: 0 },
-    lg: { type: Number, default: 0 },
-    xl: { type: Number, default: 0 },
-    xxl: { type: Number, default: 0 },
-    xxxl: { type: Number, default: 0 },
+    product_variation: [
+        {
+            size: {  type: String, uppercase: true,  default: "", required: [true, 'Size field is required'] },
+            price: {  type: Number, min:0,  default: 0, required: [true, 'Price field is required'] },
+            qty: {  type: Number, min:0,  default: 0, required: [true, 'Quantity field is required'] },
+            color: {  type: String,   default: "", required: [true, 'Color field is required'] },
+        }
+    ],
 
-    smQ: { type: Number, default: 0 },
-    mdQ: { type: Number, default: 0 },
-    lgQ: { type: Number, default: 0 },
-    xxlQ: { type: Number, default: 0 },
-    xxxlQ: { type: Number, default: 0 },
 
-    colors: { type: [String], default: [] },
-
-    images: [  { publicId: { type: String } , imgUrl: { type: String } } ],
-
-    quantity: { type: Number, default: 0 },
-
-    ratings: [{ type: Number, default: 0 }],
+    product_images: [  { public_id: { type: String } , secure_url: { type: String } } ],
 
     // reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
+
+    ratings: [{ type: Number, default: 0 }],
 
     numOfReviews: { type: Number, default: 0 },
     reviews: [
@@ -42,13 +35,42 @@ const productSchema = new mongoose.Schema({
 
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
 
-    categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductCategory' },
+    category: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductCategory' },
 }, 
 
 
 { timestamps: true });
 
+
+productSchema.options.toJSON = {
+    transform: function(doc, ret, options) {
+
+        if(ret.product_variation) {
+            ret.product_variation.forEach((item) => {
+                item.id = item._id
+                delete item._id
+            });
+        }
+
+
+        if(ret.product_images) {
+            ret.product_images.forEach((item) => {
+                item.id = item._id
+                delete item.public_id
+                delete item._id
+            });
+        }
+
+        ret.id = ret._id
+        delete ret._id
+        delete ret.__v
+        return ret;
+     }
+};
+
+productSchema.plugin(mongoosePaginate)
+
 const Product = mongoose.model('Product', productSchema);
-Product.createIndexes();
+// Product.createIndexes();
 
 module.exports = Product;
