@@ -11,8 +11,16 @@ const upload = require('./../helpers/multer');
 const { verifyAccessToken } = require('./../helpers/jwtHelper');
 
 //COURSES
+ 
+const upload_data = [
+    {name: 'author_image_one', maxCount: 1 },
+    {name: 'author_image_two', maxCount: 1},
+    {name: 'author_image_three', maxCount: 1 },
+    {name: 'courseImage', maxCount: 1 },
+]
+
 // router.post('/create', verifyAccessToken, upload.fields([{ name: 'courseImage', maxCount: 1 }, {name: 'authorImage', maxCount: 5 }] ), CourseController.createNewCourse);
-router.post('/create',  upload.fields([{ name: 'courseImage', maxCount: 1 }, {name: 'author_image', maxCount: 5 }] ), CourseController.createNewCourse);
+router.post('/create',  upload.fields(upload_data), CourseController.createNewCourse);
 router.get('/list',  CourseController.findAllCourses);
 router.get('/:courseId/get',  CourseController.findCourseById);
 

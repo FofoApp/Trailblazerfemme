@@ -21,54 +21,81 @@ const cloudinaryImageUploadMethod = async file => {
 
 exports.createNewCourse = async (req, res) => {
 
-    const { name, accessType, duration, description } = req.body;
+    const { 
+        name, 
+        accessType, 
+        duration, 
+        description,
+        author_name_one,
+        author_name_two, 
+        author_name_three
+    } = req.body;
+
 
     try {
+
+        let author_data = [];
 
         const findCourseExist = await CourseModel.findOne({ name });
 
         if(findCourseExist) return res.status(400).json({ error: `Course ${name} already exist` });
 
-        const courseImage = req.files.courseImage[0];
-
-        const result = await cloudinary.uploader.upload(courseImage.path);
-        if(!result) return res.status(400).json({ error: "Unable to upload course Image "});
-
-        const urls = [];
-
-        const files = req.files.author_image;
-
-        for(let file of files) {
-            const { path } = file;
-            const newPath = await cloudinaryImageUploadMethod(path);
-
-            urls.push(newPath);
+        if(!req.files.courseImage) {
+            return res.status(400).json({ error: `Please provide course Image` });
         }
 
-        const author_name = req.body.author_name;
-        const author_image = req.files.author_image;
+        if(!req.files) {
+            return res.status(400).json({ error: "Please upload author image"});
+        }
 
-        
-        const createdBy = author_name.map((item, index) => {
-            return { 
-                fullname: item,
-                image_url: urls[index]["secure_url"],
-                public_id: urls[index]["public_id"],
+
+        if(req?.files?.author_image_one && req?.files?.author_image_one[0]?.fieldname === 'author_image_one' ) {
+
+            if(!author_name_one) {
+                return res.status(400).json({ error: `Please provide author one name` });
             }
-        });
 
-    const course_data = {
-        name, 
-        accessType, 
-        duration, 
-        description, 
-        courseImage: [{
-            public_id: result.public_id,
-            image_url: result.secure_url,
-        }],
-        createdBy
+            const { public_id, secure_url  } = await cloudinaryImageUploadMethod(req?.files?.author_image_one[0].path);
+
+
+            author_data.push({ public_id, image_url: secure_url,  fullname: author_name_one })
+        }
+
+        if(req?.files?.author_image_two && req?.files?.author_image_two[0]?.fieldname === 'author_image_two') {
+            if(!author_name_two) {
+                return res.status(400).json({ error: `Please provide author two name` });
+            }
+   
+            const { public_id, secure_url  } = await cloudinaryImageUploadMethod(req?.files?.author_image_two[0].path);
+            author_data.push({ public_id, image_url: secure_url,  fullname: author_name_two })
+        
+        }
+
+        if(req?.files?.author_image_three  && req?.files?.author_image_three[0]?.fieldname === 'author_image_three') {
+
+            if(!author_name_three) {
+                return res.status(400).json({ error: `Please provide author three name` });
+            }
+
+            const { public_id, secure_url  } = await cloudinaryImageUploadMethod(req?.files?.author_image_three[0].path);
+            author_data.push({ public_id, image_url: secure_url,  fullname: author_name_three })
+
+        }
+
+        const { public_id, secure_url  } = await cloudinaryImageUploadMethod(req?.files?.courseImage[0].path);
+
+        const course_data = {
+            name, 
+            accessType, 
+            duration, 
+            description, 
+            courseImage: [{
+                public_id: public_id,
+                image_url: secure_url,
+            }],
+
+        createdBy: author_data
     }
-
 
         const course = await CourseModel.create(course_data);
 
@@ -76,7 +103,7 @@ exports.createNewCourse = async (req, res) => {
         
     } catch (error) {
         console.log(error)
-        return res.status(500).json({ error: error.message })
+        return res.status(500).json({ error: error})
     }
 }
 
