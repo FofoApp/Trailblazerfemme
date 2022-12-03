@@ -282,8 +282,6 @@ exports.updateProductById = async (req, res, next) => {
 
         const files = req.files;
 
-        console.log(files)
-
         if(files.length > 3) {
             return res.status(200).send({ error: "Maximum file upload cannot be more than 3"})
         }
@@ -291,7 +289,6 @@ exports.updateProductById = async (req, res, next) => {
         if(files.length > 0 && imageIds) {
 
             //DELETE OLD IMAGES
-            // imageIds.forEach(id => product.product_images.pull({ _id: { $elemMatch: id } }));
 
             // product.pullAll({ _id: { $in: imageIds } })
 
@@ -383,7 +380,7 @@ exports.deleteProductById = async (req, res, next) => {
                 if(!deletedImages) return res.status(400).send({ error: "Unable to unset images"})
             });
 
-            //Delete all product images from cloudinary       
+            //Delete all product images from cloudinary
             await product.remove();
 
         }
