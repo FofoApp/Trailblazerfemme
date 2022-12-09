@@ -57,7 +57,7 @@ blogModelSchema.options.toJSON = {
             })
         }
 
-        ret.blogComments = ret.blogComments.length ? ret.blogComments.length : 0
+        ret.blogComments = ret.blogComments.length || 0;
         ret.blogLikes = ret.blogLikes.length ? ret.blogLikes.length : 0;
         ret.blogviews = ret.blogviews.length ? ret.blogviews.length : 0;
         ret.id = ret._id;
