@@ -161,6 +161,8 @@ exports.verifyAccessToken =  async (req, res, next) => {
         user = await UserModel.findById(payload?.id);
     }
 
+    if(!user) return next(createError.BadRequest("Bad request, user not found"));
+
     const user_data = {
         id: user.id,
         fullname: user.fullname,
