@@ -40,9 +40,9 @@ const blogModelSchema = new mongoose.Schema({
 
 
 
-blogModelSchema.virtual('articleCount').get(function () {
-    return this.blogComments.length;
-});
+// blogModelSchema.virtual('articleCount').get(function () {
+//     return this.blogComments.length;
+// });
 
 
 

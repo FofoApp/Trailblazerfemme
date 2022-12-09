@@ -1102,14 +1102,14 @@ exports.blogComment = async (req, res, next) => {
             
         }
 
-        const createdBy = {
+        const commentedBy = {
                 fullname: user.fullname,
                 createdAt: user.createdAt,
                 profileImage: user.profileImage,
                 id: user.id
         }
 
-        const sendResult = { ...commented_data, createdBy }
+        const sendResult = { ...commented_data, commentedBy }
 
         return res.status(200).send({ blog_comment: sendResult });
 
