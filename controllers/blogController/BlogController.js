@@ -1072,12 +1072,12 @@ exports.listBlogComment = async (req, res, next) => {
 
 exports.blogComment = async (req, res, next) => {
     let { comment } = req.body;
-    const commentedBy =  mongoose.Types.ObjectId(req.user.id);
+    const createdBy =  mongoose.Types.ObjectId(req.user.id);
     const { blogId } = req.params;
    
     try {
 
-        let commentData = { comment, commentedBy, blogId, };
+        let commentData = { comment, commentedBy:createdBy, blogId, };
 
         let user = await UserModel.findOne({ _id: req.user.id});
 
