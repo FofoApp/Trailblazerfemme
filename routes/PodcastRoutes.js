@@ -11,6 +11,29 @@ const { permissions } = require('./../middlewares/permissionsMiddleware');
 const upload = require('./../helpers/multer');
 
 
+router.post("/files", upload.array("avatar", 2), (req, res) => {
+
+    console.log({ images: req.files })
+
+    try {
+
+
+        return res.json({ message: "Successfully uploaded files", avatars: req.files  });
+
+    } catch (error) {
+        console.log(error)
+        return res.json({ error: error });
+    }
+
+    // if (res.status(200)) {
+    //     console.log("Your file has been uploaded successfully.");
+    //     console.log(req.files);
+    //     res.json({ message: "Successfully uploaded files" });
+    //     res.end();
+    // }
+});
+
+
 //PODCAST CATEGORY
 router.post('/category/create', verifyAccessToken, permissions(["admin"]), PodcastCategoryController.createPodcastCategory);
 router.patch('/category/:podcastCateogryId/update', verifyAccessToken, permissions(["admin"]),  PodcastCategoryController.updatePodcastCategoryById);

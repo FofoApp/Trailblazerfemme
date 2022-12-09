@@ -9,7 +9,11 @@ const podcastSchema = new mongoose.Schema({
     description: { type: String, required: true, trim: true },
     link: { type: String, required: true, trim: true },
     podcastCategoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'PodcastCategory' },
-    hosts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }],
+    // hosts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }],
+    hosts: [{
+        public_id: { type: String, required: true },
+        image_url: { type: String, required: true },
+     }],
     createdBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }],
     duration: { type: String, required: true },
     views: [{type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

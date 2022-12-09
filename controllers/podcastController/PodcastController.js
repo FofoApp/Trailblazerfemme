@@ -47,10 +47,10 @@ exports.podcasts = async (req, res, next) => {
     //ALL PODCAST CATEGORIES
     const podcastCategories = await PodcastCategoryModel.paginate({}, { page: pageCategory, limit: 5,  select: "-createdAt -updatedAt -__v"})
 
-    const recentPlayed  = await PodcastModel.paginate({}, { 
+    const recentPlayed  = await PodcastModel.paginate({}, {
                                     page: pageRecent, 
-                                    limit: 5,  
-                                    select: "id name podcastImage description link",
+                                    limit: 5,
+                                    select: "id name podcastImage description link duration",
                                     populate: {
                                         path: "hosts",
                                         model: "User",
@@ -62,6 +62,7 @@ exports.podcasts = async (req, res, next) => {
     const popular2  = await PodcastModel.paginate({}, {
                                 page: pagePopular, 
                                 limit: 5,
+                                select: "id name podcastImage description link duration",
                                 populate: {
                                     path: "hosts",
                                     model: "User",
@@ -73,7 +74,7 @@ exports.podcasts = async (req, res, next) => {
     const top_podcaster  = await PodcastModel.paginate({},{
                                 page: pageTopPodcast,
                                 limit: 5,
-                                select: "id name",
+                                select: "id name podcastImage description link duration",
                                 populate: {
                                     path: "hosts",
                                     model: "User",
@@ -85,7 +86,7 @@ exports.podcasts = async (req, res, next) => {
                                 {
                                     page: pageSuggest,
                                     limit: 5, 
-                                    select: "id name podcastImage link description"
+                                    select: "id name podcastImage description link duration",
                                 }
                             )
  
@@ -259,13 +260,81 @@ exports.createNewPodcast = async (req, res, next) => {
             return res.status(400).send({ error: "Podcast name already exist"});
         }
         
-        // //Upload Image to cloudinary
-        const uploaderResponse = await cloudinary.uploader.upload(file.path);
+        // // //Upload Image to cloudinary
+        // const uploaderResponse = await cloudinary.uploader.upload(file.path);
         
-        if(!uploaderResponse) {
-            //Reject if unable to upload image
-            return res.status(404).send({ error: "Unable to upload image please try again"});
+        // if(!uploaderResponse) {
+        //     //Reject if unable to upload image
+        //     return res.status(404).send({ error: "Unable to upload image please try again"});
+        // }
+
+
+        let author_data = [];
+
+
+        if(!req.files) {
+            return res.status(400).json({ error: "Please upload author image"});
         }
+
+
+        if(req?.files?.author_image_one && req?.files?.author_image_one[0]?.fieldname === 'author_image_one' ) {
+
+            if(!author_name_one) {
+                return res.status(400).json({ error: `Please provide author one name` });
+            }
+
+            const { public_id, secure_url  } = await cloudinaryImageUploadMethod(req?.files?.author_image_one[0].path);
+
+
+            author_data.push({ public_id, image_url: secure_url,  fullname: author_name_one })
+        }
+
+        if(req?.files?.author_image_two && req?.files?.author_image_two[0]?.fieldname === 'author_image_two') {
+            if(!author_name_two) {
+                return res.status(400).json({ error: `Please provide author two name` });
+            }
+   
+            const { public_id, secure_url  } = await cloudinaryImageUploadMethod(req?.files?.author_image_two[0].path);
+            author_data.push({ public_id, image_url: secure_url,  fullname: author_name_two })
+        
+        }
+
+        if(req?.files?.author_image_three  && req?.files?.author_image_three[0]?.fieldname === 'author_image_three') {
+
+            if(!author_name_three) {
+                return res.status(400).json({ error: `Please provide author three name` });
+            }
+
+            const { public_id, secure_url  } = await cloudinaryImageUploadMethod(req?.files?.author_image_three[0].path);
+            author_data.push({ public_id, image_url: secure_url,  fullname: author_name_three })
+
+        }
+
+        const { public_id, secure_url  } = await cloudinaryImageUploadMethod(req?.files?.courseImage[0].path);
+
+        const course_data = {
+            name, 
+            accessType, 
+            duration, 
+            description, 
+            courseImage: [{
+                public_id: public_id,
+                image_url: secure_url,
+            }],
+
+        createdBy: author_data
+    }
+
+        // const course = await CourseModel.create(course_data);
+
+
+
+
+
+
+
+
+
 
         const createPodcast = new PodcastModel({
             podcastCategoryId, podcastHostId, name, description, hosts, tags, link,
@@ -376,7 +445,7 @@ exports.searchForPodcast = async (req, res, next) => {
         search.push( { hosts: { $in: [keyword] } },)
     }
 
-   const searchForPodcast = await PodcastModel.find( { $or: search } )
+   const searchForPodcast = await PodcastModel.find({ $or: search })
         .populate({
             path: 'hosts',
             model: 'User',

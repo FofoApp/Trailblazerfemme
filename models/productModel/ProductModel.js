@@ -21,17 +21,10 @@ const productSchema = new mongoose.Schema({
 
     // reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
 
-    ratings: [{ type: Number, default: 0 }],
+    ratings: { type: Number, default: 0 },
 
     numOfReviews: { type: Number, default: 0 },
-    reviews: [
-        {
-            user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', require: true },
-            name: { type: String, require: true },
-            rating: { type: Number, require: true },
-            comment: { type: String, require: true },
-        }
-    ],
+    reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ProductReview', default: [] }] ,
 
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
 
@@ -52,7 +45,6 @@ productSchema.options.toJSON = {
             });
         }
 
-
         if(ret.product_images) {
             ret.product_images.forEach((item) => {
                 item.id = item._id
@@ -60,6 +52,12 @@ productSchema.options.toJSON = {
                 delete item._id
             });
         }
+
+        // if(ret.reviews && ret.reviews.length > 0) {
+        //     ret.reviews.forEach((item) => {
+        //         return item.numOfReviews = item.reviews.reduce((acc, curr) => curr.rating + acc, 0) / item.reviews.length
+        //     } )
+        // }
 
         ret.id = ret._id
         delete ret._id

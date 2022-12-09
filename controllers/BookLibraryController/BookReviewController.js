@@ -21,7 +21,7 @@ exports.createBookReview = async (req, res, next) => {
 
         let book = await BookModel.findById(req.params.bookId)
       
-        if(!book) return res.status(404).send({error: "Book not found"});  
+        if(!book) return res.status(404).send({error: "Book not found"});
 
         let review = await BookReview.findOne({ bookId: bookId });
         
@@ -29,7 +29,7 @@ exports.createBookReview = async (req, res, next) => {
 
         
         if(isReviewed) {
-            review.rating = rating;
+            review.rating = Number(rating);
             review.comment = comment;
             review = await review.save();
            

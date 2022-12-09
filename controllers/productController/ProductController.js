@@ -2,11 +2,12 @@ const fs = require('fs');
 const mongoose = require('mongoose');
 const ProductModel = require('../../models/productModel/ProductModel');
 const productCategoryModel = require('../../models/productModel/productCategoryModel');
-const ReviewModel = require('../../models/productModel/productReviewModel');
+const ProductReview = require('../../models/productModel/productReviewModel');
 const { cloudinary } = require('./../../helpers/cloudinary');
 const { productValidation } = require('./../../validations/productValidation');
 const ProductCategory = require('../../models/productModel/productCategoryModel');
 const { truncate } = require('fs/promises');
+const Product = require('../../models/productModel/ProductModel');
 
 exports.shop = async (req, res, next) => {
 
@@ -225,7 +226,7 @@ exports.getProductsByCategory = async (req, res, next) => {
 exports.getProductById = async (req, res, next) => {
     //VERIFY IF ID IS CORRECT
     //GET REQUEST
-    //http://localhost:2000/api/product/628cae1ec6a0f70b715a869a/product
+    //http://localhost:2000/api/product/628cae1ec6a0f70b715a869a/get
 
     const { productId } = req.params;
     try {
@@ -234,15 +235,23 @@ exports.getProductById = async (req, res, next) => {
             return res.status(401).send({ error: "Invalid product parameter"});
         }
 
+        //REVIEWS
+
+        const reviews = await ProductReview.paginate({ 
+            product: productId,
+        }, 
+        { select: "-__v -updatedAt -product" } );
+
 
         //PRODUCTS YOUR MAY LIKE
-        const product_you_may_like = await ProductModel.find({
+        const product_you_may_like = await ProductModel.paginate({
             $sample: { size: 10 }
-        })
+        },  { select: "-__v -updatedAt -reviews -likes -category " })
 
-        const product = await ProductModel.findById(productId);
+        const product = await ProductModel.findById(productId).select("-reviews -likes -category -updatedAt");
 
-        return res.status(200).send({ product, product_you_may_like, });
+        return res.status(200).send({ product, reviews, product_you_may_like, });
+     
 
     } catch (error) {
         return res.status(500).send({ error: error.message })
@@ -274,11 +283,10 @@ exports.updateProductById = async (req, res, next) => {
         const product_data = {}
         const product_object = {}
         const product_variation = []
+        let product_images = [];
 
 
         let product = await ProductModel.findById(productId)
-
-        let product_images = [];
 
         const files = req.files;
 
@@ -290,13 +298,10 @@ exports.updateProductById = async (req, res, next) => {
 
             //DELETE OLD IMAGES
 
-            // product.pullAll({ _id: { $in: imageIds } })
-
             const result = await ProductModel.findByIdAndUpdate(productId, 
                 { $pull: {"product_images" : { "_id": { $in: imageIds } } }  
             });
 
-            console.log(result)
             //UPLOAD NEW IMAGE
             for(const file of files) {
             const { path } = file;
@@ -312,16 +317,15 @@ exports.updateProductById = async (req, res, next) => {
         
         }
 
-        if(name) product_data["name"] = name
-
-        if(price) product_object['price'] = Number(price)
-        if(qty) product_object["qty"] = Number(qty)
-        if(size) product_object["size"] = size
-        if(color) product_object["color"] = color
-
-
         if(category) product_data["category"] = category
         if(description) product_data["description"] = description
+
+        if(name)   product_data["name"] = name
+        if(price)  product_object['price'] = Number(price)
+        if(qty)    product_object["qty"] = Number(qty)
+        if(size)   product_object["size"] = size
+        if(color)  product_object["color"] = color
+
         if(product_images && product_images.length > 0) product_data["product_images"] = product_images
 
         product_variation.push(product_object)
@@ -411,8 +415,10 @@ exports.deleteProductById = async (req, res, next) => {
 
 
 exports.productReview = async (req, res, next) => {
-    const { ratedProduct } = req.body;
-    const ratedBy = req.user.id;
+    const { rating, comment } = req.body;
+    const { productId } = req.params
+
+    const {id: ratedBy, fullname: name, } = req.user;
 
     //http://localhost:2000/api/product/review
 
@@ -420,69 +426,90 @@ exports.productReview = async (req, res, next) => {
      * 
      * 
      * {
-        "rateCount": 2,
-        "rateComment": "My Second Review",
-        "ratedProduct": "6305024315f75044124bab97"
+        "rating": 2,
+        "review": "My Second Review",
+        "productId": "6305024315f75044124bab97"
         }
 
      */
 
     try {
 
-        if(!mongoose.Types.ObjectId.isValid(ratedProduct)) {
-            return res.status(400).send({ error: "Invalid Id"});
+        if(!mongoose.Types.ObjectId.isValid(productId)) {
+            return res.status(400).send({ error: "Invalid User"});
         }
 
-        const reviewData = { ...req.body, ratedBy }
+        let oldProduct;
 
-        const newReview = new ReviewModel(reviewData);
+        let product;
 
-        const savedReview = await newReview.save();
+        product = await Product.findById(productId)
+        .populate('reviews', "rating name comment ratedBy")
 
-        return res.status(200).send(savedReview);
+        const isReviewed = product.reviews.find((review) => review.ratedBy.toString() === ratedBy.toString() )
+
+        if(!!isReviewed) {
+
+            let review = await ProductReview.findOne({ product: productId, ratedBy });
+
+            review.rating = Number(rating)
+            review.comment = comment            
+            await review.save()
+
+
+        product = await Product.findById(productId)
+        .populate('reviews', "rating name comment ratedBy")
+
+        product.numOfReviews = product.reviews.length
+
+        product.ratings = product.reviews.reduce((acc, curr) => acc + curr.rating , 0).toFixed(1) / product.reviews.length
+
+      
+        await product.save()
+        
+        } else {
+
+            const newReview = new ProductReview({ rating:  Number(rating), comment, ratedBy, name, product: productId })
+            
+            const savedReview = await newReview.save()
+
+            oldProduct = await Product.findById(productId)
+
+            oldProduct.reviews.push(savedReview._id)
+
+        
+            product.ratings = product.reviews.reduce((acc, curr) => acc + curr.rating , 0).toFixed(1) / product.reviews.length
+    
+            product.numOfReviews = oldProduct.reviews.length
+    
+            product  = await oldProduct.save()
+        }
+
+        return res.status(200).send({ success: true, product })
+
         
     } catch (error) {
+        console.log(error)
         return res.status(500).send({ error: error.message });
     }
 }
 
 exports.getAllReviews = async (req, res, next) => {
     
-    //http://localhost:2000/api/product/reviews
-    // const { productId } = req.body;
+    //http://localhost:2000/api/product/:productId/reviews
+    const { productId } = req.params;
 
     try {
 
-        // if(!mongoose.Types.ObjectId.isValid(productId)) {
-        //     return res.status(400).send({ error: "Invalid Id"});
-        // }
+        if(!mongoose.Types.ObjectId.isValid(productId)) {
+            return res.status(400).send({ error: "Invalid Id"});
+        }
 
-        const query = [
-            // { $match: { '_id': { '$eq': mongoose.Types.ObjectId(productId) }  } },
-            { $lookup: { from: 'products',  localField: "ratedProduct", foreignField: "_id", as: "ratedProduct" } },
-            { $unwind: "$ratedProduct" },
+        const reviews = await ProductReview.paginate({ product: productId })
 
-            { $lookup: { from: 'users',  localField: "ratedBy", foreignField: "_id", as: "ratedBy" } },
-            { $unwind: "$ratedBy" },
-
-            { $project: {
-                _id : 0,
-                ratingId: "$_id",
-                rateCount:1,
-                rateComment: 1,
-                createdAt: 1,
-                productId: "$ratedProduct._id",
-                productName: "$ratedProduct.name",
-
-                ratedById: "$ratedBy._id",
-                ratedByUsername: "$ratedBy.fullname",
-            }}
-
-        ];
-
-        const reviews = await ReviewModel.aggregate(query);
         if(!reviews) return res.status(400).send({ error: "No review(s)"})
-        return res.status(200).send(reviews);
+
+        return res.status(200).send({reviews});
         
     } catch (error) {
         return res.status(500).send({ error: error.message });

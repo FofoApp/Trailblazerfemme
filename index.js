@@ -19,7 +19,7 @@ const PORT = process.env.PORT || 2000;
 global.publicPath = `${__dirname}/public`;
 
 //INITIALIZE DATABASE
-require('./initDB')();
+const connectDB = require('./initDB')
 
 
 const CommunityRoutes = require('./routes/CommunityRoutes');
@@ -53,7 +53,8 @@ app.use(
 app.use(cors())
 app.use(mongoSanitize());
 app.use(xss());
-app.use('/api/stripe/webhook', express.raw({type: "*/*"}));
+// app.use('/api/stripe/webhook2', express.raw({type: "*/*"}));
+app.use('/api/stripe/webhook', express.raw({type: 'application/json'}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(hpp());
@@ -146,4 +147,10 @@ app.use((err, req, res, next) => {
 // app configurations
 app.set('port', PORT);
 
-app.listen(PORT, () => console.log(`App running on port: ${PORT}`));
+
+connectDB()
+      .then(() => {
+            app.listen(PORT, () => console.log(`App running on port: ${PORT}`));
+      })
+
+

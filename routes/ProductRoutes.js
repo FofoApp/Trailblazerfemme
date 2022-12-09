@@ -4,6 +4,7 @@ const router = express.Router();
 const ProductController = require('../controllers/productController/ProductController');
 const productCategoryController = require('../controllers/productController/productCategoryController');
 const CartController = require('../controllers/productController/cartController');
+const orderController = require('./../controllers/productController/orderController')
 const { verifyAccessToken } = require('./../helpers/jwtHelper');
 
 const { permissions } = require('./../middlewares/permissionsMiddleware');
@@ -14,8 +15,8 @@ const uploadCv = require('./../helpers/multerCVupload');
 
 router.get('/', verifyAccessToken, permissions(["user","admin"]), ProductController.shop);
 router.get('/order', verifyAccessToken, permissions(["user","admin"]), CartController.getAllOrdersForAUser);
-router.get('/reviews', verifyAccessToken, permissions(["user","admin"]), ProductController.getAllReviews);
-router.post('/review', verifyAccessToken, permissions(["user","admin"]), ProductController.productReview);
+router.get('/:productId/reviews', verifyAccessToken, permissions(["user","admin"]), ProductController.getAllReviews);
+router.post('/:productId/review', verifyAccessToken, permissions(["user","admin"]), ProductController.productReview);
 
 router.get('/lists', verifyAccessToken, permissions(["user","admin"]), ProductController.listProducts);
 
@@ -57,12 +58,15 @@ router.delete('/category/:productCategoryId/delete', verifyAccessToken,  permiss
 
 //SHOPPING CART
 
+router.post('/create-order', verifyAccessToken, permissions(["user","admin"]), orderController.addOrderItem );
+router.post('/my-orders', verifyAccessToken, permissions(["user","admin"]), orderController.getMyOrders );
 
-router.get('/myorder', verifyAccessToken, permissions(["user","admin"]), CartController.getAllOrdersForAUser);
-router.post('/add-to-cart', verifyAccessToken, permissions(["user","admin"]), CartController.addToCart);
-router.patch('/remove-from-cart', verifyAccessToken, permissions(["user","admin"]), CartController.removeFromCart);
-router.patch('/remove-single-item-from-cart', verifyAccessToken, permissions(["user","admin"]), CartController.removeSingleItemFromCart);
-router.delete('/empty-cart', verifyAccessToken, permissions(["user","admin"]), CartController.emptyCart);
-router.post('/checkout', verifyAccessToken, permissions(["user","admin"]), CartController.checkout);
+
+// router.get('/myorder', verifyAccessToken, permissions(["user","admin"]), CartController.getAllOrdersForAUser);
+// router.post('/add-to-cart', verifyAccessToken, permissions(["user","admin"]), CartController.addToCart);
+// router.patch('/remove-from-cart', verifyAccessToken, permissions(["user","admin"]), CartController.removeFromCart);
+// router.patch('/remove-single-item-from-cart', verifyAccessToken, permissions(["user","admin"]), CartController.removeSingleItemFromCart);
+// router.delete('/empty-cart', verifyAccessToken, permissions(["user","admin"]), CartController.emptyCart);
+// router.post('/checkout', verifyAccessToken, permissions(["user","admin"]), CartController.checkout);
 
 module.exports = router;
