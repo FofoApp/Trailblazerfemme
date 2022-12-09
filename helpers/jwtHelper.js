@@ -137,6 +137,8 @@ exports.resetPasswordToken = (user) => {
 
 exports.verifyAccessToken =  async (req, res, next) => {
 
+    let user;
+
     try {
         
     if(!req.headers['authorization']) return next(createError.Unauthorized());
@@ -151,9 +153,13 @@ exports.verifyAccessToken =  async (req, res, next) => {
     
     const payload  = JWT.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
+    console.log(payload)
+
     if (!isValidObjectId(payload.id)) return next(createError.BadRequest("Invalid request"));
 
-    const user = await UserModel.findById(payload.id).exec();
+    if(payload) {
+        user = await UserModel.findById(payload?.id);
+    }
 
     const user_data = {
         id: user.id,
