@@ -153,7 +153,7 @@ exports.verifyAccessToken =  async (req, res, next) => {
     
     const payload  = JWT.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
-    console.log(payload)
+    // console.log(payload)
 
     if (!isValidObjectId(payload.id)) return next(createError.BadRequest("Invalid request"));
 
