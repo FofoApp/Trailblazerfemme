@@ -148,7 +148,7 @@ app.use((err, req, res, next) => {
 app.set('port', PORT);
 
 
-connectDB()
+      connectDB()
       .then(() => {
             app.listen(PORT, () => console.log(`App running on port: ${PORT}`));
       })

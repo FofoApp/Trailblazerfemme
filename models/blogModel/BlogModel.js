@@ -30,6 +30,13 @@ const blogModelSchema = new mongoose.Schema({
 
 { timestamps: true });
 
+blogModelSchema.virtual('blog_comment_count', {
+    ref: 'BlogComment',
+    localField: '_id',
+    foreignField: 'blogId',
+    count: true
+})
+
 
 // blogModelSchema.virtual('likes').get(function() {
     
@@ -57,12 +64,16 @@ blogModelSchema.options.toJSON = {
             })
         }
 
+    
+
         ret.blogComments = ret.blogComments.length || 0;
         ret.blogLikes = ret.blogLikes.length ? ret.blogLikes.length : 0;
         ret.blogviews = ret.blogviews.length ? ret.blogviews.length : 0;
         ret.id = ret._id;
         delete ret._id;
         delete ret.__v;
+
+        console.log(ret.blogComments)
 
         return ret;
     }

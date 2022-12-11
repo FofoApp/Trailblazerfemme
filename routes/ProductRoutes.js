@@ -41,7 +41,7 @@ router.delete('/:productId/delete', verifyAccessToken, permissions(["admin"]), P
 
 //PRODUCT CATEGORY ROUTES
 
-router.get('/categories/get', verifyAccessToken,  permissions(["admin"]), productCategoryController.categories);
+router.get('/categories/fetch', verifyAccessToken,  permissions(["admin"]), productCategoryController.categories);
 router.post('/category/create', verifyAccessToken,  permissions(["admin"]), productCategoryController.createProductCategory);
 router.get('/category/search', verifyAccessToken,  permissions(["user","admin"]), productCategoryController.searchProductByCategory);
 router.patch('/category/:productCategoryId/update', verifyAccessToken,  permissions(["admin"]), productCategoryController.updateProductCategoryById);

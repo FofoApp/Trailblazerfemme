@@ -242,7 +242,7 @@ exports.createNewPodcast = async (req, res, next) => {
 
    const file = req.file;
 
-   if(!file) return res.status(400).send({ error: "Please upload an image"});
+   if(!file) return res.status(400).send({ error: "Please upload podcast image"});
 
     try {
 
