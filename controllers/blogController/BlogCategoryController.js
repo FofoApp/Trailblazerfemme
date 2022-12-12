@@ -36,8 +36,10 @@ exports.FetchBlogCategories = async (req, res, next) => {
 
 exports.FetchBlogCategoryById = async (req, res, next) => {
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
+
+    const { blogCategoryId } = req.params;
     try {
-        const findBlogCategoryExist = await BlogCategoryModel.findById(req.params.blogCategoryId);
+        const findBlogCategoryExist = await BlogCategoryModel.findById(blogCategoryId);
 
         if(!findBlogCategoryExist) {
             return res.status(401).send({ message: "Blog Category not found" });

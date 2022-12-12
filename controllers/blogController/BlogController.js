@@ -1090,7 +1090,7 @@ exports.blogComment = async (req, res, next) => {
         
         let updateBlog = await BlogModel.findById(blogId);
 
-        updateBlog.blogComments = savedBlogComment._id;
+        updateBlog.blogComments.push(savedBlogComment._id);
 
         updateBlog.comments.push(commentData);
 

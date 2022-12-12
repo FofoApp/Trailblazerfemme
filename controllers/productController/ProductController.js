@@ -185,6 +185,11 @@ exports.listProducts = async (req, res, next) => {
         } : {}
 
         const product_category = await productCategoryModel.find({})
+                                                          .populate({
+                                                            path: 'products',
+                                                            model: "Product",
+                                                            select: "name product_images "
+                                                          })
         
         const products2 = await ProductModel.paginate(search)
 

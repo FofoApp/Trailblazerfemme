@@ -7,7 +7,13 @@ const { productValidation, productCategoryValidation } = require('./../../valida
 exports.categories = async(req, res) => {
 
     try {
-        const categories = await ProductCategoryModel.find({}).select("-updatedAt")
+        const categories = await ProductCategoryModel.find({})
+                                                    .populate({
+                                                        path: 'products',
+                                                        model: "Product",
+                                                        select: "name product_images "
+                                                    })
+
         if(!categories) {
             return res.status(404).send({ error: 'No response found '})
 
