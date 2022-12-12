@@ -1088,11 +1088,13 @@ exports.blogComment = async (req, res, next) => {
  
         const savedBlogComment = await newComment.save();
         
-        let updateBlog = await BlogModel.findById(blogId);
+        let updateBlog = await BlogModel.findByIdAndUpdate(blogId, { $push: { blogComments: savedBlogComment._id }  }, { new: true } );
 
-        updateBlog.blogComments.push(savedBlogComment._id);
+        // updateBlog.blogComments.push(savedBlogComment._id);
 
-        updateBlog.comments.push(commentData);
+        // updateBlog.comments.push(commentData);
+
+
 
         // return res.status(200).send({ updateBlog });
 
