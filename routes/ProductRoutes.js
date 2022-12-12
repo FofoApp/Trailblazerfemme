@@ -21,7 +21,7 @@ router.post('/:productId/review', verifyAccessToken, permissions(["user","admin"
 router.get('/lists', verifyAccessToken, permissions(["user","admin"]), ProductController.listProducts);
 
 router.get('/:categoryId', verifyAccessToken, permissions(["user","admin"]), ProductController.getProductsByCategory);
-router.get('/:productId/get', verifyAccessToken, permissions(["user","admin"]), ProductController.getProductById);
+router.get('/:productId/product', verifyAccessToken, permissions(["user","admin"]), ProductController.getProductById);
 
 
 

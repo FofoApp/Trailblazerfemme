@@ -611,14 +611,12 @@ exports.FetchBlogById = async (req, res, next) => {
         let blogPosts = await BlogModel.findById(blogId)
                                     .select('createdAt name blogLikes blogviews blogComments description blogImage createdBy')
                                     .populate('createdBy', 'fullname createdAt profileImage')
-                                    .populate('blog_comment_count')
                                     .populate({
                                         path: 'blogCategory',
                                         model: 'BlogCategory',
                                         select: 'name createdAt',
                                     });
             
-            console.log({ counts: blogPosts.blog_comment_count })
 
         let blogComments = await BlogCommentModel.paginate({ blogId: blogId }, {
                                     page: comments, 
