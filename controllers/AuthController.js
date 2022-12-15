@@ -7,7 +7,7 @@ const bcrypt = require('bcrypt');
 const JWT = require('jsonwebtoken');
 const { cloudinary } = require('./../helpers/cloudinary');
 const sdk = require('api')('@sendchamp/v1.0#1v843jkyvjm1me');
-
+const { sendMail } =  require('./../helpers/sendMail')
 
 const { registerValidation, 
     loginValidation, 
@@ -92,6 +92,8 @@ exports.register = async (req, res, next) => {
             // return res.json({ accessToken })
     
             refreshAccessToken = new RefreshAccessToken({ userId: doesExist.id,  accessToken, refreshToken});
+
+            const sentMail  = await sendMail(email, otpCode);
             
             await refreshAccessToken.save();
     
@@ -198,7 +200,7 @@ exports.register = async (req, res, next) => {
         }
 
         refreshAccessToken = new RefreshAccessToken({ userId: savedUser.id,  accessToken, refreshToken});
-        
+        const sentMail  = await sendMail(email, otpCode);
         await refreshAccessToken.save();
 
         return res.status(200).send({accessToken, refreshToken, userId: savedUser.id, stage: 1, otp: otpCode,  message: "Otp has been sent to your phone"});
