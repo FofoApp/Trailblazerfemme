@@ -62,8 +62,6 @@ exports.register = async (req, res, next) => {
 
         const doesExist = await User.findOne({ email: result?.email });
 
-        console.log(doesExist?.email === result?.email && !doesExist.accountVerified)
-
         if(doesExist?.email === result?.email && !doesExist.accountVerified) {
 
             const otpCode = generateFourDigitsOTP();
@@ -109,7 +107,36 @@ exports.register = async (req, res, next) => {
         const nextPaymentDate = calculateNextPayment(annually, moment().format());
         
         // if(doesExist) throw createError.Conflict(`${result.email} is a verified user`);
-        if(doesExist) return res.status(402).json({ error: `${result.email} is a verified user, proceed to membership`, stage: 2 })
+
+        if(doesExist?.email === result?.email && doesExist.accountVerified) {
+
+            const { _id: id, email, roles, fullname: username, field } = doesExist;
+
+            const userObject = {  id, email, roles, username, field };
+
+            const accessToken = signInAccessToken(userObject);
+
+            const refreshToken = signInRefreshToken(userObject);
+    
+            let refreshAccessToken = await RefreshAccessToken.findOne({ userId: doesExist.id });
+            
+            if(refreshAccessToken) await refreshAccessToken.remove();
+    
+            refreshAccessToken = new RefreshAccessToken({ userId: doesExist.id,  accessToken, refreshToken});
+            
+            await refreshAccessToken.save();
+
+             const userdata = {
+                success: true,
+                message: `${result.email} is a verified user, proceed to membership`,
+                stage: 2,
+                accessToken,
+                refreshToken,
+                userId: doesExist.id
+            }
+
+            return res.status(200).json(userdata);
+        }
        
         const user = new User({...result,  nextPaymentDate });
 
@@ -715,13 +742,47 @@ exports.verifyOtp = async (req, res, next) => {
 
         if(!user) return res.status(400).send({ error: "Unprocessible OTP ", stage: 1 });
         
+        
         const verified = await User.findByIdAndUpdate(isOtpFound.userId, { $set: { accountVerified: true }}, { new: true});
        
         if(verified) {
             await Otpmodel.findByIdAndDelete(isOtpFound.id)
             
         }
-        return res.status(200).send({ message: "Otp verified", stage: 2 });
+
+
+        const { _id: id, email, roles, fullname: username, field } = verified;
+
+        const userObject = {  id, email, roles, username, field };
+
+        if(verified.profileImagePath) {
+            userObject.profileImagePath = verified.profileImagePath
+        }
+          
+        const accessToken = signInAccessToken(userObject);
+
+        const refreshToken = signInRefreshToken(userObject);
+
+        let refreshAccessToken = await RefreshAccessToken.findOne({ userId: verified.id });
+        
+        if(refreshAccessToken) {
+            await refreshAccessToken.remove();
+        }
+
+        refreshAccessToken = new RefreshAccessToken({ userId: verified.id,  accessToken, refreshToken});
+        
+        await refreshAccessToken.save();
+
+        const userdata = {
+            success: true,
+            message: "Otp verified",
+            stage: 2,
+            accessToken,
+            refreshToken,
+            userId: verified.id
+        }
+
+        return res.status(200).send(userdata);
 
     } catch (error) {
         
