@@ -34,6 +34,7 @@ const Membership = require('../models/adminModel/AdminMembershipModel');
 const MembershipSubscriber = require('../models/membershipModel/MembershipSubscribersModel');
 runCron();
 exports.register = async (req, res, next) => {
+
     //POST REQUEST
     //http://localhost:2000/api/auth/register
     /**
@@ -59,9 +60,11 @@ exports.register = async (req, res, next) => {
 
         const result = await registerValidation(req.body);
 
-        const doesExist = await User.findOne({ fullname: result?.fullname, email: result?.email });
+        const doesExist = await User.findOne({ email: result?.email });
 
-        if(doesExist?.fullname === result?.fullname || doesExist?.email === result?.email && doesExist.accountVerified === false) {
+        console.log(doesExist?.email === result?.email && !doesExist.accountVerified)
+
+        if(doesExist?.email === result?.email && !doesExist.accountVerified) {
 
             const otpCode = generateFourDigitsOTP();
 
@@ -103,11 +106,12 @@ exports.register = async (req, res, next) => {
 
         // const otpUserExist = await Otpmodel.findOne({ userId: doesExist.id });
 
-        const date = calculateNextPayment(annually, moment().format());
+        const nextPaymentDate = calculateNextPayment(annually, moment().format());
         
-        if(doesExist) throw createError.Conflict(`${result.email} already exist`);
+        // if(doesExist) throw createError.Conflict(`${result.email} is a verified user`);
+        if(doesExist) return res.status(402).json({ error: `${result.email} is a verified user, proceed to membership`, stage: 2 })
        
-        const user = new User({...result,  nextPaymentDate: date});
+        const user = new User({...result,  nextPaymentDate });
 
         // const follow = await FollowersAndFollowingModel.create({userId: user._id});
         
