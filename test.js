@@ -19,6 +19,6 @@ const calculateNextPayment = (chargeType) => {
     
     return "Invalid";
 }
-
+// https://github.com/FofoApp/Trailblazerfemme.git
 console.log(calculateNextPayment('years'))
 console.log(moment(new Date()).format('YYYY-MM-DD[T00:00:00.000Z]'))

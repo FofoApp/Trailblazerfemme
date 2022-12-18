@@ -49,6 +49,7 @@ const blogModelSchema = new mongoose.Schema({
 blogModelSchema.options.toJSON = {
     // virtuals: true,
     transform: function(doc, ret, options){
+        
         if(ret.comments) {
             ret.comments.map((comment) => {
                 comment.id = comment._id;
@@ -56,8 +57,6 @@ blogModelSchema.options.toJSON = {
                 return comment;
             })
         }
-
-    
 
         ret.blogComments = ret.blogComments.length || 0;
         ret.blogLikes = ret.blogLikes.length || 0;

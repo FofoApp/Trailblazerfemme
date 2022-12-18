@@ -116,21 +116,23 @@ exports.createNewProduct = async (req, res, next) => {
    
     try {
 
-        let product = await ProductModel.findOne({ name });
+        let product_images = [];
 
-        if(product) return res.status(400).send({ error: "Product name already taken"});
+        const files = req.files;
+
+        if(!files)  return res.status(400).send({ error: "Upload product images"});
+
+        if(files.length > 3) {
+            return res.status(400).send({ error: "Maximum file upload cannot be more than 3" })
+        }
 
         const product_category = await ProductCategory.findById(category)
 
         if(!product_category) return res.status(400).send({ error: "Product category not found"});
 
-        let product_images = [];
+        let product = await ProductModel.findOne({ name });
 
-        const files = req.files;
-
-        if(files.length > 3) {
-            return res.status(200).send({ error: "Maximum file upload cannot be more than 3"})
-        }
+        if(product) return res.status(400).send({ error: "Product name already taken"});
 
         for (const file of files) {
         const { path } = file;
@@ -147,7 +149,12 @@ exports.createNewProduct = async (req, res, next) => {
             description,
             product_images,
             product_variation: [
-                { price: Number(price), qty: Number(qty), size,  color }
+                {   
+                    price: Number(price), 
+                    qty: Number(qty),
+                    size,  
+                    color 
+                }
             ]
         }
 
@@ -156,16 +163,13 @@ exports.createNewProduct = async (req, res, next) => {
 
         const savedProduct  = await new_product.save();
 
+        if(!savedProduct) return res.status(400).send({ success: false, error: "Unable to create product"});
+
         product_category.products.addToSet(savedProduct._id)
 
         await product_category.save()
 
-        if(!savedProduct) return res.status(400).send({ success: false, error: "Unable to create product"});
-
         return res.status(201).send({ success: true, product: savedProduct});
-
-
-
 
     } catch (error) {
         // console.log(error)
@@ -216,7 +220,7 @@ exports.getProductsByCategory = async (req, res, next) => {
         if(!mongoose.Types.ObjectId.isValid(categoryId)) {
             return res.status(400).send({ error: "Invalid Id"});
         }
-        const products = await ProductModel.find({categoryId: categoryId });
+        const products = await ProductModel.find({ categoryId });
 
         if(!products) {
             return res.status(404).send({ error: "No product found" });
@@ -322,10 +326,10 @@ exports.updateProductById = async (req, res, next) => {
         
         }
 
+        if(name)   product_data["name"] = name
         if(category) product_data["category"] = category
         if(description) product_data["description"] = description
 
-        if(name)   product_data["name"] = name
         if(price)  product_object['price'] = Number(price)
         if(qty)    product_object["qty"] = Number(qty)
         if(size)   product_object["size"] = size
@@ -385,11 +389,12 @@ exports.deleteProductById = async (req, res, next) => {
         if(product && product.product_images && product.product_images.length > 0) {
             
             product.product_images.forEach((imagePublicId) => {
+                //Delete all product images from cloudinary
                 const deletedImages = multiDelete(imagePublicId.public_id);
                 if(!deletedImages) return res.status(400).send({ error: "Unable to unset images"})
             });
-
-            //Delete all product images from cloudinary
+            
+            //Delete product from database
             await product.remove();
 
         }

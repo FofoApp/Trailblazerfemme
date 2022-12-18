@@ -2,6 +2,7 @@
     const router = express.Router();
 
     const BlogController = require('./../controllers/blogController/BlogController');
+    const BlogCommentController = require('./../controllers/blogController/BlogCommentController');
     const BlogCategoryController = require('./../controllers/blogController/BlogCategoryController');
     const { verifyAccessToken } = require('./../helpers/jwtHelper');
     const { permissions } = require('./../middlewares/permissionsMiddleware');
@@ -22,6 +23,8 @@
     router.post('/:blogId/comment/create', verifyAccessToken, BlogController.blogComment);
     // router.patch('/:blogId/comment', verifyAccessToken, BlogController.blogComment);
     router.patch('/:blogId/delete-blog-comment', verifyAccessToken, permissions(["admin"]),  BlogController.deleteBlogComment);
+    router.patch('/:blogId/update/:commentId', verifyAccessToken, permissions(["admin"]),  BlogCommentController.updateBlogCommentById);
+    router.delete('/:blogId/delete/:commentId', verifyAccessToken, permissions(["admin"]),  BlogCommentController.deleteBlogCommentById);
 
     //LIKE AND DISLIKE
     router.patch('/:blogId/like', verifyAccessToken, BlogController.blogLikes);

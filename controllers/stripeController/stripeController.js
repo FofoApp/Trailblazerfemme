@@ -23,9 +23,9 @@ exports.stripeCheckout = async (req, res) => {
     // })
 
  
-    const { orderItems, taxPrice, shippingPrice, itemsPrice, totalPrice } = req.body
-
-
+    const { orderItems, shippingAddress, taxPrice, shippingPrice, itemsPrice, totalPrice } = req.body
+ 
+    console.log(orderItems, shippingAddress, taxPrice, shippingPrice, itemsPrice, totalPrice)
     const line_items = orderItems?.map((item) => {
 
         return {
@@ -47,31 +47,14 @@ exports.stripeCheckout = async (req, res) => {
 
           }
     } )
+
+
     try {
 
-
       const order_details = {
-
         user: req.user.id,
         orderItems: orderItems,
-
-        shippingAddress: {
-
-          address: "Abuja",
-          city: "Sunnyvale",
-          postalCode: "233444",
-          country: "Nigeria",
-          paymentMethod: "Stripe",
-
-        },
-
-        // paymentResult: {
-        //   orderId: "ddddddddddddddddddd",
-        //   status: "paid",
-        //   update_time: Date.now(),
-        //   email_address: req.user.email,
-        // },
-
+        shippingAddress,
 
         taxPrice,
         shippingPrice,
@@ -88,6 +71,7 @@ exports.stripeCheckout = async (req, res) => {
         const session = await stripe.checkout.sessions.create({
 
             payment_method_types: ['card'],
+
           //   shipping_address_collection: { allowed_countries: ['US', 'CA'] },
           //   shipping_options: [
           //     {
@@ -134,11 +118,7 @@ exports.stripeCheckout = async (req, res) => {
     const userId = req.user.id
     const membershipId = membership_data.memId
 
-    console.log(membership_data)
-
     try {
-
-      console.log(!mongoose.Types.ObjectId.isValid(membershipId))
  
         if(!mongoose.Types.ObjectId.isValid(membershipId)) {
           

@@ -4,22 +4,29 @@ const BlogCommentModel = require('./../../models/blogModel/BlogCommentModel');
 const BlogModel = require('./../../models/blogModel/BlogModel');
 
 exports.createNewBlogComment = async (req, res, next) => {
+
     //NOTE::: REMEMBER TO VALIDATE FOR USER INPUT BEFORE FURTHER PROCESSING
-    
+
+    const userId = req.user.id;
+    let { blogId } = req.params;
+    const { comment } = req.body;
+
     try {
-        let blogId = req.params.blogId;
         if(!mongoose.Types.ObjectId.isValid(blogId)) {
             return res.status(400).send({ message: "Invalid blogId"})
         }
-        const findBlogCommentExists  = await BlogCommentModel.findOne({ blogId: blogId });
+        const findBlogCommentExists  = await BlogCommentModel.findOne({ blogId });
 
         if(!findBlogCommentExists){
             return res.status(400).send({ message: "Comment not found"})
         }
 
-        let newBlogComment = new BlogCommentModel({...req.body, blogId: blogId, userId: req.user.id });
+        let newBlogComment = new BlogCommentModel({ comment, blogId, userId });
         const savedBlogComment = await newBlogComment.save();
-        await BlogModel.updateOne({ _id: blogId }, { $push: { blogComment: savedBlogComment._id } });
+
+        await BlogModel.updateOne({ _id: blogId }, 
+            { $push: { blogComment: savedBlogComment._id } 
+        });
 
         let query = [
 			{
@@ -52,9 +59,7 @@ exports.FetchBlogComments = async (req, res, next) => {
     //http://localhost:2000/api/blog/6286c236fbc9ab5d15903635/comments?perPage=2
     try {
 
-        let blogId = req.params.blogId;
-
-        console.log(blogId)
+        let { blogId } = req.params;
 
         if(!mongoose.Types.ObjectId.isValid(blogId)) {
             return res.status(400).send({ message: "Invalid blogId"})
@@ -122,8 +127,13 @@ exports.SearchBlogCommmentByCommentId = async (req, res, next) => {
 
 exports.updateBlogCommentById = async (req, res, next) => {
     //NOTE::: REMEMBER TO VALIDATE FOR USER INPUT BEFORE FURTHER PROCESSING
+    const {id: currentUser, role } = req.user;
+
+    const { blogId, commentId } = req.params;
+
+    const { comment } = req.body
+
     try {
-        let commentId = req.params.commentId;
         if(!mongoose.Types.ObjectId.isValid(blogId)) {
             return res.status(400).send({ message: "Invalid Comment Id"})
         }
@@ -133,28 +143,27 @@ exports.updateBlogCommentById = async (req, res, next) => {
             return res.status(400).send({ message: "Comment not found"})
         }
 
-        let currentUser = req.user;
-        if(findBlogCommentExists._id !== currentUser.id) {
-            return res.status(400).send({ message: "Access Denied"})
+        if(findBlogCommentExists.commentedBy.toString() !== currentUser.toString() && role !== 'admin') {
+            return res.status(400).send({ message: "You are not allowed to update a blog not created by you"})
         }
 
-        await BlogCommentModel.updateOne({ _id: commentId }, {$set: { comment: req.body.comment }});
+        await BlogCommentModel.updateOne({ _id: commentId }, { $set: { comment }});
 
-        let query = [
-			{
-				$lookup: { from: "users", localField: "userId", foreignField: "_id", as: "user" },
+        // let query = [
+		// 	{
+		// 		$lookup: { from: "users", localField: "userId", foreignField: "_id", as: "user" },
                 
-			},
-            {$unwind: '$user'},
-            {
-                $match: { '_id': mongoose.Types.ObjectId(commentId) }
-            },
-            {
-                $sort: { createdAt: -1 }
-            }
-        ];
+		// 	},
+        //     {$unwind: '$user'},
+        //     {
+        //         $match: { '_id': mongoose.Types.ObjectId(commentId) }
+        //     },
+        //     {
+        //         $sort: { createdAt: -1 }
+        //     }
+        // ];
 
-        const comments = await BlogCommentModel.aggregate(query);
+        // const comments = await BlogCommentModel.aggregate(query);
         return res.status(200).send({ message: "Blog Comments updated successfully"});
 
     } catch (error) {
@@ -164,8 +173,16 @@ exports.updateBlogCommentById = async (req, res, next) => {
 
 
 exports.deleteBlogCommentById = async (req, res, next) => {
+
+    const currentUser = req.user.id;
+    const role = req.user.role;
+
+    const { blogId, commentId } = req.params;
+
+    
+
     try {
-        let commentId = req.params.commentId;
+
         if(!mongoose.Types.ObjectId.isValid(blogId)) {
             return res.status(400).send({ message: "Invalid Comment Id"})
         }
@@ -175,29 +192,13 @@ exports.deleteBlogCommentById = async (req, res, next) => {
             return res.status(400).send({ message: "Comment not found"})
         }
 
-        let currentUser = req.user;
-        if(findBlogCommentExists._id !== currentUser.id) {
-            return res.status(400).send({ message: "Access Denied"})
+        if(findBlogCommentExists.commentedBy.toString() !== currentUser.toString() && role !== 'admin' ) {
+            return res.status(400).send({ message: "You are not allowed to delete a blog not created by you"})
         }
 
         await BlogCommentModel.deleteOne({ _id: commentId });
-        await BlogModel.updateOne({_id: findBlogCommentExists.blogId }, { $pull: { blogComment: commentId }});
+        await BlogModel.updateOne({_id: findBlogCommentExists.blogId }, { $pull: { blogComments: commentId }});
 
-        let query = [
-			{
-				$lookup: { from: "users", localField: "userId", foreignField: "_id", as: "user" },
-                
-			},
-            {$unwind: '$user'},
-            {
-                $match: { '_id': mongoose.Types.ObjectId(commentId) }
-            },
-            {
-                $sort: { createdAt: -1 }
-            }
-        ];
-
-        const comments = await BlogCommentModel.aggregate(query);
         return res.status(200).send({ message: "Blog Comments updated successfully"});
 
     } catch (error) {

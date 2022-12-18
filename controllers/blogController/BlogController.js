@@ -50,7 +50,7 @@ exports.getSpecificBlogAndItsComments = async (req, res, next) => {
 
 exports.blog = async (req, res) => {
 
-
+//  blogComments: -1,  blogLikes: -1,  blogviews: -1,
     //GET REQUEST
     //http://localhost:2000/api/blog
     // const userId = "628695d03cf50a6e1a34e27b";
@@ -81,7 +81,7 @@ exports.blog = async (req, res) => {
         const hotm = await BlogModel.paginate({}, 
             { 
                 page: hot_page, limit: 5,  
-                select: "createdAt name blogLikes description blogImage createdBy blogviews",
+                select: "createdAt name blogLikes description blogImage createdBy blogComments blogviews",
                 populate: [{
                     path: 'createdBy',
                     model: 'User',
@@ -93,7 +93,9 @@ exports.blog = async (req, res) => {
                         select: 'name createdAt',
                     }
             ],
-                sort: { createdAt: -1 },
+                sort: [
+                    [{ blogComments: -1,  blogLikes: -1,  blogviews: -1, }]
+                ],
             }
             );
 
@@ -101,7 +103,7 @@ exports.blog = async (req, res) => {
         const recents = await BlogModel.paginate({},
                 {
                     page: recent_page, limit: 5,
-                    select: "createdAt name blogLikes description blogImage createdBy blogviews",
+                    select: "createdAt name blogComments blogLikes description blogImage createdBy blogviews",
                     populate: [{
                         path: 'createdBy',
                         model: 'User',
@@ -113,15 +115,20 @@ exports.blog = async (req, res) => {
                             select: 'name createdAt',
                         }
                 ],
-                    sort: { createdAt: -1 },
+
+                sort: [
+                    [{ blogComments: -1,  blogLikes: -1,  blogviews: -1, }]
+                ],
+
                 }
+                
              );
 
 
         const populars = await BlogModel.paginate({},
             {
                 page: populars_page, limit: 5,
-                select: "createdAt name blogLikes description blogImage createdBy blogviews",
+                select: "createdAt name blogComments blogLikes description blogImage createdBy blogviews",
                 populate: [
                     {
                     path: 'createdBy',
@@ -134,7 +141,10 @@ exports.blog = async (req, res) => {
                         select: 'name createdAt',
                     }
             ],
-                sort: { createdAt: -1 },
+                
+                sort: [
+                    [{ blogComments: -1,  blogLikes: -1,  blogviews: -1, }]
+                ],
             });
 
         
@@ -1073,12 +1083,12 @@ exports.listBlogComment = async (req, res, next) => {
 
 exports.blogComment = async (req, res, next) => {
     let { comment } = req.body;
-    const createdBy =  mongoose.Types.ObjectId(req.user.id);
+    const currentUser =  mongoose.Types.ObjectId(req.user.id);
     const { blogId } = req.params;
    
     try {
 
-        let commentData = { comment, commentedBy:createdBy, blogId, };
+        let commentData = { comment, commentedBy:currentUser, blogId };
 
         let user = await UserModel.findOne({ _id: req.user.id});
 
@@ -1086,15 +1096,10 @@ exports.blogComment = async (req, res, next) => {
  
         const savedBlogComment = await newComment.save();
         
-        let updateBlog = await BlogModel.findByIdAndUpdate(blogId, { $push: { blogComments: savedBlogComment._id }  }, { new: true } );
-
-        // updateBlog.blogComments.push(savedBlogComment._id);
-
-        // updateBlog.comments.push(commentData);
-
-
-
-        // return res.status(200).send({ updateBlog });
+        let updateBlog = await BlogModel.findByIdAndUpdate(blogId,
+            { $push: 
+                { blogComments: savedBlogComment._id }  
+            }, { new: true } );
 
         const commented_data = {
             comment: savedBlogComment.comment,
@@ -1122,14 +1127,26 @@ exports.blogComment = async (req, res, next) => {
 }
 
 
-exports.deleteBlogComment = (req, res, next) => {
+exports.deleteBlogComment = (req, res) => {
+
+    // let { commentId } = req.body;
+  
+    let currentUser = req.user;
+    const { blogId } = req.params;
+    let { commentId } = req.body;
+    
+
     try {
-        // {"commentId": "Updated" }
-        let {comment} = req.body.commentId;
-            BlogModel.findByIdAndUpdate(req.params.blogId, {$pull: { comments: { _id: {$eq: mongoose.Types.ObjectId(comment)} } }}, 
+ 
+            BlogModel.findByIdAndUpdate(blogId, 
+                { $pull: 
+                    { comments: { _id: {$eq: mongoose.Types.ObjectId(commentId)} 
+                } 
+            } }, 
             {new: true})
             .populate("comments.commentedBy", "fullname")
             .populate("createdBy", "fullname")
+
             .exec((err, result) =>{
             if(err) {
                 return res.status(400).json({ error: err });

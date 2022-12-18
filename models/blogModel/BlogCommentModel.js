@@ -7,13 +7,13 @@ const blogCommentSchema = new mongoose.Schema({
     createdDate: { type: Date, default: Date.now },
     commentedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     
-    comments: [
-        {
-            comment: String,
-            createdDate: { type: Date, default: Date.now },
-            commentedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
-        },
-    ],
+    // comments: [
+    //     {
+    //         comment: String,
+    //         createdDate: { type: Date, default: Date.now },
+    //         commentedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+    //     },
+    // ],
 }, 
 
 { timestamps: true });

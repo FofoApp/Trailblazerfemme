@@ -19,12 +19,11 @@ const courseSchema = new mongoose.Schema({
         image_url: { type: String, required: true },
     }],
 
-    rating: { type: Number },
-    numReviews: { type: Number },
+    rating: { type: Number, default: 0 },
+    numReviews: { type: Number, default: 0 },
     
     courseLikes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User"}],
     new_joined: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    // categoryId: {type: mongoose.Schema.Types.ObjectId, ref: 'JobCategory'},
     reviewIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "CourseReview"}],
     
 }, { timestamps: true });
@@ -32,8 +31,6 @@ const courseSchema = new mongoose.Schema({
 
 courseSchema.options.toJSON = {
     transform: function(doc, ret, options) {
-
-        // ret.ratings_avg = ret.rating ? ret.blogviews.length : 0;
 
         ret.id = ret._id
         delete ret._id

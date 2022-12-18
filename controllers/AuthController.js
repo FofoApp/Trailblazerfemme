@@ -467,17 +467,18 @@ exports.uploadProfilePicture = async (req, res, next) => {
         // }
         
         // //Upload Image to cloudinary
-        const uploaderResponse = await cloudinary.uploader.upload(req.file.path);
+        const { public_id, secure_url} = await cloudinary.uploader.upload(req.file.path);
 
-        if(!uploaderResponse) {
+        if(!secure_url && !public_id) {
             //Reject if unable to upload image
             return res.status(404).send({ message: "Unable to upload image please try again"});
         }
 
-        const updatedProfileImage = await User.updateOne({_id:currentUser}, {$set: 
+        const updatedProfileImage = await User.updateOne({_id:currentUser}, 
+            { $set: 
             { 
-                profileImageCloudinaryPublicId: uploaderResponse.public_id,  
-                profileImage: uploaderResponse.secure_url
+                profileImageCloudinaryPublicId: public_id,  
+                profileImage: secure_url
             }
         
         }, { new: true });

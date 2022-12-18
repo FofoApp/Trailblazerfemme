@@ -9,7 +9,7 @@ const productSchema = new mongoose.Schema({
 
     product_variation: [
         {
-            size: {  type: String, uppercase: true,  default: "", required: [true, 'Size field is required'] },
+            size: {  type: String, uppercase: true, required: [true, 'Size field is required'] },
             price: {  type: Number, min:0,  default: 0, required: [true, 'Price field is required'] },
             qty: {  type: Number, min:0,  default: 0, required: [true, 'Quantity field is required'] },
             color: {  type: String,   default: "", required: [true, 'Color field is required'] },
@@ -17,13 +17,15 @@ const productSchema = new mongoose.Schema({
     ],
 
 
-    product_images: [  { public_id: { type: String } , secure_url: { type: String } } ],
-
-    // reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
+    product_images: [{
+            public_id: { type: String },
+            secure_url: { type: String }
+        }],
 
     ratings: { type: Number, default: 0 },
 
     numOfReviews: { type: Number, default: 0 },
+    
     reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ProductReview', default: [] }] ,
 
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
