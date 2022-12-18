@@ -28,7 +28,8 @@ exports.createNewCourse = async (req, res) => {
         description,
         author_name_one,
         author_name_two, 
-        author_name_three
+        author_name_three,
+        category
     } = req.body;
 
 
@@ -88,7 +89,8 @@ exports.createNewCourse = async (req, res) => {
             name, 
             accessType, 
             duration, 
-            description, 
+            description,
+            category,
             courseImage: [{
                 public_id: public_id,
                 image_url: secure_url,
