@@ -46,6 +46,7 @@ exports.profile = async (req, res, next) => {
 
         // profile = await UserModel.findOne({ userId: userId });
 
+   
         if(!profile)  return res.status(404).send({error: "User profile not found"});
 
     
