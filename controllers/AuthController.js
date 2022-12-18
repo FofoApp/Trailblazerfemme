@@ -249,11 +249,11 @@ exports.login = async (req, res, next) => {
         // }
 
         let membership_details = {
-            subscriptionId: user?.subscriptionId,
+            // subscriptionId: user?.subscriptionId,
              paid: user?.paid, 
              membershipType: user?.membershipType, 
              isActive: user?.isActive, 
-             amount: user?.amount,
+            //  amount: user?.amount,
         }
     
         const isMatch = await user.isValidPassword(result.password);
@@ -281,7 +281,7 @@ exports.login = async (req, res, next) => {
 
         const savedRefreshAccessToken = await refreshAccessToken.save();
         
-        return res.status(200).send({accessToken, refreshToken });
+        return res.status(200).send({accessToken, refreshToken, membership_details });
 
     } catch (error) {
         if(error.isJoi === true) {           
