@@ -6,6 +6,7 @@ const courseSchema = new mongoose.Schema({
     name: { type: String, required: true },
     description: { type: String, required: true },
     accessType: { type: String, required: true },
+    category: { type: mongoose.Schema.Types.ObjectId, ref: "CourseCategory"},
     duration: { type: String, required: true },
 
     courseImage: [{
