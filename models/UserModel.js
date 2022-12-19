@@ -33,7 +33,7 @@ const userSchema = new Schema({
     // amount: { type: Number },                           //$25
 
     subscriptionId: {type: mongoose.Schema.Types.ObjectId, ref: "MembershipSubscriber", default: null},
-    membershipType: { type: String, default: null },
+    membershipType: { type: String, default: "Free" },
     isActive: { type: Boolean, default: false  },
     paid: { type: Boolean, default: false },
     amount: { type: Number,  default: 0 }, 
