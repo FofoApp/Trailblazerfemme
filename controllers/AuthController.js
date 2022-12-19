@@ -280,8 +280,23 @@ exports.login = async (req, res, next) => {
             });
 
         const savedRefreshAccessToken = await refreshAccessToken.save();
+
+        // const user_info {
+        //     email: user?.email, 
+        // }
         
-        return res.status(200).send({accessToken, refreshToken, membership_details });
+        return res.status(200).send({ 
+            accessToken, refreshToken, 
+            membership_details,
+
+            fullname: user.fullname,
+            phonenumber: user.phonenumber,
+            role: user.roles[0],
+
+            // email: user.email,
+            // field: user.field,
+            // city:  user.cityState
+        });
 
     } catch (error) {
         if(error.isJoi === true) {           

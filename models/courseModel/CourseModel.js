@@ -16,8 +16,8 @@ const courseSchema = new mongoose.Schema({
 
      createdBy: [{
         fullname: { type: String, required: true },
-        public_id: { type: String, required: true },
-        image_url: { type: String, required: true },
+        public_id: { type: String, default: "" },
+        image_url: { type: String, default: ""  },
     }],
 
     rating: { type: Number, default: 0 },

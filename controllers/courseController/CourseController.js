@@ -37,6 +37,10 @@ exports.createNewCourse = async (req, res) => {
 
         let author_data = [];
 
+        const findCourseCategory = await CourseCategory.findById(category);
+
+        if(!findCourseCategory) return res.status(400).json({ error: 'Course category does not exist' });
+
         const findCourseExist = await CourseModel.findOne({ name });
 
         if(findCourseExist) return res.status(400).json({ error: `Course ${name} already exist` });
