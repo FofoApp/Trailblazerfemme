@@ -236,14 +236,12 @@ exports.createNewPodcast = async (req, res, next) => {
     "tags": "Career, Black Women",
     "link": "podcastlink.com/podcast/getpodcast"
     "podcastCategoryId":"628aa41619bac3aea4eea770",
-    "podcastHostId":"628695d03cf50a6e1a34e27b"
     }
 
     */
 
    let { 
-        podcastCategoryId, 
-        podcastHostId, 
+        podcastCategoryId,
         name, 
         description,
         tags, 
