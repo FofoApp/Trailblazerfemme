@@ -47,7 +47,8 @@ podcastSchema.options.toJSON = {
         ret.id = ret._id
         delete ret._id
         delete ret.__v
-        delete ret.podcastCloudinaryPublicId
+        delete ret.podcastCloudinaryPublicId;
+        delete ret.createdBy;
         return ret;
      }
 };

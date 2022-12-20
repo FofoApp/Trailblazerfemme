@@ -289,8 +289,8 @@ exports.createNewPodcast = async (req, res, next) => {
 
             const { public_id: podcastImgId, secure_url:podcastImgUrl  } = await cloudinary.uploader.upload(req?.files?.podcastImage[0].path);
             
-            podcastImage = podcastImgId;
-            podcastCloudinaryPublicId = podcastImgUrl;
+            podcastImage = podcastImgUrl;
+            podcastCloudinaryPublicId = podcastImgId;
 
             podcastImages.push({
                 public_id: podcastImgId,
@@ -310,7 +310,7 @@ exports.createNewPodcast = async (req, res, next) => {
             })
 
         fs.unlinkSync(req?.files?.hostImage[0].path)
-        
+
         }
 
         const createPodcast = new PodcastModel({
