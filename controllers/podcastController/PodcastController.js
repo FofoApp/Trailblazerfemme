@@ -268,10 +268,6 @@ exports.createNewPodcast = async (req, res, next) => {
             return res.status(401).send({ error: "Unknown Podcast Category"})
         }
 
-        if(!mongoose.Types.ObjectId.isValid(podcastHostId)) {
-            return res.status(401).send({ error: "Unknown Podcast Host"})
-        }
-
         const findIfPodcastExist = await PodcastModel.findOne({ name });
 
         if(findIfPodcastExist) {
