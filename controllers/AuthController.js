@@ -26,7 +26,7 @@ const { signInAccessToken, signInRefreshToken, verifyRefreshToken, resetPassword
 const { generateFourDigitsOTP } = require('./../helpers/otpGenerator');
 const { sendGridMail } = require('./../helpers/sendGridMessaging');
 
-const {sendSMS} = require('./../helpers/twilioSMS');
+const { sendSMS } = require('./../helpers/twilioSMS');
 const { calculateNextPayment }  = require('./../helpers/billing');
 const runCron = require('../runCron')
 const moment = require('moment');
@@ -280,10 +280,6 @@ exports.login = async (req, res, next) => {
             });
 
         const savedRefreshAccessToken = await refreshAccessToken.save();
-
-        // const user_info {
-        //     email: user?.email, 
-        // }
         
         return res.status(200).send({ 
             accessToken, refreshToken, 

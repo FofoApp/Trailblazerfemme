@@ -5,7 +5,7 @@ const courseSchema = new mongoose.Schema({
 
     name: { type: String, required: true },
     description: { type: String, required: true },
-    accessType: { type: String, required: true },
+
     category: { type: mongoose.Schema.Types.ObjectId, ref: "CourseCategory"},
     duration: { type: String, required: true },
 
@@ -13,6 +13,9 @@ const courseSchema = new mongoose.Schema({
         public_id: { type: String, required: true },
         image_url: { type: String, required: true },
      }],
+
+     adminAccess: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+     accessType: { type: String, default: 'Free' },
 
      createdBy: [{
         fullname: { type: String, required: true },

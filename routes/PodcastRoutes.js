@@ -40,10 +40,15 @@ router.patch('/category/:podcastCateogryId/update', verifyAccessToken, permissio
 router.delete('/category/:podcastCateogryId/delete', verifyAccessToken, permissions(["admin"]),  PodcastCategoryController.deletePodcastCategoryById);
 router.get('/categories', verifyAccessToken,  PodcastCategoryController.PodcastCategories);
 
+const upload_data = [
+    {name: 'podcastImage', maxCount: 1 },
+    {name: 'hostImage', maxCount: 1},
+]
+
 
 //PODCAST
 router.get('/', verifyAccessToken, PodcastController.podcasts);
-router.post('/create', verifyAccessToken, permissions(["admin"]), upload.single('podcastImage'), PodcastController.createNewPodcast);
+router.post('/create', verifyAccessToken, permissions(["admin"]), upload.fields(upload_data), PodcastController.createNewPodcast);
 router.get('/lists', verifyAccessToken, PodcastController.listPodcasts);
 router.get('/search', verifyAccessToken, PodcastController.searchForPodcast);
 router.get('/:podcastId/search', verifyAccessToken, PodcastController.searchPodcastById);

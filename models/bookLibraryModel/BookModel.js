@@ -9,6 +9,10 @@ const bookSchema = new mongoose.Schema({
     ratings: { type: Number, default: 0 },
     store: { type: String, default: null },
     description: { type: String, trim: true, default: "" },
+    
+    adminAccess: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    accessType: { type: String, default: 'Free' },
+    
     bookImage: [{
         public_id: { type: String, required: true },
         image_url: { type: String, required: true },

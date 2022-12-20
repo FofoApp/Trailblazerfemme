@@ -449,18 +449,19 @@ exports.createNewBlog = async (req, res, next) => {
         }
 
         // //Upload Image to cloudinary
-        const uploaderResponse = await cloudinary.uploader.upload(req.file.path);
+        const { secure_url, public_id } = await cloudinary.uploader.upload(req.file.path);
 
-        if(!uploaderResponse) {
+        if(!secure_url) {
             //Reject if unable to upload image
             return res.status(404).send({ message: "Unable to upload image please try again"});
         }
 
         let blogData = {
             ...req.body,
-            createdBy:blogCreatedBy,            
-            blogImageCloudinaryPublicId: uploaderResponse.public_id,
-            blogImage: uploaderResponse.secure_url
+            createdBy:blogCreatedBy,
+            blogImageCloudinaryPublicId: public_id,
+            blogImage: secure_url,
+            blogImages: [{  public_id, image_url, }]
         }
 
         // return res.send(blogData)

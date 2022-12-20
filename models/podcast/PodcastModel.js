@@ -5,12 +5,20 @@ const mongoosePaginate = require('mongoose-paginate-v2');
 const podcastSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
     podcastImage: { type: String, required: true },
+    podcastImages: [{
+        public_id: { type: String, required: true },
+        image_url: { type: String, required: true },
+    }],
+    
+    adminAccess: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    accessType: { type: String, default: 'Free' },
+
     podcastCloudinaryPublicId: { type: String, required: true },
     description: { type: String, required: true, trim: true },
     link: { type: String, required: true, trim: true },
     podcastCategoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'PodcastCategory' },
-    // hosts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }],
     hosts: [{
+        fullname: { type: String, required: true },
         public_id: { type: String, required: true },
         image_url: { type: String, required: true },
      }],

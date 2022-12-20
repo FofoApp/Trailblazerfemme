@@ -4,6 +4,9 @@ const productSchema = new mongoose.Schema({
 
     name: { type: String, required: true, unique: true },
 
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    accessType: { type: String, default: 'Free' },
+
     description: { type: String, required: true },
     stock:  { type: Number, maxlength: [20, "Max stock size is 20"], default: 0 },
 

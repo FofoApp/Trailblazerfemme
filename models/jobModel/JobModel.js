@@ -8,8 +8,16 @@ const jobSchema = new mongoose.Schema({
     jobType: { type: String, required: true },
     jobField: { type: String, required: true },
 
+    adminAccess: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    accessType: { type: String, default: 'Free' },
+
     jobImagePath: { type: String, required: true },
     jobImageCloudinaryPublicId: { type: String, required: true },
+
+    jobImages: [{
+        public_id: { type: String, required: true },
+        image_url: { type: String, required: true },
+     }],
 
     position: { type: [String], required: true },
     qualification: { type: [String], required: true },

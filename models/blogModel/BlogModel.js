@@ -5,13 +5,20 @@ const blogModelSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true  },
     description:{ type: String, required: true },
     blogImage: { type: String, required: true },
+    adminAccess: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    accessType: { type: String, default: 'Free' },
     blogImageCloudinaryPublicId: { type: String, required: true },
+
+    blogImages: [{ 
+        public_id: { type: String, required: true },
+        image_url: { type: String, required: true },
+     }],
 
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
     blogCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'BlogCategory', required: true},
-    blogComments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BlogComment' }],
-    blogLikes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    blogviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    blogComments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BlogComment', default: [] }],
+    blogLikes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
+    blogviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
 
  comments: [
     {

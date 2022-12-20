@@ -45,6 +45,7 @@ const userSchema = new Schema({
 
     socialLinks: { type: [String] },
     roles: { type: [String], enum: ["user", "admin", "superAdmin"], default: "user"},
+    isAdmin: { type: Boolean, default: false },
 
     profileId: { type: mongoose.Schema.Types.ObjectId, ref: "Profile" },
     profileImageCloudinaryPublicId: { type: String  },

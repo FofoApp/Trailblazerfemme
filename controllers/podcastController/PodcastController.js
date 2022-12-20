@@ -222,6 +222,8 @@ exports.recentPodcastView = async (req, res, next) => {
 
 
 exports.createNewPodcast = async (req, res, next) => {
+    // console.log(req.body)
+    // console.log(req.files)
     //NOTE VALIDATE USER INPUTS BEFORE PROCESSING
 
     //http://localhost:2000/api/podcast/create
@@ -238,11 +240,29 @@ exports.createNewPodcast = async (req, res, next) => {
     }
 
     */
-   const { podcastCategoryId, podcastHostId, name, description, hosts, tags, link, duration } = req.body;
 
-   const file = req.file;
+   let { 
+        podcastCategoryId, 
+        podcastHostId, 
+        name, 
+        description,
+        tags, 
+        link, 
+        duration,
+        hostName,
+        accessType,
+        podcastImage,
+        podcastCloudinaryPublicId
+        } = req.body;
 
-   if(!file) return res.status(400).send({ error: "Please upload podcast image"});
+   const files = req.files;
+
+   const loggedInUser = req.user.id;
+
+   if(!files) return res.status(400).send({ error: "Please upload podcast images"});
+
+   const podcastImages = [];
+   const hosts = [];
 
     try {
 
@@ -259,98 +279,61 @@ exports.createNewPodcast = async (req, res, next) => {
         if(findIfPodcastExist) {
             return res.status(400).send({ error: "Podcast name already exist"});
         }
-        
-        // // //Upload Image to cloudinary
-        // const uploaderResponse = await cloudinary.uploader.upload(file.path);
-        
-        // if(!uploaderResponse) {
-        //     //Reject if unable to upload image
-        //     return res.status(404).send({ error: "Unable to upload image please try again"});
-        // }
 
 
-        let author_data = [];
-
-
-        if(!req.files) {
-            return res.status(400).json({ error: "Please upload author image"});
+        if(!req.files.podcastImage || !req.files.hostImage) {
+            return res.status(400).send({ error: "Kindly upload author and podcast image"});
         }
 
+        if(req.files.podcastImage) {
 
-        if(req?.files?.author_image_one && req?.files?.author_image_one[0]?.fieldname === 'author_image_one' ) {
+            const { public_id: podcastImgId, secure_url:podcastImgUrl  } = await cloudinary.uploader.upload(req?.files?.podcastImage[0].path);
+            
+            podcastImage = podcastImgId;
+            podcastCloudinaryPublicId = podcastImgUrl;
 
-            if(!author_name_one) {
-                return res.status(400).json({ error: `Please provide author one name` });
-            }
+            podcastImages.push({
+                public_id: podcastImgId,
+                image_url: podcastImgUrl,
+            })
 
-            const { public_id, secure_url  } = await cloudinaryImageUploadMethod(req?.files?.author_image_one[0].path);
-
-
-            author_data.push({ public_id, image_url: secure_url,  fullname: author_name_one })
+            fs.unlinkSync(req?.files?.podcastImage[0].path)
         }
 
-        if(req?.files?.author_image_two && req?.files?.author_image_two[0]?.fieldname === 'author_image_two') {
-            if(!author_name_two) {
-                return res.status(400).json({ error: `Please provide author two name` });
-            }
-   
-            const { public_id, secure_url  } = await cloudinaryImageUploadMethod(req?.files?.author_image_two[0].path);
-            author_data.push({ public_id, image_url: secure_url,  fullname: author_name_two })
+        if(req.files.hostImage) {
+
+            const { public_id: hostImgId, secure_url:hostImgUrl  } = await cloudinary.uploader.upload(req?.files?.hostImage[0].path);
+            hosts.push({
+                fullname: hostName,
+                public_id: hostImgId,
+                image_url: hostImgUrl
+            })
+
+        fs.unlinkSync(req?.files?.hostImage[0].path)
         
         }
-
-        if(req?.files?.author_image_three  && req?.files?.author_image_three[0]?.fieldname === 'author_image_three') {
-
-            if(!author_name_three) {
-                return res.status(400).json({ error: `Please provide author three name` });
-            }
-
-            const { public_id, secure_url  } = await cloudinaryImageUploadMethod(req?.files?.author_image_three[0].path);
-            author_data.push({ public_id, image_url: secure_url,  fullname: author_name_three })
-
-        }
-
-        const { public_id, secure_url  } = await cloudinaryImageUploadMethod(req?.files?.courseImage[0].path);
-
-        const course_data = {
-            name, 
-            accessType, 
-            duration, 
-            description, 
-            courseImage: [{
-                public_id: public_id,
-                image_url: secure_url,
-            }],
-
-        createdBy: author_data
-    }
-
-        // const course = await CourseModel.create(course_data);
-
-
-
-
-
-
-
-
-
 
         const createPodcast = new PodcastModel({
-            podcastCategoryId, podcastHostId, name, description, hosts, tags, link,
-             podcastCloudinaryPublicId: uploaderResponse.public_id,
-             duration, podcastImage: uploaderResponse.secure_url
+            podcastCategoryId,
+            name, 
+            description, 
+            tags, 
+            link,
+            accessType: accessType || 'Free',
+            duration, 
+            podcastCloudinaryPublicId,
+            podcastImage,
+            hosts,
+            createdBy: loggedInUser
         });
 
         // const createPodcast = new PodcastModel(req.body);
         const createdPodcast = await createPodcast.save();
 
-        //Delete the file from localStorage after upload to server and database
-        if(createdPodcast) fs.unlinkSync(file.path)
-
         return res.status(201).send(createdPodcast);
 
     } catch (error) {
+        console.log(error)
         return res.status(500).send({ message: error.message });
     }
 }
