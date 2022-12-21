@@ -44,6 +44,28 @@ const podcastSchema = new mongoose.Schema({
 
 podcastSchema.options.toJSON = {
     transform: function(doc, ret, options) {
+
+        if(ret.hosts) {
+            ret.hosts.map((host) => {
+
+                host.id = host._id;
+                delete host._id;
+                delete host.public_id;
+                return host;
+            })
+        }
+
+        if(ret.podcastImages) {
+            ret.hosts.map((image) => {
+
+                image.id = image._id;
+                delete image._id;
+                delete image.public_id;
+                return image;
+            })
+        }
+
+
         ret.id = ret._id
         delete ret._id
         delete ret.__v

@@ -354,26 +354,85 @@ exports.listPodcasts = async (req, res, next) => {
 
             // return res.status(200).send(podcast);
 
-        const query = [
-            {$match: {} },
-            { $lookup: { from:'users',  localField: 'hosts', foreignField: "_id", as: 'hosts' } },
-            { $unwind: '$hosts' },
-            { $project: {
-                "id": "$_id",
-                "_id": 0,
-                "name": 1,
-                "topic": 1,
-                "description": 1,
-                "podcastImage": 1,
-                "link": 1,
-                "tags": 1,
-                "hosts.id": "$hosts._id",
-                "hosts.fullname": 1, 
-                "hosts.profileImage": 1,
-            } }
-        ];
+        // const query = [
+        //     {$match: {} },
+        //     { $lookup: { from:'users',  localField: 'hosts', foreignField: "_id", as: 'hosts' } },
+        //     { $unwind: '$hosts' },
+        //     { $project: {
+        //         "id": "$_id",
+        //         "_id": 0,
+        //         "name": 1,
+        //         "topic": 1,
+        //         "duration": 1,
+        //         "accessType": 1,
+        //         "description": 1,
+        //         "podcastImage": 1,
+        //         "podcastImages": 1,
+        //         "link": 1,
+        //         "tags": 1,
+        //         "hosts.id": "$hosts._id",
+        //         "hosts.fullname": 1, 
+        //         "hosts.profileImage": 1,
+        //     } }
+        // ];
 
-        const podcasts = await PodcastModel.aggregate(query)
+
+        /**
+         * 
+         * 
+        
+
+
+        "name": "TrailBlazer Femme Anchor Podcast",
+        "podcastImage": "https://media.wired.com/photos/620eb0f39266d5d11c07b3c5/master/pass/Gear-Podcast-Gear-1327244548.jpg",
+        "accessType": "Free",
+        "description": "Listen in to the heart of varities of our guest from different works of life and charge yourself onto greater career heights",
+        "link": "https://anchor.fm/trailblazerfemme",
+        "podcastCategoryId": "63a0e7eb34892dcc1f4bcc16",
+
+
+        "hosts": [
+            {
+                "fullname": "Trailblazer Femme Team",
+                "public_id": "dddddddddddddddd",
+                "image_url": "https://imgur.com/a/9BHO6zG",
+                "_id": "63a321e5a34dfdd826ef8c77"
+            }
+        ],
+
+
+        "duration": "2hrs",
+        "views": [],
+        "tags": "Heart, Faith",
+        "reviews": [],
+        "rating": 0,
+        "numReviews": 0,
+        "episodes": [],
+        "popular": [],
+        "recentlyPlayed": [],
+        "popularPodcast": [],
+        "reviewIds": [],
+        "podcastImages": [],
+
+        "createdAt": "2022-12-21T15:10:29.168Z",
+        "updatedAt": "2022-12-21T15:10:29.168Z",
+        "id": "63a321e5a34dfdd826ef8c76"
+
+
+
+
+
+
+
+         * 
+         * 
+         */
+
+
+
+        // const podcasts = await PodcastModel.aggregate(query)
+
+        const podcasts = await PodcastModel.find({}).select('-__v -createdAt -updatedAt')
    
         if(!podcasts || !podcasts.length) {
             return res.status(204).send({ error: "No podcast available"});

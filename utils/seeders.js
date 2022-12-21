@@ -12,7 +12,7 @@ const ProductModel = require('./../models/productModel/ProductModel');
 // const users = require('./../data/user')
 // const {blogs} = require('./../data/blog')
 // const {books} = require('./../data/books')
-// const {podcasts} = require('./../data/podcast')
+const {podcasts} = require('./../data/podcast')
 
 
 // const {courses} = require('./../data/courses')
@@ -44,9 +44,9 @@ const seedUsers = async () => {
         // await BookModel.insertMany(books);
         // console.log("Blogs seeded successfully")
 
-        // await PodcastModel.deleteMany();
-        // await PodcastModel.insertMany(podcasts);
-        // console.log("Blogs seeded successfully")
+        await PodcastModel.deleteMany();
+        await PodcastModel.insertMany(podcasts);
+        console.log("Blogs seeded successfully")
 
 
         // await ProductModel.deleteMany();
