@@ -93,7 +93,7 @@ exports.register = async (req, res, next) => {
     
             refreshAccessToken = new RefreshAccessToken({ userId: doesExist.id,  accessToken, refreshToken});
 
-            const sentMail  = await sendMail(email, otpCode);
+            const sentMail  = await sendMail(email, otpCode, res);
             
             await refreshAccessToken.save();
     
@@ -200,7 +200,7 @@ exports.register = async (req, res, next) => {
         }
 
         refreshAccessToken = new RefreshAccessToken({ userId: savedUser.id,  accessToken, refreshToken});
-        const sentMail  = await sendMail(email, otpCode);
+        const sentMail  = await sendMail(email, otpCode, res);
         await refreshAccessToken.save();
 
         return res.status(200).send({accessToken, refreshToken, userId: savedUser.id, stage: 1, otp: otpCode,  message: "Otp has been sent to your phone"});
