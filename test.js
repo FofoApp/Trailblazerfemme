@@ -1,7 +1,7 @@
 const moment = require('moment');
 
 const calculateNextPayment = (chargeType) => {
-
+//zxwepjfmedbinisx
     let currentDate;
 
     if(!chargeType) return null;

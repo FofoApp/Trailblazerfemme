@@ -1,9 +1,10 @@
 const nodemailer = require('nodemailer')
+const dotenv = require('dotenv').config();
 
 exports.sendMail = async (mailTo, otp) => {
 
-    // const fofoEmail = `trailblazer.fem@gmail.com`;
-    const fofoEmail = `promageforce@gmail.com`;
+    const fofoEmail = `trailblazer.fem@gmail.com`;
+    // const fofoEmail = `promageforce@gmail.com`;
 
     const mail_configs = {
         from: fofoEmail,
@@ -17,7 +18,7 @@ exports.sendMail = async (mailTo, otp) => {
         service: 'gmail',
         auth: {
             user: fofoEmail,
-            pass: "zxwepjfmedbinisx"
+            pass: process.env.FOFO_NODEMAILER_GMAIL_PASSWORD
         }
     })
 
