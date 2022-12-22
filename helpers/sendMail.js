@@ -1,10 +1,9 @@
 const nodemailer = require('nodemailer')
 const dotenv = require('dotenv').config();
 
-exports.sendMail = async (mailTo, otp, res) => {
+exports.sendMail = async (mailTo, otp) => {
 
     const fofoEmail = `trailblazer.fem@gmail.com`;
-    // const fofoEmail = `promageforce@gmail.com`;
 
     const mail_configs = {
         from: fofoEmail,
@@ -28,9 +27,7 @@ exports.sendMail = async (mailTo, otp, res) => {
         return await transporter.sendMail(mail_configs);
 
     } catch (error) {
-         console.log(error)
-         return res.status(500).send({ error: error.message })
-        // throw new Error({ error: error.message })
+        throw new Error({ error: error })
     }
 
 }
