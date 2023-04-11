@@ -9,7 +9,7 @@ const blogModelSchema = new mongoose.Schema({
     accessType: { type: String, default: 'Free' },
     blogImageCloudinaryPublicId: { type: String, required: true },
 
-    blogImages: [{ 
+    blogImages: [{
         public_id: { type: String, required: true },
         image_url: { type: String, required: true },
      }],
@@ -23,7 +23,7 @@ const blogModelSchema = new mongoose.Schema({
  comments: [
     {
         comment: { type: String, required: true },
-        commentDate: { type: Date, default: Date.now() },
+        commentDate: { type: Date, default: Date.now },
 
         commentedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
         blogId: {type: mongoose.Schema.Types.ObjectId, ref: 'Blog' },
@@ -32,10 +32,7 @@ const blogModelSchema = new mongoose.Schema({
 ],
 
 
-}, 
-
-
-{ timestamps: true });
+},  { timestamps: true });
 
 
 // blogModelSchema.virtual('likes').get(function() {

@@ -13,11 +13,11 @@ module.exports = multer({
     
     fileFilter: (req, file, cb) => {
         let ext = path.extname(file.originalname); 
-        if(!file.mimetype === 'image/jpeg' || !file.mimetype === 'image/jpg' || !file.mimetype === 'image/png') {
+        if(file.mimetype !== 'image/jpeg' || file.mimetype !== 'image/jpg' || file.mimetype !== 'image/png') {
             cb(new Error("File type is not supported"), false);
           return;
         }
-        if (ext !== ".jpg" && ext !== ".jpeg" && ext !== ".png") {
+        if (ext !== ".jpg" || ext !== ".jpeg" || ext !== ".png") {
           cb(new Error("File type is not supported"), false);
           return;
         }

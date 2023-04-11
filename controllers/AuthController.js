@@ -88,19 +88,14 @@ exports.register = async (req, res, next) => {
                 await refreshAccessToken.remove();
             }
 
-
-            // return res.json({ accessToken })
-    
             refreshAccessToken = new RefreshAccessToken({ userId: doesExist.id,  accessToken, refreshToken});
 
-            const sentMail  = await sendMail(email, otpCode, res);
+            const sentMail  = await sendMail(email, otpCode);          
          
             await refreshAccessToken.save();
     
-            return res.status(200).send({ accessToken, refreshToken, userId: doesExist.id, stage: 1, otp: otpCode,  message: "Otp has been sent to your phone"});
-    
-
-            // return res.status(400).json({ error: "A user with name and/or email already exist"})
+             res.status(200).json({ accessToken, refreshToken, userId: doesExist.id, stage: 1, otp: otpCode,  message: "Otp has been sent to your phone"});
+             return
         }
 
 
@@ -151,35 +146,25 @@ exports.register = async (req, res, next) => {
         // const otp = sendSMS(otpCode);
         // const sentSms  = sendGridMail(user.email, otpCode);
 
-        let smsError;
-        let smsRes;
+        // let smsError;
+        // let smsRes;
 
-            var options = {
-                'method': 'POST',
-                'url': `${process.env.SENDCHAMP_BASE_URL}`,
-                'headers': {
-                  'Accept': 'application/json',
-                  'Authorization': `Bearer ${process.env.SENDCHAMP_PUBLIC_KEY}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    "to":[`${savedUser.phonenumber}`],
-                    "message": `Your otp code is ${otpCode}`,
-                    "sender_name":"Sendchamp",
-                    "route":"international"
-                })
+        //     var options = {
+        //         'method': 'POST',
+        //         'url': `${process.env.SENDCHAMP_BASE_URL}`,
+        //         'headers': {
+        //           'Accept': 'application/json',
+        //           'Authorization': `Bearer ${process.env.SENDCHAMP_PUBLIC_KEY}`,
+        //           'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify({
+        //             "to":[`${savedUser.phonenumber}`],
+        //             "message": `Your otp code is ${otpCode}`,
+        //             "sender_name":"Sendchamp",
+        //             "route":"international"
+        //         })
               
-              }
-
-
-            //   request(options, async function (error, response) {
-
-            //     if (error) throw new Error(error);
-
-            //     const otpIsSet = await Otpmodel.findByIdAndDelete(savedUser._id);
-        
-            //     const newOtp = await Otpmodel.create({ userId: savedUser.id, phonenumber: savedUser.phonenumber, otp: otpCode });
-            //   });
+        //       }
 
         const saveOTP = await Otpmodel.create({ otp: otpCode, userId: savedUser.id, phonenumber: savedUser.phonenumber});
 
@@ -188,6 +173,8 @@ exports.register = async (req, res, next) => {
         const {id, email, roles, username, field, profileImagePath } = savedUser;
 
         const userObject = {  id, email, roles, username, field, profileImagePath };
+
+      
           
         const accessToken = await signInAccessToken(userObject);
 
@@ -200,20 +187,24 @@ exports.register = async (req, res, next) => {
         }
 
         refreshAccessToken = new RefreshAccessToken({ userId: savedUser.id,  accessToken, refreshToken});
-        const sentMail  = await sendMail(email, otpCode,);
-      
+       
+        await sendMail(email, otpCode, res)
+
         await refreshAccessToken.save();
 
         return res.status(200).send({accessToken, refreshToken, userId: savedUser.id, stage: 1, otp: otpCode,  message: "Otp has been sent to your phone"});
 
        
     } catch (error) {
-        console.log(error)
         if(error.isJoi === true) {
             //unprocessible entry errors: server can't understand or process the entries
-            error.status = 422;
+            return res.status(422).json({ error: "validation error"})
         }
-        next(error)
+        // NODEMAILER ERROR MESSAGE
+        if(error?.code === "EAUTH") {
+            return res.status(500).json({ error: "Unable to send email"})
+        }
+        return res.status(500).json({ error: error?.message })
     }
     
 }

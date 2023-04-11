@@ -6,12 +6,11 @@ const CourseReview = require('../../models/courseModel/CourseReviewModel');
 
 const cloudinaryImageUploadMethod = async file => {
     return new Promise(resolve => {
-        cloudinary.uploader.upload( file , (err, res) => {
-          if (err) return res.status(500).send("upload image error")
-            resolve({
-                secure_url: res.secure_url,
-                public_id: res.public_id,
-            })
+        cloudinary.uploader.upload( file , (err, { secure_url, public_id}) => {
+          if (err) throw new Error("upload image error")
+
+          resolve({ secure_url, public_id })
+
           }
         ) 
     })
@@ -182,12 +181,22 @@ exports.searchCourse = async (req, res) => {
     const query = {}
     const conditions = []
 
+    // {
+    //     $or: [
+    //         { name: { $regex: '.*' + keyword + '.*', $options: 'i' } },
+    //         { title: { $regex: '.*' + keyword + '.*', $options: 'i' } },
+    //     ]
+    // }
+
     //METHOD: 1
 
     if(name) conditions.push({ name: { $reqex: '.*' + name + '.*',  $options: 'i' } })
     if(title) conditions.push({ title: { $reqex: '.*' + title + '.*', $options: 'i' } })
 
-    if(name || title) query.$or = filter
+    // const valid = [name, title].some(Boolean)
+    // if(valid) query.$or = conditions
+
+    if(name || title) query.$or = conditions
 
     //METHOD: 2
 

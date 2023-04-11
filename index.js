@@ -42,7 +42,7 @@ const StripeRoutes = require('./routes/StripeRoutes');
 const { recurrentPaymentMiddleware } = require('./middlewares/recurrentPaymentMiddleware');
 
 const app = express();
-app.use(morgan('tiny'));
+app.use(morgan('dev'));
 
 app.use(
       cors({
@@ -103,7 +103,7 @@ app.use(hpp());
 
 
 app.get('/', (req, res) => {
-      return res.status(200).json({ message: 'Welcome to FOFO App'})
+      return res.status(200).json({ message: 'Welcome to FOFO App' })
 })
 
 
@@ -136,11 +136,14 @@ app.use(async (req, res, next) => {
 
 //error handler
 app.use((err, req, res, next) => {
-      res.status(err.status || 500);
-      return res.send({ error: { 
-            status: err.status || 500,
-            message: err.message
+      const errorStatusCode = req.statusCode === 200 ? 500 : err.statusCode
+
+      res.status(errorStatusCode).send({ error: { 
+            status: errorStatusCode,
+            message: err?.message
       }});
+
+      return
 });
 
 

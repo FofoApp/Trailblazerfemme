@@ -115,6 +115,8 @@ exports.createNewBook = async (req, res, next) => {
 
          const createdBook = await createNewBook.save();
 
+         if(!createdBook) return res.status(400).json({ message: "Book not created"})
+
          const result = {
             id: createdBook.id,
             name: createdBook.name,
