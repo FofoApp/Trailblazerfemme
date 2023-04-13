@@ -60,54 +60,52 @@ exports.register = async (req, res, next) => {
 
         const result = await registerValidation(req.body);
 
-        const doesExist = await User.findOne({ email: result?.email });
+        const userExist = await User.findOne({ email: result?.email });
 
-        if(doesExist?.email === result?.email && !doesExist.accountVerified) {
+        if(userExist?.email === result?.email && !userExist?.accountVerified) {
 
             const otpCode = generateFourDigitsOTP();
 
-            const otpExist = await Otpmodel.deleteOne({ userId: doesExist._id });
+            const otpExist = await Otpmodel.deleteOne({ userId: userExist?._id });
     
-            const newOtp = await Otpmodel.create({ userId: doesExist.id, phonenumber: doesExist.phonenumber, otp: otpCode });
+            const newOtp = await Otpmodel.create({ userId: userExist?.id, phonenumber: userExist?.phonenumber, otp: otpCode });
 
-            const { _id: id, email, roles, fullname: username, field } = doesExist;
+            const { _id: id, email, roles, fullname: username, field } = userExist;
 
             const userObject = {  id, email, roles, username, field };
 
-            if(doesExist.profileImagePath) {
-                userObject.profileImagePath = doesExist.profileImagePath
+            if(userExist?.profileImagePath) {
+                userObject.profileImagePath = userExist?.profileImagePath
             }
               
             const accessToken = signInAccessToken(userObject);
 
             const refreshToken = signInRefreshToken(userObject);
     
-            let refreshAccessToken = await RefreshAccessToken.findOne({ userId: doesExist.id });
+            let refreshAccessToken = await RefreshAccessToken.findOne({ userId: userExist?.id });
             
             if(refreshAccessToken) {
                 await refreshAccessToken.remove();
             }
 
-            refreshAccessToken = new RefreshAccessToken({ userId: doesExist.id,  accessToken, refreshToken});
+            refreshAccessToken = new RefreshAccessToken({ userId: userExist?.id,  accessToken, refreshToken});
 
             const sentMail  = await sendMail(email, otpCode);          
          
             await refreshAccessToken.save();
     
-             res.status(200).json({ accessToken, refreshToken, userId: doesExist.id, stage: 1, otp: otpCode,  message: "Otp has been sent to your phone"});
+             res.status(200).json({ accessToken, refreshToken, userId: userExist?.id, stage: 1, otp: otpCode,  message: "Otp has been sent to your phone"});
              return
         }
 
 
-        // const otpUserExist = await Otpmodel.findOne({ userId: doesExist.id });
+        // const otpUserExist = await Otpmodel.findOne({ userId: userExist?.id });
 
         const nextPaymentDate = calculateNextPayment(annually, moment().format());
-        
-        // if(doesExist) throw createError.Conflict(`${result.email} is a verified user`);
 
-        if(doesExist?.email === result?.email && doesExist.accountVerified) {
+        if(userExist?.email === result?.email && userExist?.accountVerified) {
 
-            const { _id: id, email, roles, fullname: username, field } = doesExist;
+            const { _id: id, email, roles, fullname: username, field } = userExist;
 
             const userObject = {  id, email, roles, username, field };
 
@@ -115,11 +113,11 @@ exports.register = async (req, res, next) => {
 
             const refreshToken = signInRefreshToken(userObject);
     
-            let refreshAccessToken = await RefreshAccessToken.findOne({ userId: doesExist.id });
+            let refreshAccessToken = await RefreshAccessToken.findOne({ userId: userExist?.id });
             
             if(refreshAccessToken) await refreshAccessToken.remove();
     
-            refreshAccessToken = new RefreshAccessToken({ userId: doesExist.id,  accessToken, refreshToken});
+            refreshAccessToken = new RefreshAccessToken({ userId: userExist?.id,  accessToken, refreshToken});
             
             await refreshAccessToken.save();
 
@@ -129,7 +127,7 @@ exports.register = async (req, res, next) => {
                 stage: 2,
                 accessToken,
                 refreshToken,
-                userId: doesExist.id
+                userId: userExist?.id
             }
 
             return res.status(200).json(userdata);
@@ -226,19 +224,24 @@ exports.login = async (req, res, next) => {
 
         const result = await loginValidation(req.body);
         
-        const user = await User.findOne({ email: result.email }).populate("membershipSubscriberId", "isActive membershipId amount membershipType createdAt");
+        const user = await User.findOne({ email: result?.email }).populate("membershipSubscriberId", "isActive membershipId amount membershipType createdAt");
         
         if(!user) {
             throw createError.NotFound("User not registered");
         }
 
-        // if(!user.membershipSubscriberId) {
-        //     throw createError.Unauthorized("You are not subscribed yet");
-        // }
+        if(!user?.accountVerified) {
+            const msg = "Your account is not yet verified";
+             res.status(400).send({ error: msg, message: msg })
+             return
+        }
 
-        // if(!user.subscriptionId) {
-        //     throw createError.Unauthorized("You are not subscribed yet");
-        // }
+        // Check if password is correct
+        const isMatch = await user.isValidPassword(result?.password);
+
+        if(!isMatch) {
+            throw createError.Unauthorized('Username/password not valid'); 
+        }
 
         let membership_details = {
             // subscriptionId: user?.subscriptionId,
@@ -248,17 +251,12 @@ exports.login = async (req, res, next) => {
             //  amount: user?.amount,
         }
     
-        const isMatch = await user.isValidPassword(result.password);
-        
-        if(!isMatch) {
-            throw createError.Unauthorized('Username/password not valid'); 
-        }
 
         const accessToken =  signInAccessToken(user);
         const refreshToken = signInRefreshToken(user);
 
         //if Refresh tokenn is set
-        const isRefreshTokenSet = await RefreshAccessToken.findOne({userId: user.id});
+        const isRefreshTokenSet = await RefreshAccessToken.findOne({userId: user?.id});
        
         if(isRefreshTokenSet) {
             isRefreshTokenSet.remove();
@@ -266,7 +264,7 @@ exports.login = async (req, res, next) => {
         
         const refreshAccessToken = new RefreshAccessToken(
             {
-            userId: user.id,
+            userId: user?.id,
             accessToken:accessToken,
             refreshToken:refreshToken
             });
@@ -274,12 +272,13 @@ exports.login = async (req, res, next) => {
         const savedRefreshAccessToken = await refreshAccessToken.save();
         
         return res.status(200).send({ 
-            accessToken, refreshToken, 
+            accessToken, 
+            refreshToken, 
             membership_details,
 
-            fullname: user.fullname,
-            phonenumber: user.phonenumber,
-            role: user.roles[0],
+            fullname: user?.fullname,
+            phonenumber: user?.phonenumber,
+            role: user?.roles[0],
 
             // email: user.email,
             // field: user.field,
@@ -287,9 +286,11 @@ exports.login = async (req, res, next) => {
         });
 
     } catch (error) {
-        if(error.isJoi === true) {           
-            return res.status(401).send({ message: error.message})
+        if(error.isJoi === true) {      
+            const msg = "Invalid parameters"     
+            return res.status(422).send({ error: msg, message: msg})
         }
+
         next(error);
     }
 }
@@ -426,7 +427,7 @@ exports.updateUser = async (req, res, next) => {
 
     try {
 
-        let user  = await User.findById(req.user.aud).select('-socialLinks -isPaid');
+        let user  = await User.findById(req?.user?.aud).select('-socialLinks -isPaid');
     
         if(!user) throw createError.Conflict(`User with ${user.email} does not exist`);
 
@@ -441,7 +442,7 @@ exports.updateUser = async (req, res, next) => {
 
         const updatedUser =    await User.findByIdAndUpdate(userId, result, { new: true });
 
-    return res.status(200).send({message: 'Updated successfully'});
+    return res.status(200).send({ message: 'Updated successfully'});
 
     } catch (error) {
         // return res.status(401).send(error)
@@ -456,30 +457,24 @@ exports.uploadProfilePicture = async (req, res, next) => {
     //http://localhost:2000/api/auth/upload-profile-picture/62902e117ecadf9305054e1a/upload
 
 
-    let currentUser = req.user.id;
+    let currentUser = req?.user?.id;
 
     try {
         let user  = await User.findById(currentUser).select('-socialLinks -isPaid -password');
    
-        if(!user) throw createError.Conflict(`User with ${user.email} does not exist`);
-
-        // const result = registerSchema(profilePic, true);
-
-        // if(!result) {
-        //     return res.status(200).send({message: 'Unprocessible image'});
-        // }
+        if(!user) throw createError.Conflict(`User with ${user?.email} does not exist`);
         
         // //Upload Image to cloudinary
-        const { public_id, secure_url} = await cloudinary.uploader.upload(req.file.path);
+        const { public_id, secure_url} = await cloudinary.uploader.upload(req?.file?.path);
 
         if(!secure_url && !public_id) {
             //Reject if unable to upload image
             return res.status(404).send({ message: "Unable to upload image please try again"});
         }
 
-        const updatedProfileImage = await User.updateOne({_id:currentUser}, 
+        const updatedProfileImage = await User.updateOne({_id: currentUser}, 
             { $set: 
-            { 
+            {
                 profileImageCloudinaryPublicId: public_id,  
                 profileImage: secure_url
             }
@@ -488,12 +483,10 @@ exports.uploadProfilePicture = async (req, res, next) => {
 
         if(updatedProfileImage) {
 
-            fs.unlinkSync(req.file.path);
+            fs.unlinkSync(req?.file?.path);
 
-            return res.status(200).send({message: 'Profile Image Updated successfully', stage: 3 });
+            return res.status(200).send({ message: 'Profile Image Updated successfully', stage: 3 });
         }
-
-   
 
     } catch (error) {
         // return res.status(401).send(error)
@@ -625,8 +618,8 @@ exports.postResetPasswordToken = async (req, res, next) => {
 
     } catch (error) {
 
-        if(error.details) {
-            return res.status(401).send({error: error.details[0].message});
+        if(error?.details) {
+            return res.status(401).send({error: error?.details[0]?.message});
         }
 
         return res.status(401).send(error)
@@ -723,7 +716,7 @@ exports.otpPage = async (req, res, next) => {
         return res.status(200).send(userData);
 
     } catch (error) {
-        return res.status(401).send({ error: error.message });
+        return res.status(401).send({ error: error?.message });
     }
     
 }
