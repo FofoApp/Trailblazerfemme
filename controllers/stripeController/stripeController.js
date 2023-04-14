@@ -10,6 +10,8 @@ const User = require('../../models/UserModel');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
 exports.stripeCheckout = async (req, res) => {
+
+  const loggedInUser = req?.user?.id;
     
     // const completeUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
     // const success_url = `${req.headers.origin}/?success=true`;
@@ -25,7 +27,7 @@ exports.stripeCheckout = async (req, res) => {
  
     const { orderItems, shippingAddress, taxPrice, shippingPrice, itemsPrice, totalPrice } = req.body
  
-    console.log(orderItems, shippingAddress, taxPrice, shippingPrice, itemsPrice, totalPrice)
+    // console.log(orderItems, shippingAddress, taxPrice, shippingPrice, itemsPrice, totalPrice)
     const line_items = orderItems?.map((item) => {
 
         return {
@@ -52,7 +54,7 @@ exports.stripeCheckout = async (req, res) => {
     try {
 
       const order_details = {
-        user: req.user.id,
+        user: loggedInUser,
         orderItems: orderItems,
         shippingAddress,
 
@@ -115,18 +117,20 @@ exports.stripeCheckout = async (req, res) => {
 
     const { membership_data } = req.body
 
-    const userId = req.user.id
-    const membershipId = membership_data.memId
+    const userId = req?.user?.id.toString()
+    const membershipId = membership_data?.memId
+
+    console.log({ membershipId })
 
     try {
+
+        if(!mongoose.Types.ObjectId.isValid(userId)) {
+          return res.status(401).send({ error: "Invalid user"});
+        }
  
         if(!mongoose.Types.ObjectId.isValid(membershipId)) {
           
           return res.status(400).send({ error: "Invalid membership"});
-        }
-    
-        if(!mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(401).send({ error: "Invalid user"});
         }
 
         let user = await User.findById(userId);
@@ -166,17 +170,25 @@ exports.stripeCheckout = async (req, res) => {
           mode: "payment",
 
           metadata: {
-            userId: req.user.id.toString(),
-            membershipId: membership_data.memId.toString(),
-            membershipType: membership_data.name,
-            mode: membership_data.mode,
-            price: membership_data.price,
+            userId: req?.user?.id.toString(),
+            membershipId: membership_data?.memId.toString(),
+            membershipType: membership_data?.name,
+            mode: membership_data?.mode,
+            price: membership_data?.price,
             action: "membership"
           },
 
-          success_url: `${process.env.CLIENT_URL}/?success=true`,
-          cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
-        }); 
+          // success_url: `${process.env.CLIENT_URL}/?success=true`,
+          // cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
+
+          success_url: `https://calm-lime-goldfish-tutu.cyclic.app/api/stripe/payment_success/?success=true`,
+          cancel_url: `https://calm-lime-goldfish-tutu.cyclic.app/api/stripe/payment_canceled/?canceled=true`,
+          
+          
+          // success_url: `http://localhost:2000/api/stripe/payment_success/?success=true`,
+          // cancel_url: `http://localhost:2000/api/stripe/payment_canceled/?canceled=true`,
+
+        });
 
 
 //  MongooseServerSelectionError  //
@@ -185,7 +197,7 @@ exports.stripeCheckout = async (req, res) => {
       
     } catch (error) {
 
-      console.log(error)
+      // console.log(error)
 
       return res.status(500).json({ error: error.message })
 
@@ -328,7 +340,44 @@ exports.hooks = async (req, res) => {
 }
 
 
+exports.paymentSuccess = async (req, res, next) =>{
 
+  console.log({ success: req.query.success === 'true' })
+
+
+  try {
+
+    if(req.query.success === 'true') {
+      return res.status(200).json({ message: "Payment successful"})
+    }
+
+    return res.status(200).json({ message: "Payment not successful"})
+
+  } catch (error) {
+    return res.status(500).json({ message: "Payment not successful"})
+  }
+}
+
+
+exports.cancelPayment = async (req, res, next) => {
+
+  console.log({ canceled: req.query.canceled === 'true' })
+
+
+  try {
+
+    if(req.query.canceled === 'true') {
+
+      return res.status(200).json({ message: "Payment canceled"})
+    }
+
+    return res.status(200).json({ message: "not canceled"})
+
+
+  } catch (error) {
+    return res.status(500).json({ message: "Payment not canceled"})
+  }
+}
 
 
 
