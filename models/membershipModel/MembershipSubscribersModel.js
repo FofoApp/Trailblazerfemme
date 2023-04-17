@@ -9,13 +9,15 @@ const membershipSubscriberSchema = new mongoose.Schema({
     isActive: { type: Boolean, default: false },
     isPaid: { type: Boolean, default: false },
     mode: { type: String, required: true },
+    amount: { type: String, required: true },
     
     subscription_end_date: { type: Date, required: true },
     subscription_start_date: { type: Date, required: true  },
     days_between_next_payment: { type: Number, default: 0 },
 
+    subscriptionId: { type: String, required: true },
     amount: { type: String, required: true },
-    paymentId: { type: String, required: true }
+    paymentIntentId: { type: String, required: true }
     
 }, { timestamps: true });
 

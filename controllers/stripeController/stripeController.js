@@ -282,7 +282,6 @@ exports.hooks = async (req, res) => {
           const diff = end_date.diff(start_date, days)
     
          let  membership_data =   {
-
                   mode,
                   membershipType: membershipType,
                   membershipId: membershipId,
@@ -304,7 +303,7 @@ exports.hooks = async (req, res) => {
           const updateUser = await User.findByIdAndUpdate(userId, 
             { "$set": {
                   "subscriptionId": save_new_subscriber?.id,
-                  "paid": save_new_subscriber?.isPaid,
+                  "isPaid": save_new_subscriber?.isPaid,
                   "mode": save_new_subscriber?.mode,
                   "isActive": save_new_subscriber?.isActive,
                   "membershipType": save_new_subscriber?.membershipType,
@@ -312,6 +311,7 @@ exports.hooks = async (req, res) => {
                   "subscription_end_date": save_new_subscriber?.subscription_end_date,
                   "subscription_start_date": save_new_subscriber?.subscription_end_date,
                   "days_between_next_payment": save_new_subscriber?.subscription_end_date,
+                  "paymentIntentId": save_new_subscriber?.paymentIntentId,
                   
               } 
           }, { new: true })

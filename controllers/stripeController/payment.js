@@ -142,10 +142,10 @@ exports.stripePayment = async (req, res) => {
 
 exports.membershipSubscription = async (req, res, next) => {
 
-    const { membership } = req?.body;
+    const { membership } = req.body;
 
 
-    const userId = req?.user?.id || "unknwowm"
+    const userId = req?.user?.id;
 
     try {
 
@@ -185,7 +185,7 @@ exports.membershipSubscription = async (req, res, next) => {
                 
             return res.status(200).json({ 
                 paymentIntent: paymentIntent?.client_secret,
-                customer: customer?.id,
+                customerId: customer?.id,
                 ephemeralKey: ephemeralKey?.secret,
             })
 
