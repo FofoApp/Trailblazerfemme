@@ -2,7 +2,15 @@
 const express = require('express')
 const router = express.Router()
 
-const { stripeCheckout, hooks, membershipPayment, paymentSuccess, cancelPayment } = require('../controllers/stripeController/stripeController')
+const { 
+      stripeCheckout, 
+      hooks, 
+      membershipPayment, 
+      paymentSuccess, 
+      cancelPayment,
+} = require('../controllers/stripeController/stripeController')
+
+const { stripePayment, pay, membershipSubscription } = require('../controllers/stripeController/payment')
 
 
 const { verifyAccessToken } = require('./../helpers/jwtHelper');
@@ -18,8 +26,15 @@ router.route('/webhook')
 router.route('/order-checkout')
       .post(verifyAccessToken, permissions(["user","admin"]), stripeCheckout);
 
+// router.route('/membership-checkout')
+//       .post(verifyAccessToken, permissions(["user","admin"]), membershipPayment);
+
 router.route('/membership-checkout')
-      .post(verifyAccessToken, permissions(["user","admin"]), membershipPayment);
+      .post(verifyAccessToken, permissions(["user","admin"]), membershipSubscription);
+
+
+
+      
 
 router.route('/payment_success')
       .get(paymentSuccess);

@@ -8,13 +8,14 @@ const membershipSubscriberSchema = new mongoose.Schema({
     userId: {type: mongoose.Schema.Types.ObjectId, ref: "User"},
     isActive: { type: Boolean, default: false },
     isPaid: { type: Boolean, default: false },
+    mode: { type: String, required: true },
     
     subscription_end_date: { type: Date, required: true },
     subscription_start_date: { type: Date, required: true  },
     days_between_next_payment: { type: Number, default: 0 },
 
-    amount: { type: Number },
-    paymentId: { type: String }
+    amount: { type: String, required: true },
+    paymentId: { type: String, required: true }
     
 }, { timestamps: true });
 

@@ -17,6 +17,19 @@ const ProductSchema = new Schema({
 //     }
 // },
 
+
+// {
+//     toJSON: {
+//         transform: function(doc, ret, opts) {
+//             ret.id = ret._id.toString();
+//             delete ret._id;
+//             delete __v;
+
+
+//         }
+//     }
+// },
+
 { timestamps: true });
 
 ProductSchema.methods.toJSON = function() {

@@ -94,7 +94,7 @@ exports.register = async (req, res, next) => {
          
             await refreshAccessToken.save();
     
-             res.status(200).json({ accessToken, refreshToken, userId: userExist?.id, stage: 1, otp: otpCode,  message: "Otp has been sent to your phone"});
+             res.status(200).json({ accessToken, refreshToken, userId: userExist?.id, stage: 1, otp: otpCode,  message: "Otp has been sent to your email"});
              return
         }
 
@@ -245,7 +245,7 @@ exports.login = async (req, res, next) => {
 
         let membership_details = {
             // subscriptionId: user?.subscriptionId,
-             paid: user?.paid, 
+             paid: user?.paid,
              membershipType: user?.membershipType, 
              isActive: user?.isActive, 
             //  amount: user?.amount,
@@ -629,7 +629,9 @@ exports.postResetPasswordToken = async (req, res, next) => {
 exports.updatePassword = async (req, res, next) => {
 
     const userId = req.params.userId;
+
     const { password, confirmPassword } = req.body;
+    
     try {
 
         if(password !== confirmPassword) {

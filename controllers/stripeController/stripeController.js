@@ -120,8 +120,6 @@ exports.stripeCheckout = async (req, res) => {
     const userId = req?.user?.id.toString()
     const membershipId = membership_data?.memId
 
-    console.log({ membershipId })
-
     try {
 
         if(!mongoose.Types.ObjectId.isValid(userId)) {
@@ -129,7 +127,6 @@ exports.stripeCheckout = async (req, res) => {
         }
  
         if(!mongoose.Types.ObjectId.isValid(membershipId)) {
-          
           return res.status(400).send({ error: "Invalid membership"});
         }
 
@@ -234,6 +231,8 @@ exports.hooks = async (req, res) => {
     case 'product':
 
     if(event?.type === 'checkout.session.completed') {
+
+      console.log({ event: event?.type})
       
       const paymentStatus = event?.data?.object?.payment_status;
   
@@ -268,7 +267,7 @@ exports.hooks = async (req, res) => {
         
         const paymentStatus = event?.data?.object?.payment_status;
     
-        if(event.data.object.metadata.membershipId && paymentStatus === 'paid') {
+        if(event?.data?.object?.metadata?.membershipId && paymentStatus === 'paid') {
     
           const paymentIntentId = event?.data?.object?.payment_intent;
        
@@ -283,6 +282,8 @@ exports.hooks = async (req, res) => {
           const diff = end_date.diff(start_date, days)
     
          let  membership_data =   {
+
+                  mode,
                   membershipType: membershipType,
                   membershipId: membershipId,
                   userId,
@@ -302,19 +303,20 @@ exports.hooks = async (req, res) => {
               
           const updateUser = await User.findByIdAndUpdate(userId, 
             { "$set": {
-                  "subscriptionId": save_new_subscriber.id,
-                  "paid": save_new_subscriber.isPaid,
-                  "isActive": save_new_subscriber.isActive,
-                  "membershipType": save_new_subscriber.membershipType,
-                  "amount": save_new_subscriber.amount,
-                  "subscription_end_date": save_new_subscriber.subscription_end_date,
-                  "subscription_start_date": save_new_subscriber.subscription_end_date,
-                  "days_between_next_payment": save_new_subscriber.subscription_end_date,
+                  "subscriptionId": save_new_subscriber?.id,
+                  "paid": save_new_subscriber?.isPaid,
+                  "mode": save_new_subscriber?.mode,
+                  "isActive": save_new_subscriber?.isActive,
+                  "membershipType": save_new_subscriber?.membershipType,
+                  "amount": save_new_subscriber?.amount,
+                  "subscription_end_date": save_new_subscriber?.subscription_end_date,
+                  "subscription_start_date": save_new_subscriber?.subscription_end_date,
+                  "days_between_next_payment": save_new_subscriber?.subscription_end_date,
                   
               } 
           }, { new: true })
     
-    
+             console.log({ updateUser })
           // req.membershipId = membershipId; 
           // req.userId = userId;
 
@@ -341,13 +343,10 @@ exports.hooks = async (req, res) => {
 
 
 exports.paymentSuccess = async (req, res, next) =>{
-
-  console.log({ success: req.query.success === 'true' })
-
-
+  const { success } = req.query
   try {
 
-    if(req.query.success === 'true') {
+    if(success === 'true') {
       return res.status(200).json({ message: "Payment successful"})
     }
 
@@ -361,12 +360,11 @@ exports.paymentSuccess = async (req, res, next) =>{
 
 exports.cancelPayment = async (req, res, next) => {
 
-  console.log({ canceled: req.query.canceled === 'true' })
-
-
+  const { canceled } = req.query
+  
   try {
 
-    if(req.query.canceled === 'true') {
+    if(canceled === 'true') {
 
       return res.status(200).json({ message: "Payment canceled"})
     }
