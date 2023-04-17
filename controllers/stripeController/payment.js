@@ -187,6 +187,7 @@ exports.membershipSubscription = async (req, res, next) => {
                 paymentIntent: paymentIntent?.client_secret,
                 customerId: customer?.id,
                 ephemeralKey: ephemeralKey?.secret,
+                mode: "membership subscription",
             })
 
         }
@@ -194,16 +195,65 @@ exports.membershipSubscription = async (req, res, next) => {
 
 
     } catch(error) {
-        console.log({ error })
+        // console.log({ error })
         return res.status(500).json({ error: error?.message })
     }
 }
 
 
 exports.productPayment = async (req, res, next) => {
+
+    const { product } = req.body;
+    const userId = req?.user?.id;
+
     try {
-         
+        if(!product?.totalPrice) {
+            return res.status(400).json({ error: "Please provide total sum for products in cart" })
+        }
+
+        const customer = await stripe.customers.create();
+
+        if(customer) {
+
+            const ephemeralKey = await stripe.ephemeralKeys.create(
+              {customer: customer?.id},
+              {apiVersion: '2022-11-15'}
+            );
+    
+            let paymentIntent = await stripe.paymentIntents.create({
+            customer: customer?.id,
+            amount: Number(product?.totalPrice) * 100, // USD*100
+            currency: 'usd',
+            receipt_email: product?.receipt_email,
+            
+            automatic_payment_methods: { enabled: true, },
+
+            metadata: { 
+                "product": JSON.stringify(product?.orderItems),
+                "shippingAddress": JSON.stringify(product?.shippingAddress),
+                "taxPrice": product?.taxPrice,
+                "shippingPrice": product?.shippingPrice,
+                "itemsPrice": product?.itemsPrice,
+                "totalPrice": product?.totalPrice,
+                userId,
+                action: "shop",
+                integration_check: 'accept_a_payment',
+                payment_date: new Date(Date.now()),
+            },
+
+            });
+
+                
+            return res.status(200).json({ 
+                paymentIntent: paymentIntent?.client_secret,
+                customerId: customer?.id,
+                ephemeralKey: ephemeralKey?.secret,
+                mode: "shop",
+            })
+
+        }
+
     } catch (error) {
-        
+        return res.status(500).json({ error: "Error processing product payment"})
     }
 }

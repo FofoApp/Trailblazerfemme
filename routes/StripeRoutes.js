@@ -10,7 +10,7 @@ const {
       cancelPayment,
 } = require('../controllers/stripeController/stripeController')
 
-const { stripePayment, pay, membershipSubscription } = require('../controllers/stripeController/payment')
+const { stripePayment, pay, membershipSubscription, productPayment } = require('../controllers/stripeController/payment')
 
 
 const { verifyAccessToken } = require('./../helpers/jwtHelper');
@@ -23,11 +23,15 @@ router.route('/webhook')
             .post(express.raw({type:"application/json"}), hooks);
 
 
-router.route('/order-checkout')
-      .post(verifyAccessToken, permissions(["user","admin"]), stripeCheckout);
+// router.route('/order-checkout')
+//       .post(verifyAccessToken, permissions(["user","admin"]), stripeCheckout);
 
 // router.route('/membership-checkout')
 //       .post(verifyAccessToken, permissions(["user","admin"]), membershipPayment);
+
+router.route('/order-checkout')
+      .post(verifyAccessToken, permissions(["user","admin"]), productPayment);
+
 
 router.route('/membership-checkout')
       .post(verifyAccessToken, permissions(["user","admin"]), membershipSubscription);

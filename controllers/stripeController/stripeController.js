@@ -221,19 +221,28 @@ exports.hooks = async (req, res) => {
 
         
   } catch (error) {
-      console.log(error)
       return res.status(400).json({ success: false })
       
   }
 
   switch(event?.data?.object?.metadata?.action) {
 
-    case 'product':
+    case 'shop':
 
     if(event?.type === 'checkout.session.completed') {
 
-      console.log({ event: event?.type})
-      
+        const {
+          product, 
+          shippingAddress, 
+          taxPrice, 
+          shippingPrice,   
+          userId, 
+          totalPrice, 
+          itemsPrice,
+          payment_date,
+
+      } = event.data.object.metadata
+
       const paymentStatus = event?.data?.object?.payment_status;
   
       if(event.data.object.metadata.orderId && paymentStatus === 'paid') {
@@ -241,13 +250,36 @@ exports.hooks = async (req, res) => {
         const paymentIntentId = event?.data?.object?.payment_intent;
     
         const orderId = event.data.object.metadata.orderId
-  
-        const order = await Order.findByIdAndUpdate(orderId, { $set: { 
-          isPaid: true,
+        const newOrderItems = JSON.parse(product)
+        const newAddress = JSON.parse(shippingAddress);
+
+        const order_details = {
+          user: userId,
+          orderItems: newOrderItems,
+          shippingAddress: newAddress,
+
+          paymentMethod: "Stripe",
           paymentIntentId,
-          paidAt: Date.now(),
-          isDelivered: false
-        } } )
+
+          paymentResult: {
+            id: paymentIntentId,
+            status: "pending",
+            update_time: new Date(Date.now()),
+          },
+
+
+          taxPrice,
+          shippingPrice,
+          itemsPrice,
+          totalPrice,
+          payment_date,
+          isPaid: true,
+          paidAt: new Date(Date.now()),
+          isDelivered: false,
+          orderId,
+        }
+  
+        const order = await Order.create(order_details);
 
       }
 
@@ -273,9 +305,8 @@ exports.hooks = async (req, res) => {
        
           const annually = mode === 'yearly' ? 'years' : "months" //yearly or monthly
           // const monthly = 'months';
-    
-    
-        const days = 'days';
+
+         const days = 'days';
     
           const start_date = moment();
           const end_date = moment().add(1, annually);
