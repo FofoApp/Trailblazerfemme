@@ -500,8 +500,8 @@ exports.FetchBlogs = async (req, res, next) => {
     // http://localhost:2000/api/blog/lists?sortBy=title&sortOrder=asc
     // http://localhost:2000/api/blog/lists
 
-    const userId = req.user.id;
-    let { blogId } = req.params;
+    const userId = req?.user?.id;
+    let { blogId } = req?.params;
     let { category_page = 1, hot_page = 1, recent_page = 1, populars_page = 1 } = req.query;
     // http://localhost:2000/api/blog/lists?category_page=1&recent_page=1&populars_page=1
  
