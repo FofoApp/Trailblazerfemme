@@ -4,6 +4,68 @@ const _ = require('lodash');
 const UserModel = require('./../../models/UserModel');
 
 
+exports.manuallyCreateAdmin = async (req, res, next) => {
+    try {
+
+        const user = await UserModel.create({
+            fullname: "",
+            email: "",
+            phonenumber: "",
+            field: "null",
+            isMembershipActive: true,
+            membershipName: "null",
+            membershipId:"null",
+            communityId: "null",
+        
+            // subscription_end_date: { type: Date,  },
+            // subscription_start_date: { type: Date,   },
+            // days_between_next_payment: { type: Number, }, 
+        
+            subscriptionId: "null",
+            membershipType: 'Free',
+            isActive: true,
+            paid: true,
+            amount: 0, 
+            password: "password2023@3!",
+            accountVerified: true,
+        
+            about: "Admin",
+            cityState: "null",
+            roles: 'admin',
+            isAdmin: true,
+        })
+        return res.status(201).json({ status: 'success', message: 'Admin created successfully' })
+    } catch (error) {
+        return res.status(500).json({ error: error?.message })
+    }
+}
+
+
+exports.manuallyUpgradeToAdmin = async (req, res, next) => {
+    const { userId } = req.body;
+
+    try {
+        let user = await UserModel.findById(userId);
+
+        if(!user) {
+            return res.status(404).json({ status: 'failed', message: `User with ID: ${userId} was not found` })
+        }
+
+        user.isAdmin = true;
+        user.roles = 'admin';
+
+        const updatedAdmin = await user.save()
+
+        if(!updatedAdmin) {
+            return res.status(400).json({ status: 'failed', message: `Unable to update admin` })
+        }
+
+        return res.status(201).json({ status: 'success', message: 'Admin updated successfully' })
+    } catch (error) {
+        return res.status(500).json({ status: 'failed', message: `Server error updating admin` })
+    }
+}
+
 
 ///ADMIN DASHBOARD LAYOUT
 exports.dashboardListUsers = async (req, res, next) => {
@@ -201,20 +263,23 @@ exports.showblockedUser = async (req, res, next) => {
 }
 
 exports.findUser = async (req, res, next) => {
-    const userId = req.body.userId;
+
+    const userId = req?.body?.userId;
 
     try {
         if(!mongoose.Types.ObjectId(userId)){
             return res.status(400).json({ error: "Invalid user ID"})
         }
         const findUser = await UserModel.findById(userId).select("_id fullname email phonenumber profileImage blocked roles createdAt ");
+        
         if(!findUser) {
             return res.status(400).json({ error: "User not found"});
         }
+
         return res.status(200).json(findUser);
     
     } catch (error) {
-        return res.status(500).json({ error: error.message })
+        return res.status(500).json({ error: error?.message })
     }
 }
 

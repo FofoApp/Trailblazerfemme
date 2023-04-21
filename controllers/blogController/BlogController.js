@@ -445,11 +445,11 @@ exports.createNewBlog = async (req, res, next) => {
      
 
         if(findBlogExist) {
-            return res.status(401).send({ message: `Blog name ${req.body.name } already exists` });
+            return res.status(401).send({ message: `Blog name ${req?.body?.name } already exists` });
         }
 
         // //Upload Image to cloudinary
-        const { secure_url, public_id } = await cloudinary.uploader.upload(req.file.path);
+        const { secure_url, public_id } = await cloudinary.uploader.upload(req?.file?.path);
 
         if(!secure_url) {
             //Reject if unable to upload image
@@ -461,7 +461,7 @@ exports.createNewBlog = async (req, res, next) => {
             createdBy:blogCreatedBy,
             blogImageCloudinaryPublicId: public_id,
             blogImage: secure_url,
-            blogImages: [{  public_id, image_url, }]
+            blogImages: [{  public_id, secure_url, }]
         }
 
         // return res.send(blogData)
@@ -485,9 +485,9 @@ exports.createNewBlog = async (req, res, next) => {
                                         
                                     })
 
-        return res.status(200).send({ message: "Blog Created Successfully", blogs });
+        return res.status(200).send({ status: "success", message: "Blog Created Successfully", blogs });
     } catch (error) {
-        return res.status(500).send({ message: error.message })
+        return res.status(500).send({ status: "failed", message: 'Server error encountered while creating blog' })
     }
 }
 

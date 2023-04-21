@@ -122,7 +122,7 @@ exports.findAllCourses = async (req, res) => {
         // }
 
         const keyword = req.query.keyword
-        ? { name: { $regex: '.*' + req.query.keyword + '.*', $options: 'i' } } 
+        ? { name: { $regex: '.*' + req?.query?.keyword + '.*', $options: 'i' } } 
         : {}
 
 
@@ -132,9 +132,7 @@ exports.findAllCourses = async (req, res) => {
             select: "id name"
         })
 
-        let courses  = await CourseModel.paginate(keyword, {
-            
-        });
+        let courses  = await CourseModel.paginate(keyword, {});
 
         if(!courses || courses.length === 0) return res.status(404).json({ error: "No course found"});
 
@@ -223,7 +221,7 @@ exports.searchCourse = async (req, res) => {
         return res.status(500).send({ result })
 
     } catch (error) {
-        return res.status(500).json({ error: error.message })
+        return res.status(500).json({ error: error?.message })
     }
 }
 
@@ -235,7 +233,7 @@ exports.findCourseById = async (req, res) => {
 
         let course = await CourseModel.findById(courseId).lean()
        
-        if(!course) return res.status(404).send({ error: "Course not found "});
+        if(!course) return res.status(404).send({ status: 'failed',  error: "Course not found "});
 
         let course_rev = await CourseReview.find({ courseId })
         
@@ -295,7 +293,7 @@ exports.findCourseById = async (req, res) => {
         return res.status(200).json(course_resp)
 
     } catch (error) {
-         return res.status(500).json({ error: error.message })
+         return res.status(500).json({ status: 'failed', error: error?.message })
     }
 }
 

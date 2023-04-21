@@ -184,13 +184,13 @@ exports.register = async (req, res, next) => {
             await refreshAccessToken.remove();
         }
 
-        refreshAccessToken = new RefreshAccessToken({ userId: savedUser.id,  accessToken, refreshToken});
+        refreshAccessToken = new RefreshAccessToken({ userId: savedUser?.id,  accessToken, refreshToken });
        
         await sendMail(email, otpCode, res)
 
         await refreshAccessToken.save();
 
-        return res.status(200).send({accessToken, refreshToken, userId: savedUser.id, stage: 1, otp: otpCode,  message: "Otp has been sent to your phone"});
+        return res.status(200).send({accessToken, refreshToken, userId: savedUser?.id, stage: 1, otp: otpCode,  message: "Otp has been sent to your phone"});
 
        
     } catch (error) {
@@ -562,8 +562,6 @@ exports.getResetPasswordToken = async (req, res, next) => {
         const doesExist = await User.findOne({ _id: id }).select('password -_id').lean();
        
         if(!doesExist) throw createError.Conflict(`User does not exist`);
-
-        // const result = await resetPasswordSchema.validateAsync(req.body);
 
         const secret =  process.env.RESET_PASSWORD_SECRET_KEY + doesExist.password;
 

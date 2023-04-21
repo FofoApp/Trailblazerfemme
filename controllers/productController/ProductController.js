@@ -123,16 +123,16 @@ exports.createNewProduct = async (req, res, next) => {
         if(!files)  return res.status(400).send({ error: "Upload product images"});
 
         if(files.length > 3) {
-            return res.status(400).send({ error: "Maximum file upload cannot be more than 3" })
+            return res.status(400).send({ status: 'failed', error: "Maximum file upload cannot be more than 3" });
         }
 
         const product_category = await ProductCategory.findById(category)
 
-        if(!product_category) return res.status(400).send({ error: "Product category not found"});
+        if(!product_category) return res.status(400).send({ status: 'failed', error: "Product category not found"});
 
         let product = await ProductModel.findOne({ name });
 
-        if(product) return res.status(400).send({ error: "Product name already taken"});
+        if(product) return res.status(400).send({ status: 'failed', error: "Product name already taken"});
 
         for (const file of files) {
         const { path } = file;
@@ -163,17 +163,17 @@ exports.createNewProduct = async (req, res, next) => {
 
         const savedProduct  = await new_product.save();
 
-        if(!savedProduct) return res.status(400).send({ success: false, error: "Unable to create product"});
+        if(!savedProduct) return res.status(400).send({ status: 'failed', success: false, error: "Unable to create product"});
 
         product_category.products.addToSet(savedProduct._id)
 
         await product_category.save()
 
-        return res.status(201).send({ success: true, product: savedProduct});
+        return res.status(201).send({ status: 'failed', success: true, product: savedProduct});
 
     } catch (error) {
         // console.log(error)
-        return res.status(500).send({ error: error.message })
+        return res.status(500).send({ status: 'failed', error: error.message })
     }
 
 
@@ -182,6 +182,7 @@ exports.createNewProduct = async (req, res, next) => {
 exports.listProducts = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/product/lists
+
     try {
 
         const search = req.query.search ? {
@@ -199,7 +200,7 @@ exports.listProducts = async (req, res, next) => {
 
         // const products = await ProductModel.find({}).populate('category', "name _id")
 
-        if(!products2 || products2.docs.length === 0) {
+        if(!products2 || products2?.docs?.length === 0) {
             return res.status(200).send({ error: "No product found", products: [] });
         }
 

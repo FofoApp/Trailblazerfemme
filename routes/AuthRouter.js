@@ -30,6 +30,11 @@ router.get('/list-block-users', verifyAccessToken, permissions(["admin"]), Admin
 router.get('/show-blocked-user', verifyAccessToken, permissions(["admin"]), AdminUserController.showblockedUser);
 router.get('/finduser', verifyAccessToken, permissions(["admin"]), AdminUserController.findUserByEmail);
 
+router.post('/manually-create-admin', AdminUserController.manuallyCreateAdmin);
+router.patch('/manually-upgrade-to-admin', AdminUserController.manuallyUpgradeToAdmin);
+
+
+
 //FIND A USER 
 router.get('/users', verifyAccessToken, permissions(["admin"]), AdminUserController.allUsers);
 router.get('/user/find', verifyAccessToken, permissions(["admin"]), AdminUserController.findUser);
