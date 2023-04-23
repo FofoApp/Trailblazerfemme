@@ -181,7 +181,7 @@ exports.updateProfileImage = async (req, res, next) => {
     try {
        //Find user and ensure user with the speicifed id exist
 
-        let findUserById = await User.findById(id);
+        let findUserById = await UserModel.findById(id);
         if(!findUserById) {
             return res.status(404).send({ message: "User not found"});
         }
@@ -218,6 +218,38 @@ exports.updateProfileImage = async (req, res, next) => {
         return res.status(500).send(error);
         // return next(error)
     }   
+}
+
+
+exports.updateProfileInfo = async (req, res, next) => {
+
+    const { id } = req.user; 
+    
+    try {
+
+        let userExist = await UserModel.findById(id);
+
+        if(!userExist) {
+            return res.status(404).json({ status: 'failed', message: "User not found"})
+        }
+
+        let acceptFields = ["fullname", "phonenumber", "email", "city", "state", "jobTitle", "field", "socialLinks"]
+
+        const data =  Object.entries(req.body).map(([key, value]) => {
+            if(!acceptFields.includes(key)) {
+                delete req.body[key]
+            }
+            
+        })
+
+        let updatedInfo = await UserModel.findByIdAndUpdate(id, { $set: req.body }, { new: true });
+
+        return res.status(200).json({ status: 'success', message: "Profile updated"})
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ status: 'failed', message: "Server error updating profile info"})
+    }
 }
 
 exports.addFollowing = async (req, res, next) => {

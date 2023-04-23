@@ -429,23 +429,54 @@ exports.updateUser = async (req, res, next) => {
 
         let user  = await User.findById(req?.user?.aud).select('-socialLinks -isPaid');
     
-        if(!user) throw createError.Conflict(`User with ${user.email} does not exist`);
-
-        let userData = {...req.body, roles: "user"};
-        
-        // const result = registerSchema(user, true);
-        const result = registerValidation(userData, true);
-
-        if(!result) {
-            return res.status(200).send({message: 'Unable to update user'});
+        if(!user) {
+            return res.status(400).json({status: "failed", message:`User with ${user?.email} does not exist`});
         }
 
-        const updatedUser =    await User.findByIdAndUpdate(userId, result, { new: true });
+        let profileImageCloudinaryPublicId;
+        let profileImage;
 
-    return res.status(200).send({ message: 'Updated successfully'});
+        if(req.file) {
+        // //Upload Image to cloudinary
+        const { public_id, secure_url} = await cloudinary.uploader.upload(req?.file?.path);
+
+        if(!secure_url) {
+            //Reject if unable to upload image
+            return res.status(404).send({ message: "Unable to upload image please try again"});
+        }
+
+        profileImageCloudinaryPublicId = public_id;
+        profileImage = secure_url
+
+        fs.unlinkSync(req?.file?.path);
+
+        }
+
+
+
+        let userData = { ...req.body };
+        
+        const result = await registerValidation(userData, true);
+
+
+        if(!result) {
+            return res.status(200).send({status: "failed", message: 'Unable to update user'});
+        }
+
+        if(profileImage) {
+            result["profileImageCloudinaryPublicId"] = profileImageCloudinaryPublicId
+            result["profileImage"] = profileImage
+        }
+
+        delete result?.password;
+
+        const updatedUser = await User.findByIdAndUpdate(userId, { $set: result }, { new: true });
+
+        if(updatedUser) {
+            return res.status(200).send({ message: 'Updated successfully'});
+        }
 
     } catch (error) {
-        // return res.status(401).send(error)
         next(error);
     }
        

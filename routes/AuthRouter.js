@@ -59,7 +59,7 @@ router.post('/resend-otp', AuthController.otpPage);
 router.patch('/follow-unfollow/:followId',  verifyAccessToken, AuthController.followAndUnfollow);
 router.patch('/update-password/:userId', AuthController.updatePassword);
 
-router.patch('/user/:userId/update', verifyAccessToken,  AuthController.updateUser);
+router.patch('/user/:userId/update', verifyAccessToken,  upload.single('profileImage'),  AuthController.updateUser);
 
 router.patch('/upload-profile-picture/:userId/upload', verifyAccessToken, upload.single('profileImage'),  AuthController.uploadProfilePicture);
 

@@ -11,6 +11,7 @@ router.get('/', verifyAccessToken, ProfileController.profile);
 // router.get('/get-profile-images', verifyAccessToken,  ProfileController.getAllProfileImages);
 
 router.get('/get-profile-image/:userId', verifyAccessToken,  ProfileController.getProfileImage);
+router.patch('/update-profile-info', verifyAccessToken,  ProfileController.updateProfileInfo);
 router.patch('/update-profile-image/:userId', verifyAccessToken, upload.single('profileImage'),  ProfileController.uploadProfileImage);
 router.delete('/update-profile-image/:userId', verifyAccessToken, upload.single('profileImage'),  ProfileController.uploadProfileImage);
 
