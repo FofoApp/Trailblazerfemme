@@ -56,6 +56,7 @@ router.post('/reset-password', AuthController.resetPassword);
 
 router.post('/verifyotp', verifyAccessToken, AuthController.verifyOtp);
 router.post('/resend-otp', AuthController.otpPage);
+router.patch('/follow-unfollow/:followId',  verifyAccessToken, AuthController.followAndUnfollow);
 router.patch('/update-password/:userId', AuthController.updatePassword);
 
 router.patch('/user/:userId/update', verifyAccessToken,  AuthController.updateUser);

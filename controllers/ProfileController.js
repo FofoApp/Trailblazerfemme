@@ -38,6 +38,8 @@ exports.profile = async (req, res, next) => {
                 booksRead:1,
                 membershipType: 1,
                 paid: 1,
+                email: 1,
+                phonenumber: 1,
                 isActive: 1,
                 // roles: 1,
                 roles: { $arrayElemAt: ["$roles", 0] },

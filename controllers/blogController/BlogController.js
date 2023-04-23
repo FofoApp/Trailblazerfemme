@@ -450,15 +450,16 @@ exports.createNewBlog = async (req, res, next) => {
             return res.status(401).send({ status: "failed", message: `Blog name ${name} already exists` });
         }
 
-        if(!req.files?.authorImages) {
-            return res.status(400).send({ status: "failed", message: `Please provide author image(s)` });
-        }
+        // if(!req.files?.authorImages) {
+        //     return res.status(400).send({ status: "failed", message: `Please provide author image(s)` });
+        // }
 
         if(!req?.files?.blogImages) {
             return res.status(400).send({ status: "failed", message: `Please provide blog image(s)` });
         }
 
         // //Upload Image to cloudinary
+
         const blogImageresponse = await cloudinary.uploader.upload(req?.files?.blogImages[0].path);
 
         if(!blogImageresponse) {
@@ -467,18 +468,29 @@ exports.createNewBlog = async (req, res, next) => {
         }
 
         // //Upload Image to cloudinary
-        const authorImageresponse = await cloudinary.uploader.upload(req?.files?.authorImages[0].path);
 
-        if(!authorImageresponse) {
-            //Reject if unable to upload image
-            return res.status(404).send({ status: "failed", message: "Unable to upload image please try again"});
+        let authorImageUrl;
+        let authorImagePublicId;
+
+        if(req?.files?.authorImages) {
+
+            const authorImageresponse = await cloudinary.uploader.upload(req?.files?.authorImages[0].path);
+    
+            if(!authorImageresponse) {
+                //Reject if unable to upload image
+                return res.status(404).send({ status: "failed", message: "Unable to upload image please try again"});
+            }
+
+            authorImageUrl = blogImageresponse?.public_id;
+            authorImagePublicId = authorImageresponse?.secure_url;
+
         }
 
         let blogData = {
             ...req.body,
             createdBy:blogCreatedBy,
             blogImages: [{   public_id: blogImageresponse?.public_id, image_url: blogImageresponse?.secure_url, }],
-            authorImages: [{  public_id: authorImageresponse?.public_id, image_url: authorImageresponse?.secure_url, }]
+            authorImages: [{  public_id: authorImagePublicId || null, image_url: authorImageUrl || null, }]
         }
 
         let createNewBlog = new BlogModel(blogData);
@@ -502,7 +514,7 @@ exports.createNewBlog = async (req, res, next) => {
 
         return res.status(200).send({ status: "success", message: "Blog Created Successfully", blogs });
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         return res.status(500).send({ status: "failed", message: 'Server error encountered while creating blog' })
     }
 }

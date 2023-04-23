@@ -13,8 +13,8 @@ const blogModelSchema = new mongoose.Schema({
      }],
 
     authorImages: [{
-        public_id: { type: String, required: true },
-        image_url: { type: String, required: true },
+        public_id: { type: String, },
+        image_url: { type: String, },
      }],
 
     authorName: {type: String, required: true, trim: true },

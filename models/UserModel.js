@@ -7,9 +7,12 @@ const userSchema = new Schema({
 
     fullname: { type: String, trim: true, required: true, unique: true },
     email: { type: String, trim: true, required: true, lowercase: true, unique: true },
+    location: { type: String, trim: true, },
     jobTitle: { type: String, trim: true, default: null },
     phonenumber: { type: String, trim: true, required: true },
     field: { type: String,  },
+    city: { type: String,  },
+    state: { type: String,  },
     blocked: { type: Boolean, default: false }, // block / unblock users
 
     chargeId: { type: String },
@@ -87,6 +90,7 @@ userSchema.options.toJSON = {
 };
 
 userSchema.pre('save', async function(next) {
+
     let user = this;
 
     try {

@@ -790,4 +790,48 @@ exports.verifyOtp = async (req, res, next) => {
     
 }
 
+exports.followAndUnfollow = async (req, res, next) => {
+    
+    const userId = req.body.id;
+
+    const { followId } = req.params;
+    
+    try {
+        
+        const userExist = await User.findById({userId})
+        const followerExist = await User.findById({followId})
+
+        if(!userExist) {
+            return res.status(404).json({ status: 'failed', message: `Follow ID: ${userId} does not exist` })
+        }
+
+        if(!followerExist) {
+            return res.status(404).json({ status: 'failed', message: `Follower ID: ${followId} does not exist`})
+        }
+
+        if(userExist?.id === userId) {
+            return res.status(400).json({ status: 'failed', message: `You can't follow yourself`})
+        }
+
+        if(userExist?.following?.includes(followId)) {
+            userExist.following.pull(followId)
+            followerExist.followers.pull(followId)
+            await userExist.save();
+            await followerExist.save();
+            return res.status(200).json({ status: "success", message: "Unfollowed"})
+
+        } else {
+            userExist.following.addToSet(followId)
+            followerExist.followers.addToSet(followId)
+            await userExist.save();
+            await followerExist.save();
+            return res.status(200).json({ status: "success", message: "Followed"})
+
+        }
+
+    } catch (error) {
+        return res.status(500).json({ status: 'failed', message: "Server error following and unfollowing a user"})
+    }
+}
+
 
