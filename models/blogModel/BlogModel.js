@@ -4,15 +4,20 @@ const mongoosePaginate = require('mongoose-paginate-v2');
 const blogModelSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true  },
     description:{ type: String, required: true },
-    blogImage: { type: String, required: true },
     adminAccess: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     accessType: { type: String, default: 'Free' },
-    blogImageCloudinaryPublicId: { type: String, required: true },
 
     blogImages: [{
         public_id: { type: String, required: true },
         image_url: { type: String, required: true },
      }],
+
+    authorImages: [{
+        public_id: { type: String, required: true },
+        image_url: { type: String, required: true },
+     }],
+
+    authorName: {type: String, required: true, trim: true },
 
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
     blogCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'BlogCategory', required: true},

@@ -439,41 +439,56 @@ exports.createNewBlog = async (req, res, next) => {
         }
      */
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
-    const blogCreatedBy = req.user.id;
-    try {
-        let findBlogExist = await BlogModel.findOne({ name: req.body.name });
-     
+    const blogCreatedBy = req?.user?.id;
+    const { name } = req.body;
 
+    try {
+
+        let findBlogExist = await BlogModel.findOne({ name });
+     
         if(findBlogExist) {
-            return res.status(401).send({ message: `Blog name ${req?.body?.name } already exists` });
+            return res.status(401).send({ status: "failed", message: `Blog name ${name} already exists` });
+        }
+
+        if(!req.files?.authorImages) {
+            return res.status(400).send({ status: "failed", message: `Please provide author image(s)` });
+        }
+
+        if(!req?.files?.blogImages) {
+            return res.status(400).send({ status: "failed", message: `Please provide blog image(s)` });
         }
 
         // //Upload Image to cloudinary
-        const { secure_url, public_id } = await cloudinary.uploader.upload(req?.file?.path);
+        const blogImageresponse = await cloudinary.uploader.upload(req?.files?.blogImages[0].path);
 
-        if(!secure_url) {
+        if(!blogImageresponse) {
             //Reject if unable to upload image
-            return res.status(404).send({ message: "Unable to upload image please try again"});
+            return res.status(404).send({ status: "failed", message: "Unable to upload image please try again"});
+        }
+
+        // //Upload Image to cloudinary
+        const authorImageresponse = await cloudinary.uploader.upload(req?.files?.authorImages[0].path);
+
+        if(!authorImageresponse) {
+            //Reject if unable to upload image
+            return res.status(404).send({ status: "failed", message: "Unable to upload image please try again"});
         }
 
         let blogData = {
             ...req.body,
             createdBy:blogCreatedBy,
-            blogImageCloudinaryPublicId: public_id,
-            blogImage: secure_url,
-            blogImages: [{  public_id, secure_url, }]
+            blogImages: [{   public_id: blogImageresponse?.public_id, image_url: blogImageresponse?.secure_url, }],
+            authorImages: [{  public_id: authorImageresponse?.public_id, image_url: authorImageresponse?.secure_url, }]
         }
-
-        // return res.send(blogData)
 
         let createNewBlog = new BlogModel(blogData);
         let savedNewBlog = await createNewBlog.save();
         if(!savedNewBlog) {
-            return res.status(401).send({ message: "Unable to create new blog"});
+            return res.status(401).send({ status: "failed", message: "Unable to create new blog"});
         }
 
         let blogs = await BlogModel.find()
-                                    .populate({           
+                                    .populate({
                                         path: 'createdBy',
                                         select: 'fullname profileImage',
                                         model: 'User',
@@ -487,6 +502,7 @@ exports.createNewBlog = async (req, res, next) => {
 
         return res.status(200).send({ status: "success", message: "Blog Created Successfully", blogs });
     } catch (error) {
+        console.log(error)
         return res.status(500).send({ status: "failed", message: 'Server error encountered while creating blog' })
     }
 }
