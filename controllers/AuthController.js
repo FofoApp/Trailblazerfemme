@@ -798,33 +798,33 @@ exports.followAndUnfollow = async (req, res, next) => {
     
     try {
 
-        const userExist = await User.findById({userId})
-        const followerExist = await User.findById({followId})
+        const userExist = await User.findById(userId)
+        const followExist = await User.findById(followId)
 
         if(!userExist) {
             return res.status(404).json({ status: 'failed', message: `Follow ID: ${userId} does not exist` })
         }
 
-        if(!followerExist) {
+        if(!followExist) {
             return res.status(404).json({ status: 'failed', message: `Follower ID: ${followId} does not exist`})
         }
 
-        if(userExist?.id === userId) {
+        if(followExist?.id === userId) {
             return res.status(400).json({ status: 'failed', message: `You can't follow yourself`})
         }
 
-        if(userExist?.following?.includes(followId)) {
+        if(followExist?.followers?.includes(userId)) {
+            followExist.followers.pull(userId)
             userExist.following.pull(followId)
-            followerExist.followers.pull(followId)
             await userExist.save();
-            await followerExist.save();
+            await followExist.save();
             return res.status(200).json({ status: "success", message: "Unfollowed"})
 
         } else {
-            userExist.following.addToSet(followId)
-            followerExist.followers.addToSet(followId)
+            userExist.following.addToSet(userId)
+            followExist.followers.addToSet(userId)
             await userExist.save();
-            await followerExist.save();
+            await followExist.save();
             return res.status(200).json({ status: "success", message: "Followed"})
 
         }

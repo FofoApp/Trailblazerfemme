@@ -4,9 +4,9 @@ const mongoose = require('mongoose');
 module.exports = async () => {
 
       // const MONGO_URI = process.env.NODE_ENV === 'development' ?  process.env.MONGODB_URI_DEV : process.env.MONGODB_URI_PROD
-      
-      console.log(process.env.NODE_ENV)
+
       const MONGO_URI = process.env.MONGODB_URI_PROD
+      // const MONGO_URI = process.env.MONGODB_URI_DEV
       try{
             mongoose.connect(MONGO_URI, {
                   useNewUrlParser: true,
@@ -18,10 +18,10 @@ module.exports = async () => {
             });
             
       } catch(error) {
-            console.log(error.message)
+            // console.log(error.message)
             
             mongoose.connection.on('error', (err) => {
-                  console.log(err)
+                  // console.log(err)
             });
             
             mongoose.connection.on('disconnected', (err) => {
