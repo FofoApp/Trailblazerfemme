@@ -792,7 +792,7 @@ exports.verifyOtp = async (req, res, next) => {
 
 exports.followAndUnfollow = async (req, res, next) => {
     
-    const userId = req.body.id;
+    const userId = req.user?.id;
 
     const { followId } = req.params;
     
