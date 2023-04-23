@@ -797,7 +797,7 @@ exports.followAndUnfollow = async (req, res, next) => {
     const { followId } = req.params;
     
     try {
-        
+
         const userExist = await User.findById({userId})
         const followerExist = await User.findById({followId})
 
@@ -830,6 +830,7 @@ exports.followAndUnfollow = async (req, res, next) => {
         }
 
     } catch (error) {
+        console.log(error)
         return res.status(500).json({ status: 'failed', message: "Server error following and unfollowing a user"})
     }
 }
