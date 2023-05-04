@@ -40,6 +40,7 @@ const CourseRoutes = require('./routes/CourseRoutes');
 const StripeRoutes = require('./routes/StripeRoutes');
 
 const { recurrentPaymentMiddleware } = require('./middlewares/recurrentPaymentMiddleware');
+const databaseLoader = require('./connection');
 
 const app = express();
 app.use(morgan('dev'));
@@ -54,7 +55,7 @@ app.use(cors())
 app.use(mongoSanitize());
 app.use(xss());
 // app.use('/api/stripe/webhook2', express.raw({type: "*/*"}));
-app.use('/api/stripe/webhook', express.raw({type: 'application/json'}));
+app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(hpp());
@@ -103,7 +104,7 @@ app.use(hpp());
 
 
 app.get('/', (req, res) => {
-      return res.status(200).json({ message: 'Welcome to FOFO App' })
+      return res.status(200).json({ message: 'WELCOME TO FOFO APP...' })
 })
 
 
@@ -136,9 +137,10 @@ app.use(async (req, res, next) => {
 
 //error handler
 app.use((err, req, res, next) => {
+
       const errorStatusCode = req.statusCode === 200 ? 500 : err.statusCode
 
-      res.status(errorStatusCode).send({ error: { 
+      res.status(errorStatusCode).json({ error: { 
             status: errorStatusCode,
             message: err?.message
       }});
@@ -150,10 +152,15 @@ app.use((err, req, res, next) => {
 // app configurations
 app.set('port', PORT);
 
-
       connectDB()
       .then(() => {
             app.listen(PORT, () => console.log(`App running on port: ${PORT}`));
       })
+      .catch((error) => console.log(error?.message))
+
+      // databaseLoader.init({ MONGODB_HOST: process.env.MONGODB_URI_DEV }).then(() => {
+      //       app.listen(PORT, () => console.log(`App running on port: ${PORT}`));
+      // }).catch((error) => console.log(error?.message))
+
 
 

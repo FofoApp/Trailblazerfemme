@@ -6,7 +6,9 @@ const UserModel = require('./../../models/UserModel');
 const JobCategoryModel = require('./../../models/jobModel/JobCategory');
 const ProductModel = require('../../models/productModel/ProductModel');
 const { jobApplicationValidation } = require('./../../validations/jobValidation');
-const { cloudinary } = require('./../../helpers/cloudinary')
+const { cloudinary } = require('./../../helpers/cloudinary');
+const { cloudinaryImageUploadMethod } = require('../../helpers/cloudUpload');
+
 
 exports.jobs = async (req, res, next) => {
      
@@ -45,76 +47,125 @@ exports.jobs = async (req, res, next) => {
         .skip(skip);
         
         users.map((user) => {
-            if(user.roles[0] === 'admin') adminArray.push(user.roles[0]);
 
-            if(user.isPaid) paidArray.push(user.isPaid);
+            if(user?.roles[0] === 'admin') {
+                adminArray.push(user?.roles[0]);
+            }
+
+            if(user?.isPaid) {
+                paidArray.push(user?.isPaid);
+            }
+
         });
 
 
         const jobData = {
-            jobCategories: jobCategories.length,
+            jobCategories: jobCategories?.length,
             jobs,
             total_number_of_jobs: jobCount.length,
-            total_number_of_jobs_categories: jobCategories.length,
+            total_number_of_jobs_categories: jobCategories?.length,
             total_number_of_jobs_orders: "",
 
-            total_number_of_products: productLength.length,
+            total_number_of_products: productLength?.length,
             products,
 
-            adminCounts: adminArray.length,
+            adminCounts: adminArray?.length,
 
-            userCounts: users.length,
-            paidUserCounts: paidArray.length,
+            userCounts: users?.length,
+            paidUserCounts: paidArray?.length,
             users: users
         }
 
-        return res.status(200).send(jobData);
+        return res.status(200).json(jobData);
 
     } catch (error) {
-        return res.status(500).send({ message: error.message });
+        return res.status(500).json({status: "failed", message: error?.message });
     }
 }
 
 
 
 exports.createNewJob = async (req, res, next) => {
-    
+  
     /**
      * POST REQUEST
      * ADMIN ONLY ROUTE
      * http://localhost:2000/api/jobs/create
      * 
-     * {
-        "title": "Job one",
-        "company_name": "Ricz Tech",
-        "jobImage": "Images",
-        "jobType": "Full Time",
-        "jobField": "Human Resource",
-        "description": "decription",
-        "position": "Developer",
-        "qualification": "Any",
+     *{
+        "name": "Test new job",
+        "company_name": "Company name",
+        "description": "Job Description",
+        "link": "http://localhost:2000/api/jobs/create",
+        "authorImages": "Author name",
+        "authorName": "Jane Doe",
+        "jobType": "Job Type",
+        "jobField": "Job Field",
+        "adminAccess": "6360cb6c1731281982334003",
+        "accessType": "Premium",
+        "position": ["HR", "Social Media Manager"],
+        "qualification": ["Bsc. Health Management Studies", "Bsc. Management Science"],
         "categoryId": "628d56c755040aa7fb78d8cd",
-        "jobImage": "image.jpg"
+        "createdBy": "John Doe",
+        "userId": "628d56c755040aa7fb78d8cd"
         }
      */
 
-    try {
-                
-        // //Upload Image to cloudinary
-        const uploaderResponse = await cloudinary.uploader.upload(req.file.path);
 
-        if(!uploaderResponse) {
+    const userId = req?.user?.id || null;
+
+    let jobImages = []
+    let authorImages = []
+
+    try {
+
+        if(!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(200).json({ status: "success", message: "Unknown user Id"});
+        }
+                
+        // //Upload jobImages to cloudinary
+        if(req?.files?.jobImages) {
+   
+            const { public_id, secure_url } = await cloudinaryImageUploadMethod(req?.files?.jobImages);
+  
+            if(!secure_url || !public_id) {
             //Reject if unable to upload image
-            return res.status(404).send({ message: "Unable to upload image please try again"});
+                return res.status(404).json({ status: 'failed', message: "Unable to upload image please try again"});
+            }
+
+            // Push image item to array
+            jobImages.push({public_id, secure_url})
+
+            // Delete image form temporary system storage
+            req?.files?.jobImages?.map((image) => fs.unlinkSync(image?.path))
+
+        }
+                
+        // //Upload authorImages to cloudinary
+        if(req?.files?.authorImages) {
+
+
+            const { public_id, secure_url } = await cloudinaryImageUploadMethod(req?.files?.authorImages);
+   
+            if(!secure_url || !public_id) {
+            //Reject if unable to upload image
+                return res.status(404).json({ status: 'failed', message: "Unable to upload image please try again"});
+            }
+
+            // Push image item to array
+            authorImages.push({public_id, secure_url});
+
+            // Delete image form temporary system storage
+            req?.files?.authorImages?.map((image) => fs.unlinkSync(image?.path));
+
         }
     
         const jobData  = {
             ...req.body,
-            createdBy: req.user.id,
-            userId: req.user.id,
-            jobImageCloudinaryPublicId: uploaderResponse.public_id,  
-            jobImagePath: uploaderResponse.secure_url
-            
+            createdBy: userId,
+            userId,
+            jobImages,
+            authorImages,
         }
 
         const createNewJob = new JobModel(jobData);
@@ -122,16 +173,14 @@ exports.createNewJob = async (req, res, next) => {
         const createdJob = await createNewJob.save();
 
         if(!createdJob) {
-            return res.status(401).send({ message: "Unable to create new job"});
+            return res.status(401).json({ message: "Unable to create new job"});
         }
 
-
-        fs.unlinkSync(req.file.path);
-
-        return res.status(200).send(createdJob);
+        return res.status(200).json({ status: 'success', message: "Job Created successfully" });
 
     } catch (error) {
-        return res.status(500).send({ message: error.message });
+      
+        return res.status(500).json({ status: 'failed', message: error?.message });
     }
 }
 
@@ -140,13 +189,14 @@ exports.createNewJob = async (req, res, next) => {
 exports.listJobs = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/jobs/lists
-    let { page, size } = req.query;
 
-    if(!page) page = 1;
-    if(!size) size = 10;
+    const DEFAULT_PAGE = 1;
+    const DEFAULT_SIZE = 10;
 
-    page = parseInt(page);
-    size = parseInt(size);
+    let { page = DEFAULT_PAGE, size = DEFAULT_SIZE } = req.query;
+
+    page = Number(page);
+    size = Number(size);
 
     const limit = size;
     const skip = (page - 1) * size;
@@ -157,11 +207,13 @@ exports.listJobs = async (req, res, next) => {
         .skip(skip);
         
         if(!jobs) {
-            return res.status(200).send({ message: "No job found", jobs: []});
+            return res.status(200).json({ status: 'suceess', message: "No job found", jobs: []});
         }
-        return res.status(200).send(jobs);
+
+        return res.status(200).json({ status: 'suceess', jobs });
+
     } catch (error) {
-        return res.status(500).send({ message: error.message });
+        return res.status(500).json({ status: 'failed', message: error?.message });
     }
 }
 
@@ -176,7 +228,7 @@ exports.findJobById  = async (req, res, next) => {
 
 try {
     if(!mongoose.Types.ObjectId.isValid(jobId)) {
-        return res.status(200).send({ message: "Unknown job parameter"});
+        return res.status(200).json({ message: "Unknown job parameter"});
     }
     const query = [
         { $match: {_id: mongoose.Types.ObjectId(jobId)} },
@@ -204,13 +256,13 @@ try {
     job = job[0];
 
     if(!job) {
-        return res.status(404).send({ message: "No job found"});
+        return res.status(404).json({status: "failed", message: "No job found"});
     }
 
-    return res.status(200).send(job);
+    return res.status(200).json({ status: 'suceess', job });
 
 } catch (error) {
-    return res.status(500).send({ message: error.message });
+    return res.status(500).json({status: "failed", message: error?.message });
 }
 
 }
@@ -222,59 +274,116 @@ exports.updateJobById = async (req, res, next) => {
      //http://localhost:2000/api/jobs/62aa0d254774270c1f61f639/update
      * 
      * {
-        "title": "Job one",
-        "company_name": "Ricz Tech",
-        "jobType": "Full Time",
-        "jobField": "Human Resource",
-        "description": "decription",
-        "position": "Developer",
-        "qualification": "Any",
+        "name": "Test new job",
+        "company_name": "Company name",
+        "description": "Job Description",
+        "link": "http://localhost:2000/api/jobs/create",
+        "authorImages": "Author name",
+        "authorName": "Jane Doe",
+        "jobType": "Job Type",
+        "jobField": "Job Field",
+        "adminAccess": "6360cb6c1731281982334003",
+        "accessType": "Premium",
+        "position": ["HR", "Social Media Manager"],
+        "qualification": ["Bsc. Health Management Studies", "Bsc. Management Science"],
         "categoryId": "628d56c755040aa7fb78d8cd",
-        "jobImage": "image.jpg"
+        "createdBy": "John Doe",
+        "userId": "628d56c755040aa7fb78d8cd"
         }
      */
 
         const { jobId } = req.params;
 
+        let jobImages = []
+        let authorImages = []
+
     try {
         
         if(!mongoose.Types.ObjectId.isValid(jobId)) {
-            return res.status(200).send({message: "Job info not valid"}); 
+            return res.status(200).json({status: "failed", message: "Invalid job id"}); 
         }
+
         const job = await JobModel.findById(jobId);
 
         if(!job) {
-            return res.status(404).send({ message: "No job found"});
+            return res.status(404).json({status: "failed", message: "No job found"});
         }
-
-        let updateData = { ...req.body };
 
         //Upload Image to cloudinary
-        //DELETE FILE FROM CLOUDINARY IF EXIST
-        if(req?.file?.jobImagePath) {
-            let uploaderResponse = await cloudinary.uploader.destroy(job.jobImageCloudinaryPublicId);
-            console.log(uploaderResponse)
-            if(!uploaderResponse) {
-                //Reject if unable to upload image
-                return res.status(400).send({ error: "Unable to delete profile image please try again"});
-            }
+        //DELETE FILE FROM CLOUDINARY IF EXIST IF JOB IMAGE EXIST AND UPLOAD NEW ONE
+
+        if(req?.file?.jobImages && req.body.jobImagesIds) {
+            const jobImagesIds = req.body.jobImagesIds;
+
+            // Loop through the ids array and delete each of them from cloudinary
+            jobImagesIds.map(async (imageId) => {
+                let deleteResponse = await cloudinary.uploader.destroy(imageId?.public_id);
+
+                if(!deleteResponse) {
+                    //Reject if unable to delete image
+                    return res.status(400).json({ status: "failed", error: "Unable to delete job image please try again"});
+                }
+            })
 
             //Upload Image to cloudinary
-            uploaderResponse = await cloudinary.uploader.upload(req.file.path);
-            updateData['jobImageCloudinaryPublicId'] =  uploaderResponse.public_id;
-            updateData['jobImagePath'] = uploaderResponse.secure_url;
+            const {public_id, secure_url} = await cloudinaryImageUploadMethod(req?.files?.jobImages);
 
-            fs.unlinkSync(req?.file?.path);
+            if(!secure_url && !public_id) {
+                return res.status(400).json({ status: "failed", error: "Unable to upload new job image, please try again"});
+            }
+
+            jobImages.push({public_id, secure_url});
+
+            req?.files?.jobImages?.map((image) => {
+                fs.unlinkSync(image?.path);
+            });
+
         }
+
+
+        //Upload Image to cloudinary
+        //DELETE FILE FROM CLOUDINARY IF EXIST AUTHOR IMAGE EXIST AND UPLOAD NEW ONE
+
+        if(req?.file?.authorImages && req?.body?.authorImageIds) {
+
+            const authorImageIds = req.body.authorImageIds;
+
+            // Loop through the ids array and delete each of them from cloudinary
+            authorImageIds.map(async (imageId) => {
+                let deleteResponse = await cloudinary.uploader.destroy(imageId?.public_id);
+
+                if(!deleteResponse) {
+                    //Reject if unable to delete image
+                    return res.status(400).json({ status: "failed", error: "Unable to delete job image please try again"});
+                }
+            })
+
+            //Upload Image to cloudinary
+            const {public_id, secure_url} =  await cloudinaryImageUploadMethod(req?.files?.jobImages);
+
+            if(!secure_url && !public_id) {
+                return res.status(400).json({ status: "failed", error: "Unable to upload new job image, please try again"});
+            }
+
+            authorImages.push({public_id, secure_url});
+
+            req?.files?.authorImages?.map((image) => {
+                fs.unlinkSync(image?.path);
+            });
+
+        }
+
+        
+        let updateData = { ...req.body, jobImages, authorImages };
 
         //UPDATE JOB 
          await JobModel.findByIdAndUpdate(jobId, {$set: updateData}, {new: true});
         
-        return res.status(200).send({success: "Job updated successfully"});
+        return res.status(200).json({status: "success", status: "success", success: "Job updated successfully"});
 
     } catch (error) {
         // console.log(error)
-        return res.status(500).send({ error: error.message });
+        return res.status(500).json({status: "failed", error: error?.message });
     }
 }
 
@@ -288,29 +397,44 @@ exports.deleteJobById  = async (req, res, next) => {
     try {
 
         if(!mongoose.Types.ObjectId.isValid(jobId)) {
-            return res.status(400).send({ message: "Unknown job parameter"});
+            return res.status(400).json({ message: "Unknown job parameter"});
         }
 
         let job = await JobModel.findById(jobId);
-        
-        let publicId  = job.jobImageCloudinaryPublicId;
 
-        let uploaderResponse = await cloudinary.uploader.destroy(publicId);
+        if(job?.jobImages?.length > 0) {
 
-        if(!uploaderResponse) {
-            return res.status(200).send({ message: "Unable to delete image, try again!"});
+            job?.jobImages.map( async (image) => {
+                // DELETE IMAGES FROM CLOUDINARY
+                let deleteResponse = await cloudinary.uploader.destroy(image?.public_id);
+                if(!deleteResponse) {
+                    return res.status(400).json({ status: 'failed', message: "Unable to job image, please try again!"});
+                }
+            });
         }
 
-        job = await JobModel.findByIdAndDelete(jobId);
+        if(job?.authorImages?.length > 0) {
 
-        if(!job) {
-            return res.status(200).send({ message: "No job found"});
+            job?.authorImages.map( async (image) => {
+                // DELETE IMAGES FROM CLOUDINARY
+                let deleteResponse = await cloudinary.uploader.destroy(image?.public_id);
+                if(!deleteResponse) {
+                    return res.status(400).json({ status: 'failed', message: "Unable to delete author image, please try again!"});
+                }
+            });
         }
 
-        return res.status(200).send({ message: "Job deleted successfully"});
+        // DELETE JOB
+        const deletedJob = await job.delete();
+
+        if(!deletedJob) {
+            return res.status(400).json({ status: 'failed', message: "Unable to delete job"});
+        }
+
+        return res.status(200).json({ status: 'success', message: "Job deleted successfully"});
 
     } catch (error) {
-        return res.status(500).send({ message: error.message });
+        return res.status(500).json({ status: 'failed', message: error?.message });
     }
 
 }

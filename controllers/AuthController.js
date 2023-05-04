@@ -227,12 +227,12 @@ exports.login = async (req, res, next) => {
         const user = await User.findOne({ email: result?.email }).populate("membershipSubscriberId", "isActive membershipId amount membershipType createdAt");
         
         if(!user) {
-            throw createError.NotFound("User not registered");
+            return res.status(404).json({ status: "failed", message: "User not registered" });
         }
 
         if(!user?.accountVerified) {
             const msg = "Your account is not yet verified";
-             res.status(400).send({ error: msg, message: msg })
+             res.status(400).json({ status: "failed", error: msg, message: msg })
              return
         }
 
@@ -288,10 +288,10 @@ exports.login = async (req, res, next) => {
     } catch (error) {
         if(error.isJoi === true) {      
             const msg = "Invalid parameters"     
-            return res.status(422).send({ error: msg, message: msg})
+            return res.status(422).send({ status:"failed", error: msg, message: msg})
         }
 
-        next(error);
+        return res.status(500).send({ status:"failed", error: error?.message, message: error?.message,})
     }
 }
 
@@ -299,16 +299,20 @@ exports.login = async (req, res, next) => {
 exports.refreshToken = async (req, res, next) => {
     
     try {
-        const {refreshToken} = req.body;
+        const { refreshToken } = req.body;
+
         if(!refreshToken) {
-            throw createError.BadRequest();
+            return res.status(400).send({ status:"failed", message: 'Invalid token'})
         }
+
         const userId = await verifyRefreshToken(refreshToken);
         const accessToken = signInAccessToken(userId);
         const refToken = signInRefreshToken(userId);
-        return res.send({ accessToken: accessToken, refreshToken: refToken });
+
+        return res.status(200).json({ status:"success", accessToken: accessToken, refreshToken: refToken });
+
     } catch (error) {
-        next(error);
+        return res.status(500).send({ status:"failed", error: error?.message, message: error?.message,})
     }
 }
 
@@ -321,25 +325,24 @@ exports.logout = async (req, res, next) => {
         const  refreshToken = req.headers.authorization.split(" ")[1];
       
         if(!refreshToken) {
-            throw createError.BadRequest();
+            return res.status(400).send({ status:"failed", message: "Invalid token"})
         }
 
         const userId = await verifyRefreshToken(refreshToken);
                
         //if Refresh tokenn is set
-        const isRefreshTokenSet = await RefreshAccessToken.findOne({userId: userId});
+        const isRefreshTokenSet = await RefreshAccessToken.findOne({ userId: userId });
        
         if(!isRefreshTokenSet) {
-            return res.status(404).send({ message: "Unable to logout user"})
+            return res.status(404).send({ status:"failed", message: "Unable to logout user"})
         }
 
         await RefreshAccessToken.findByIdAndDelete({userId: userId});
 
-        return res.status(404).send({ message: "You are now logged out"})
+        return res.status(404).send({ status:"failed", message: "You are now logged out"})
 
 
     } catch (error) {
-        // console.log(error)
         next(error);
     }
 }
@@ -423,6 +426,7 @@ exports.updateUser = async (req, res, next) => {
     //PATCH REQUEST
     //http://localhost:2000/api/auth/user/:userId/update
     //http://localhost:2000/api/auth/user/62902e117ecadf9305054e1a/update
+
     const userId = req.user.id;
 
     try {
@@ -433,48 +437,54 @@ exports.updateUser = async (req, res, next) => {
             return res.status(400).json({status: "failed", message:`User with ${user?.email} does not exist`});
         }
 
-        let profileImageCloudinaryPublicId;
-        let profileImage;
-
-        if(req.file) {
-        // //Upload Image to cloudinary
-        const { public_id, secure_url} = await cloudinary.uploader.upload(req?.file?.path);
-
-        if(!secure_url) {
-            //Reject if unable to upload image
-            return res.status(404).send({ message: "Unable to upload image please try again"});
-        }
-
-        profileImageCloudinaryPublicId = public_id;
-        profileImage = secure_url
-
-        fs.unlinkSync(req?.file?.path);
-
-        }
-
-
-
         let userData = { ...req.body };
         
         const result = await registerValidation(userData, true);
-
 
         if(!result) {
             return res.status(200).send({status: "failed", message: 'Unable to update user'});
         }
 
-        if(profileImage) {
-            result["profileImageCloudinaryPublicId"] = profileImageCloudinaryPublicId
-            result["profileImage"] = profileImage
+        if(req?.file) {
+ 
+        // Check if user already has a profile image
+        if(user?.profileImageCloudinaryPublicId && user?.profileImage) {
+            // Delete user profile image from cloudinary
+            let deleteResponse = await cloudinary.uploader.destroy(user?.profileImageCloudinaryPublicId);        
+        
+            if(!deleteResponse) {
+                //Reject if unable to upload image
+                return res.status(400).json({ message: "Unable to delete profile image please try again"});
+            }
+
         }
 
+        // //Upload Image to cloudinary
+        const { public_id, secure_url } = await cloudinary.uploader.upload(req?.file?.path);
+
+        if(!secure_url && !public_id) {
+            //Reject if unable to upload image
+            return res.status(404).json({status: "failed", message: "Unable to upload image please try again"});
+        }
+
+        result["profileImageCloudinaryPublicId"] = public_id;
+        result["profileImage"] = secure_url;
+
+        fs.unlinkSync(req?.file?.path);
+
+        }
+
+        // Delete password from th object that password field does not update
         delete result?.password;
 
+        //update user details
         const updatedUser = await User.findByIdAndUpdate(userId, { $set: result }, { new: true });
 
-        if(updatedUser) {
-            return res.status(200).send({ message: 'Updated successfully'});
+        if(!updatedUser) {
+            return res.status(400).json({status: "failed", message: 'Unable to update user info'});
         }
+
+        return res.status(200).json({status: "success", message: 'Updated successfully'});
 
     } catch (error) {
         next(error);
@@ -498,9 +508,11 @@ exports.uploadProfilePicture = async (req, res, next) => {
         // //Upload Image to cloudinary
         const { public_id, secure_url} = await cloudinary.uploader.upload(req?.file?.path);
 
+        fs.unlinkSync(req?.file?.path);
+
         if(!secure_url && !public_id) {
             //Reject if unable to upload image
-            return res.status(404).send({ message: "Unable to upload image please try again"});
+            return res.status(404).json({status: "failed", message: "Unable to upload image please try again"});
         }
 
         const updatedProfileImage = await User.updateOne({_id: currentUser}, 
@@ -512,15 +524,14 @@ exports.uploadProfilePicture = async (req, res, next) => {
         
         }, { new: true });
 
-        if(updatedProfileImage) {
-
-            fs.unlinkSync(req?.file?.path);
-
-            return res.status(200).send({ message: 'Profile Image Updated successfully', stage: 3 });
+        if(!updatedProfileImage) {
+            return res.status(400).json({status: "failed", message: 'Unable to update profile image', stage: 3 });
         }
 
+        return res.status(200).json({status: "success", message: 'Profile Image Updated successfully', stage: 3 });
+
     } catch (error) {
-        // return res.status(401).send(error)
+        // return res.status(401).json(error)
         next(error);
     }
        
@@ -534,23 +545,23 @@ exports.deleteUser = async (req, res, next) => {
     //http://localhost:2000/api/auth/user/62902e117ecadf9305054e1a/delete
 
     try {
-        const result = await User.findOne({ _id: req.params.userId });
+        const userExist = await User.findOne({ _id: req.params.userId });
 
-        if(!result) throw createError.Conflict(`User does not exist`);
+        if(!userExist) return res.status(404).json({status: "failed", message: `User does not exist`});
       
-        let uploaderResponse = await cloudinary.uploader.destroy(result.profileImageCloudinaryPublicId);
+        let uploaderResponse = await cloudinary.uploader.destroy(userExist?.profileImageCloudinaryPublicId);
 
         if(!uploaderResponse) {
-            return res.status(400).send({ message: "Unable to delete user"});
+            return res.status(400).json({status: "failed", message: "Unable to delete user profile image, please try again"});
         }
     
-        const deletedUser = await User.findByIdAndDelete(result.id);
+        const deletedUser = await User.findByIdAndDelete(userExist?.id);
       
         if(!deletedUser) {
-            return res.status(401).send({ message: 'Unable to delete user'});
+            return res.status(401).json({status: "failed", message: 'Unable to delete user'});
         }
 
-        return res.status(200).send({ message: 'User deleted successfully'});
+        return res.status(200).json({status: "success", message: 'User deleted successfully'});
 
     } catch (error) {
         next(error)
@@ -567,73 +578,77 @@ exports.resetPassword = async (req, res, next) => {
 
         const result = await resetPasswordSchema.validateAsync({email});
 
-        const doesExist = await User.findOne({ email: result.email });
+        const userExist = await User.findOne({ email: result?.email });
 
-        if(!doesExist) throw createError.Conflict(`${result.email} does not exist`);
+        if(!userExist) throw createError.Conflict(`${result?.email} does not exist`);
 
-        const resetToken = await resetPasswordToken(doesExist);
+        const resetToken = await resetPasswordToken(userExist);
         
-        const sendPage = `https://fofoapp.herokuapp.com/api/auth/reset-password/${doesExist._id}/${resetToken}`;
+        const sendPage = `https://fofoapp.herokuapp.com/api/auth/reset-password/${userExist?._id}/${resetToken}`;
         
         // SEND sendPage to email address
         //
-        return res.status(200).send({ sendPage: sendPage, resetToken: resetToken });
+        return res.status(200).json({status: "success", sendPage, resetToken });
 
     } catch (error) {
-        return res.status(200).send(error)
+        return res.status(500).json({status: "failed", error: error?.message, message: error?.message })
     }
 }
 
 exports.getResetPasswordToken = async (req, res, next) => {
+
     const { id, token } = req.params;
+    
     try {
         if(!id && !token) {
-            return res.status(401).send({message: "User not verified"})
+            return res.status(401).send({status: "failed", message: "User not verified"})
         }
         const doesExist = await User.findOne({ _id: id }).select('password -_id').lean();
        
-        if(!doesExist) throw createError.Conflict(`User does not exist`);
+        if(!doesExist) return res.status(404).json({status: "failed", message: "User does not exist"});
 
-        const secret =  process.env.RESET_PASSWORD_SECRET_KEY + doesExist.password;
+        const secret =  process.env.RESET_PASSWORD_SECRET_KEY + doesExist?.password;
 
         const payload  = JWT.verify(token, secret);
         
         if(!payload) {
-            return res.status(401).send({ message: 'Unable to verify user'});
+            return res.status(401).send({status: "failed", message: 'Unable to verify user'});
         }
         //SEND OTP TO USER PHONE
         // Object.assign(doesExist, req.body);
         // doesExist.save();
         // console.log("user", doesExist)
         // const updatedUser =    await User.findByIdAndUpdate(id, dataToUpdate, { new: true });
-        return res.status(200).send({message: 'User verified'})
+
+        return res.status(200).send({status: "success", message: 'User verified'})
 
     } catch (error) {
-        return res.status(200).send(error)
+        return res.status(500).json({status: "failed", error: error?.message, message: error?.message })
     }
 }
 
 exports.postResetPasswordToken = async (req, res, next) => {
+
     const { id, token } = req.params;
     const { password, confirmPassword } = req.body;
 
     if(password !== confirmPassword) {
-        return res.status(401).send({ error: 'Password mis-match'});
+        return res.status(401).json({status: "failed", error: 'Password mis-match'});
     }
 
     try {
         let doesExist = await User.findOne({ _id: id }).select('password -_id');
 
-        if(!doesExist) throw createError.Conflict(`User does not exist`);
+        if(!doesExist) return res.status(404).json({status: "failed", message: "User does not exist"});
         
-        const { value: result } = await passwordOnlySchema({password, confirmPassword});
+        const { value: result } = await passwordOnlySchema({ password, confirmPassword });
 
         const secret =  process.env.RESET_PASSWORD_SECRET_KEY + doesExist.password;
 
         const payload  = JWT.verify(token, secret);
         
         if(!payload) {
-            return res.status(401).send({ message: 'Unable to verify user'});
+            return res.status(401).json({status: "failed", message: 'Unable to verify user'});
         }
         const salt = await bcrypt.genSalt(10);
 
@@ -641,9 +656,13 @@ exports.postResetPasswordToken = async (req, res, next) => {
 
         doesExist.password = hashedPassword;
 
-        await User.findByIdAndUpdate(id, {$set: doesExist}, { new: true });
+        const passwordReset = await User.findByIdAndUpdate(id, { $set: doesExist }, { new: true });
+
+        if(!passwordReset) {
+            return res.status(400).json({ status: "failed", message: 'Unable to reset password' })
+        }
         
-        return res.status(200).send({message: 'User Password successfully updated'})
+        return res.status(200).send({ status: "success", message: 'User Password successfully updated'})
 
     } catch (error) {
 
@@ -651,33 +670,33 @@ exports.postResetPasswordToken = async (req, res, next) => {
             return res.status(401).send({error: error?.details[0]?.message});
         }
 
-        return res.status(401).send(error)
+        return res.status(500).json({status: "failed", error: error?.message, message: error?.message })
     }
 }
 
 exports.updatePassword = async (req, res, next) => {
 
-    const userId = req.params.userId;
+    const userId = req?.params?.userId;
 
     const { password, confirmPassword } = req.body;
     
     try {
 
         if(password !== confirmPassword) {
-            return res.status(401).send({ error: 'Password mis-match'});
+            return res.status(401).json({status: "failed", error: 'Password mis-match'});
         }
 
-        if(!mongoose.Types.ObjectId.isValid(userId)) return res.status(401).send({ error: 'Invalid user id'});
+        if(!mongoose.Types.ObjectId.isValid(userId)) return res.status(401).json({status: "failed", error: 'Invalid user id'});
 
         const user = await User.findOne({_id: userId});
         
-        if(!user) return res.status(404).send({error: "User not found"});
+        if(!user) return res.status(404).json({status: "failed", error: "User not found"});
 
         const salt = await bcrypt.genSalt(10);
 
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        const updatePassword = await User.findByIdAndUpdate(user.id, {$set: { password: hashedPassword }});
+        const updatedPassword = await User.findByIdAndUpdate(user.id, {$set: { password: hashedPassword }});
         
         // const accessToken = await signInAccessToken(user);
         // const refreshToken = await signInRefreshToken(user);
@@ -695,12 +714,14 @@ exports.updatePassword = async (req, res, next) => {
 
         // const savedRefreshAccessToken = await refreshAccessToken.save();
 
-        if(!updatePassword) return res.status(400).send({error: "Unable to update password"});
+        if(!updatedPassword) {
+            return res.status(400).json({status: "failed", error: "Unable to update password"});
+        }
 
-        return res.status(200).send("Password updated successfully");
+        return res.status(200).json({ status: "failed", message: "Password updated successfully"});
 
     } catch (error) {
-        return res.status(500).send({ error: error.message });
+        return res.status(500).json({status: "failed", error: error?.message, message: error?.message  });
     }
 }
 
@@ -712,7 +733,7 @@ exports.otpPage = async (req, res, next) => {
 
         const user = await User.findOne({ email: email });
 
-        if(!user) return res.status(404).send({ error: "User not found" });
+        if(!user) return res.status(404).send({ status: "failed", error: "User not found" });
         
         const otpCode = generateFourDigitsOTP();
 
@@ -747,7 +768,7 @@ exports.otpPage = async (req, res, next) => {
         return res.status(200).send(userData);
 
     } catch (error) {
-        return res.status(401).send({ error: error?.message });
+        return res.status(401).json({ status: "failed", error: error?.message, message: error?.message });
     }
     
 }
@@ -757,36 +778,35 @@ exports.verifyOtp = async (req, res, next) => {
     
     try {
 
-
         const { otp } = req.body;
 
-        if(otp.length < 4 || otp.length > 4 ) return res.status(200).send({ error: 'Input valid 4 digit otp code'})
+        if(otp.length < 4 || otp.length > 4 ) {
+            return res.status(200).json({ status: "failed", error: 'Input valid 4 digit otp code'})
+        }
         
         const isOtpFound = await Otpmodel.findOne({ otp: otp })
 
         if(!isOtpFound) {
-            return res.status(404).send({ error: 'OTP not found'})
+            return res.status(404).json({ status: "failed", error: 'OTP not found'})
         }
 
         const user = await User.findOne({_id: isOtpFound.userId})
 
-        if(!user) return res.status(400).send({ error: "Unprocessible OTP ", stage: 1 });
+        if(!user) return res.status(400).json({ status: "failed", error: "Unprocessible OTP ", stage: 1 });
         
         
         const verified = await User.findByIdAndUpdate(isOtpFound.userId, { $set: { accountVerified: true }}, { new: true});
        
         if(verified) {
-            await Otpmodel.findByIdAndDelete(isOtpFound.id)
-            
+            await Otpmodel.findByIdAndDelete(isOtpFound.id);
         }
-
 
         const { _id: id, email, roles, fullname: username, field } = verified;
 
         const userObject = {  id, email, roles, username, field };
 
-        if(verified.profileImagePath) {
-            userObject.profileImagePath = verified.profileImagePath
+        if(verified?.profileImagePath) {
+            userObject.profileImagePath = verified?.profileImagePath
         }
           
         const accessToken = signInAccessToken(userObject);
@@ -799,7 +819,7 @@ exports.verifyOtp = async (req, res, next) => {
             await refreshAccessToken.remove();
         }
 
-        refreshAccessToken = new RefreshAccessToken({ userId: verified.id,  accessToken, refreshToken});
+        refreshAccessToken = new RefreshAccessToken({ userId: verified?.id,  accessToken, refreshToken });
         
         await refreshAccessToken.save();
 
@@ -809,7 +829,7 @@ exports.verifyOtp = async (req, res, next) => {
             stage: 2,
             accessToken,
             refreshToken,
-            userId: verified.id
+            userId: verified?.id
         }
 
         return res.status(200).send(userdata);
@@ -861,7 +881,6 @@ exports.followAndUnfollow = async (req, res, next) => {
         }
 
     } catch (error) {
-        console.log(error)
         return res.status(500).json({ status: 'failed', message: "Server error following and unfollowing a user"})
     }
 }

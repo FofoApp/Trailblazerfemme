@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 
 const { verifyAccessToken } = require('./../helpers/jwtHelper');
@@ -25,7 +26,14 @@ router.post('/:jobId/application/update', verifyAccessToken, permissions(["user"
 //ADMIN JOB ROUTES
 // router.get('/',  verifyAccessToken, permissions(["admin"]), AdminJobController.jobs);
 router.patch('/:jobId/update',  verifyAccessToken, permissions(["admin"]), upload.single('jobImage'), AdminJobController.updateJobById);
-router.post('/create',  verifyAccessToken, permissions(["admin"]), upload.single('jobImage'),  AdminJobController.createNewJob);
+
+// TEST JOB ROUTE
+const jobImageFields = [{name: 'jobImages', maxCount: 1 }, {name: 'authorImages', maxCount: 1},];
+
+router.post('/create', verifyAccessToken, permissions(["user", "admin"]), upload.fields(jobImageFields), AdminJobController.createNewJob);
+
+
+// router.post('/create',  verifyAccessToken, permissions(["admin"]), upload.fields([{name: 'jobImage', maxCount: 1}, {name: 'author_image', maxCount: 1}]),  AdminJobController.createNewJob);
 router.get('/:jobId/get', verifyAccessToken, permissions(["user", "admin"]), AdminJobController.findJobById);
 router.get('/:jobId/list', verifyAccessToken, permissions(["admin"]), AdminJobController.listJobs);
 router.delete('/:jobId/delete', verifyAccessToken, permissions(["admin"]), AdminJobController.deleteJobById);
@@ -35,7 +43,7 @@ router.delete('/:jobId/delete', verifyAccessToken, permissions(["admin"]), Admin
 // router.get('/:jobId/get', JobController.findJobById);
 
 router.patch('/:jobId/application/update', verifyAccessToken, permissions(["user", "admin"]), JobController.updateJobApplication);
-router.delete('/:jobId/delete', verifyAccessToken, permissions(["admin"]), JobController.deleteJobById);
+// router.delete('/:jobId/delete', verifyAccessToken, permissions(["admin"]), JobController.deleteJobById);
 
 
 

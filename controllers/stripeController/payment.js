@@ -144,13 +144,12 @@ exports.membershipSubscription = async (req, res, next) => {
 
     const { membership } = req.body;
 
-
     const userId = req?.user?.id;
 
     try {
 
         if(!membership?.amount) {
-            return res.status(400).json({ error: "Provide service price" })
+            return res.status(400).json({ error: "Provide service price" });
         }
 
         const customer = await stripe.customers.create();
@@ -162,7 +161,7 @@ exports.membershipSubscription = async (req, res, next) => {
               {apiVersion: '2022-11-15'}
             );
 
-            const membership_data =  { 
+            const membership_data =  {
                 ...membership,
                 userId,
                 action: "membership",
@@ -172,7 +171,7 @@ exports.membershipSubscription = async (req, res, next) => {
     
             let paymentIntent = await stripe.paymentIntents.create({
             customer: customer?.id,
-            amount: Number(membership?.amount) * 100, // USD*100
+            amount: Number(membership?.amount) * 100,
             currency: 'usd',
             receipt_email: membership?.receipt_email,
             
@@ -182,8 +181,10 @@ exports.membershipSubscription = async (req, res, next) => {
 
             });
 
-                
-            return res.status(200).json({ 
+            // req.body = paymentIntent;
+
+
+            return res.status(200).json({
                 paymentIntent: paymentIntent?.client_secret,
                 customerId: customer?.id,
                 ephemeralKey: ephemeralKey?.secret,
@@ -195,7 +196,6 @@ exports.membershipSubscription = async (req, res, next) => {
 
 
     } catch(error) {
-        // console.log({ error })
         return res.status(500).json({ error: error?.message })
     }
 }
@@ -216,13 +216,13 @@ exports.productPayment = async (req, res, next) => {
         if(customer) {
 
             const ephemeralKey = await stripe.ephemeralKeys.create(
-              {customer: customer?.id},
-              {apiVersion: '2022-11-15'}
+              { customer: customer?.id },
+              { apiVersion: '2022-11-15' }
             );
     
             let paymentIntent = await stripe.paymentIntents.create({
             customer: customer?.id,
-            amount: Number(product?.totalPrice) * 100, // USD*100
+            amount: Number(product?.totalPrice) * 100,
             currency: 'usd',
             receipt_email: product?.receipt_email,
             

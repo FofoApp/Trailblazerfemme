@@ -303,13 +303,21 @@ exports.updateJobApplication = async (req, res, next) => {
 
 
 exports.createNewJob = async (req, res, next) => {
+
+    const userId = req?.user?.id;
+
+    console.log(req.body)
+
     /**
      * POST REQUEST
      * http://localhost:2000/api/jobs/create
      * {
         "title": "Job one",
         "company_name": "Ricz Tech",
-        "image": "Images",
+        "jobImages": "Images",
+        "link": "Images",
+        "author_name": "Author Name",
+        "author_image": "Author Name",
         "description": "decription",
         "position": "Developer",
         "qualification": "Any",
@@ -317,16 +325,27 @@ exports.createNewJob = async (req, res, next) => {
         "userId": "628695d03cf50a6e1a34e27b"
         }
      */
+        
 
     try {
-        const createNewJob = new JobModel(req.body);
+
+        return res.status(200).send(req.body);
+
+        const jobPayload = { ...req.body, userId, createdBy: userId  };
+
+        const createNewJob = new JobModel(jobPayload);
+
         const createdJob = await createNewJob.save();
+
         if(!createdJob) {
             return res.status(400).send({ success: "Unable to create new job"});
         }
+
         return res.status(200).send(createdJob);
+
     } catch (error) {
-        return res.status(500).send({ error: error.message });
+        console.log(error)
+        return res.status(500).send({ error: error?.message });
     }
 }
 

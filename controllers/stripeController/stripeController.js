@@ -295,22 +295,22 @@ exports.hooks = async (req, res) => {
 
       if(event?.type === 'checkout.session.completed') {
 
-        const { userId, price, membershipType, mode, membershipId  } = event.data.object.metadata
+        const { userId, price, membershipType, mode, membershipId  } = event.data.object.metadata;
         
         const paymentStatus = event?.data?.object?.payment_status;
     
         if(event?.data?.object?.metadata?.membershipId && paymentStatus === 'paid') {
     
           const paymentIntentId = event?.data?.object?.payment_intent;
-       
-          const annually = mode === 'yearly' ? 'years' : "months" //yearly or monthly
+          //yearly or monthly
+          const annually = mode === 'yearly' ? 'years' : "months";
           // const monthly = 'months';
 
          const days = 'days';
     
           const start_date = moment();
           const end_date = moment().add(1, annually);
-          const diff = end_date.diff(start_date, days)
+          const diff = end_date.diff(start_date, days);
     
          let  membership_data =   {
                   mode,
@@ -323,7 +323,7 @@ exports.hooks = async (req, res) => {
                   subscription_start_date: start_date,
                   subscription_end_date: end_date,
                   days_between_next_payment: diff,
-                  paymentIntentId: paymentIntentId
+                  paymentIntentId: paymentIntentId,
           }
     
     
@@ -344,7 +344,7 @@ exports.hooks = async (req, res) => {
                   "days_between_next_payment": save_new_subscriber?.subscription_end_date,
                   "paymentIntentId": save_new_subscriber?.paymentIntentId,
                   
-              } 
+              }
           }, { new: true })
     
              console.log({ updateUser })
@@ -374,7 +374,9 @@ exports.hooks = async (req, res) => {
 
 
 exports.paymentSuccess = async (req, res, next) =>{
+
   const { success } = req.query
+
   try {
 
     if(success === 'true') {

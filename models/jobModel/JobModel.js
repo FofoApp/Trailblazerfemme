@@ -1,26 +1,32 @@
 const mongoose = require('mongoose');
 
 const jobSchema = new mongoose.Schema({
-    title: { type: String, required: true },
+
+    name: { type: String, required: true },
     company_name: { type: String, required: true },
-    image: { type: [String], default: [] },
+
     description: { type: String, required: true },
+    link: { type: String, required: true },
+    authorName: { type: String, required: true },
+
+    authorImages: [{
+        public_id: { type: String, required: true },
+        secure_url: { type: String, required: true },
+     }],
+    
     jobType: { type: String, required: true },
     jobField: { type: String, required: true },
 
     adminAccess: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     accessType: { type: String, default: 'Free' },
 
-    jobImagePath: { type: String, required: true },
-    jobImageCloudinaryPublicId: { type: String, required: true },
-
     jobImages: [{
         public_id: { type: String, required: true },
-        image_url: { type: String, required: true },
+        secure_url: { type: String, required: true },
      }],
 
-    position: { type: [String], required: true },
-    qualification: { type: [String], required: true },
+    position: { type: [String], default: [] },
+    qualification: { type: [String], default: [] },
     categoryId: [{type: mongoose.Schema.Types.ObjectId, ref: 'JobCategory'}],
 
     createdBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
@@ -38,6 +44,7 @@ const jobSchema = new mongoose.Schema({
 //         }
 //     }
 // },
+
 
 { timestamps: true });
 

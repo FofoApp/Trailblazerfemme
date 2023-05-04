@@ -2,12 +2,13 @@ const mongoose = require('mongoose');
 const mongoosePaginate = require('mongoose-paginate-v2');
 
 const membershipSubscriberSchema = new mongoose.Schema({
-
+    // membershipType: Free | Gold | Premium e.t.c
     membershipType: { type: String, required: true },
     membershipId: {type: mongoose.Schema.Types.ObjectId, ref: "Membership"},
     userId: {type: mongoose.Schema.Types.ObjectId, ref: "User"},
     isActive: { type: Boolean, default: false },
     isPaid: { type: Boolean, default: false },
+    // mode: payment mode yearly | monthly
     mode: { type: String, required: true },
     amount: { type: String, required: true },
     
