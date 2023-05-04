@@ -80,7 +80,7 @@ exports.blog = async (req, res) => {
     
         const hotm = await BlogModel.paginate({}, 
             { 
-                page: hot_page, limit: 5,  
+                page: 1, limit: 5,  
                 select: "createdAt name blogLikes description blogImage createdBy blogComments blogviews",
                 populate: [{
                     path: 'createdBy',

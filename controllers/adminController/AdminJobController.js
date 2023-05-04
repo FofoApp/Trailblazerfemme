@@ -202,6 +202,7 @@ exports.listJobs = async (req, res, next) => {
     const skip = (page - 1) * size;
 
     try {
+        
         const jobs = await JobModel.find({})
         .limit(limit)
         .skip(skip);

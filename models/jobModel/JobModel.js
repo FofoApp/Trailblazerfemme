@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const jobSchema = new mongoose.Schema({
 
@@ -58,6 +59,7 @@ jobSchema.options.toJSON = {
      }
 };
 
+jobSchema.plugin(mongoosePaginate);
 const Job = mongoose.model('Job', jobSchema);
 
 module.exports = Job;

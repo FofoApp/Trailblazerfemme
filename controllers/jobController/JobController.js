@@ -12,6 +12,19 @@ exports.jobs = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/jobs/alljobs
 
+    
+    const DEFAULT_PAGE = 1;
+    const DEFAULT_SIZE = 2;
+
+    let { page = DEFAULT_PAGE, size = DEFAULT_SIZE } = req.query;
+
+    page = Number(page);
+    size = Number(size);
+
+    const limit = size;
+    const skip = (page - 1) * size;
+
+
     try {
 
         const categoryQuery = [
@@ -27,35 +40,79 @@ exports.jobs = async (req, res, next) => {
         ];
 
         
-        const jobQuery = [
-            { $match: {} },
-            { $lookup: { from: "jobcategories", localField: "categoryId", foreignField: "_id", as: "category" } },
-            { $unwind: "$category" },
-            { $project: {
-                 id: "$_id",
-                _id: 0,
-                "title": 1,
-                "company_name": 1,
-                "image": 1,
-                "description": 1,
-                "position": 1,
-                "qualification": 1,
-                "userId":   1,
-                "createdAt": 1,
-                "category.id": "$category._id",
-                "category.title": "$category.title",
-            } },
+        // const jobQuery = [
+        //     { $match: {} },
+        //     { $lookup: { from: "jobcategories", localField: "categoryId", foreignField: "_id", as: "category" } },
+        //     { $unwind: "$category" },
+        //     { $project: {
+        //          id: "$_id",
+        //         _id: 0,
+        //         "title": 1,
+        //         "company_name": 1,
+        //         "image": 1,
+        //         "description": 1,
+        //         "position": 1,
+        //         "qualification": 1,
+        //         "userId":   1,
+        //         "createdAt": 1,
+        //         "category.id": "$category._id",
+        //         "category.title": "$category.title",
+        //     } },
 
-            { $unset: "category._id" }
-        ];
+        //     { $unset: "category._id" }
+        // ];
+
+
+
 
         const jobCategories = await JobCategoryModel.aggregate(categoryQuery);
 
-        if(!jobCategories) return res.status(400).send({ error: "No job categories" })
+        if(!jobCategories) return res.status(400).send({ error: "No job categories" });
 
-        const jobs = await JobModel.aggregate(jobQuery);
+        // const jobs = await JobModel.aggregate(jobQuery);
 
-        if(!jobs) return res.status(400).send({ error: "No job(s)" })
+        // const jobs = await JobModel.paginate({}, {
+        //     page: hot_page, limit: 5,
+        //     populate: [{
+        //         path: 'createdBy',
+        //         model: 'User',
+        //         select: 'fullname profileImage createdAt',
+        //         }, 
+        //         // {
+        //         //     path: 'blogCategory',
+        //         //     model: 'BlogCategory',
+        //         //     select: 'name createdAt',
+        //         // }
+
+        //     ],
+        //     sort: [
+        //         [{ createdAt: -1, }]
+        //     ],
+        // });
+
+
+        const jobs = await JobModel.paginate({}, {
+            page, 
+            size,
+            limit,
+            populate: [{
+                path: 'createdBy',
+                model: 'User',
+                select: 'fullname profileImage createdAt',
+                }, 
+                // {
+                //     path: 'blogCategory',
+                //     model: 'BlogCategory',
+                //     select: 'name createdAt',
+                // }
+
+            ],
+            sort: [
+                [{ createdAt: -1, }]
+            ],
+        });
+        
+        if(!jobs) return res.status(400).json({ error: "No job(s)" })
 
         return res.status(200).send({jobCategories, recommended: jobs});
     } catch (error) {
