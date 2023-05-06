@@ -6,39 +6,41 @@ const UserModel = require('./../models/UserModel');
 
 const isValidObjectId  = mongoose.Types.ObjectId;
 
-exports.signInAccessToken = (userData) => {
 
-    try {
+
+exports.signInAccessToken = (userData) => {
+    return new Promise((resolve, reject) => {
         const payload = {
-            id: userData.id.toString(),
-            username: userData.fullname,
-            email: userData.email,
-            roles: userData.roles,
-            profileImagePath: userData.profileImagePath || null,
-            roles: userData.roles[0],
+            id: userData?.id?.toString(),
+            username: userData?.fullname,
+            email: userData?.email,
+            roles: userData?.roles,
+            profileImagePath: userData?.profileImagePath || null,
+            roles: userData?.roles[0],
             // iss: "yourwebsitename.com"
         }
+
         const secret =  process.env.ACCESS_TOKEN_SECRET;
     
-       
-    
         const option = {
-                        expiresIn: '30m',
+                        expiresIn: '1hr',
                         issuer: "yourwebsitename.com",
-                        audience: userData.id.toString(),
+                        audience: userData?.id?.toString(),
                     };
     
-        return JWT.sign(payload, secret, option)
+        JWT.sign(payload, secret, option, (error, data) => {
+            if(error) {
+                reject({ error: "Token error"})
+            }
 
-    } catch (error) {
-        return res.status(500).json({ error: "Token error"})
-    }
- 
+            resolve(data)
+        })
+    })
 }
 
 exports.signInRefreshToken = (userData) => {
 
-    try {
+    return new Promise((resolve, reject) => {
         const payload = {
             id: userData.id.toString(),
             username: userData.fullname,
@@ -53,16 +55,18 @@ exports.signInRefreshToken = (userData) => {
         const option = {
             expiresIn: '1yr',
             issuer: "yourwebsitename.com",
-            audience: userData.id.toString(),
+            audience: userData?.id?.toString(),
     };
 
-    return JWT.sign(payload, secret, option)
+    JWT.sign(payload, secret, option, (error, data) => {
+        if(error) {
+            reject({ error: "Token error"})
+        }
 
-} catch (error) {
+        resolve(data)
+    });
 
-    return res.status(500).json({ error: "Token error"})
-
-}
+    });
 
         // JWT.sign(payload, secret, option, (err, token) => {
         //     if(err){
@@ -90,7 +94,7 @@ exports.verifyRefreshToken = (refreshToken) => {
                 return reject(createError.Unauthorized());
             }
 
-            const userId = payload.aud;
+            const userId = payload?.aud;
 
             resolve(userId);
 
@@ -117,12 +121,12 @@ exports.resetPasswordToken = (user) => {
             email: user.email,
             // iss: "yourwebsitename.com"
         }
-        const secret =  process.env.RESET_PASSWORD_SECRET_KEY + user.password;
+        const secret =  process.env.RESET_PASSWORD_SECRET_KEY + user?.password;
 
         const option = {
             expiresIn: '15m',
             issuer: "yourwebsitename.com",
-            audience: user.id
+            audience: user?.id
     };
 
         JWT.sign(payload, secret, option, (err, token) => {
@@ -141,7 +145,9 @@ exports.verifyAccessToken =  async (req, res, next) => {
 
     try {
         
-    if(!req.headers['authorization']) return next(createError.Unauthorized());
+    if(!req.headers['authorization']) {
+        return next(createError.Unauthorized());
+    }
 
     const authHeader = req.headers['authorization'];
     
@@ -149,22 +155,28 @@ exports.verifyAccessToken =  async (req, res, next) => {
     
     const token = bearerToken[1];
 
-    if (!token.trim()) return next(createError.BadRequest("Invalid request"));
+    if (!token.trim()) {
+        return next(createError.BadRequest("Invalid request"));
+    }
     
     const payload  = JWT.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
     // console.log(payload)
 
-    if (!isValidObjectId(payload.id)) return next(createError.BadRequest("Invalid request"));
+    if (!isValidObjectId(payload.id)) {
+        return next(createError.BadRequest("Invalid request"));
+    }
 
     if(payload) {
         user = await UserModel.findById(payload?.id);
     }
 
-    if(!user) return next(createError.BadRequest("Bad request, user not found"));
+    if(!user) {
+        return next(createError.BadRequest("Bad request, user not found"));
+    }
 
     const user_data = {
-        id: user.id,
+        id: user?.id,
         fullname: user.fullname,
         role: user.roles[0],
         iat: payload.iat,
@@ -188,8 +200,8 @@ exports.verifyAccessToken =  async (req, res, next) => {
             return next(createError.Unauthorized("Access Timeout!"));
 
         } else {
-            console.log(error)
-            return next(createError.Unauthorized());
+           
+            return next(createError.Unauthorized(error?.message));
 
         }
 

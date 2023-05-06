@@ -10,7 +10,7 @@ const { cloudinary } = require('./../../helpers/cloudinary')
 exports.jobs = async (req, res, next) => {
      
     //GET REQUEST
-    //http://localhost:2000/api/jobs/alljobs
+    //http://localhost:2000/api/jobs/alljobs?page=2&size=5
 
     
     const DEFAULT_PAGE = 1;
@@ -67,7 +67,7 @@ exports.jobs = async (req, res, next) => {
 
         const jobCategories = await JobCategoryModel.aggregate(categoryQuery);
 
-        if(!jobCategories) return res.status(400).send({ error: "No job categories" });
+        if(!jobCategories) return res.status(400).json({ status: 'failed', error: "No job categories" });
 
         // const jobs = await JobModel.aggregate(jobQuery);
 
@@ -112,11 +112,14 @@ exports.jobs = async (req, res, next) => {
             ],
         });
         
-        if(!jobs) return res.status(400).json({ error: "No job(s)" })
+        if(!jobs) {
+            return res.status(400).json({ status: 'failed', error: "No job(s)" })
+            
+        }
 
-        return res.status(200).send({jobCategories, recommended: jobs});
+        return res.status(200).json({ status: 'success', jobCategories, recommended: jobs});
     } catch (error) {
-        return res.status(500).send({ message: error.message });
+        return res.status(500).json({ status: 'failed', error: error?.message, message: error?.message });
     }
 }
 
@@ -140,10 +143,10 @@ exports.jobApplication = async (req, res, next) => {
 
     try {
         if(!mongoose.Types.ObjectId.isValid(currenUser)) {
-            return res.status(200).send({error: "User info not valid"}); 
+            return res.status(400).json({ status: 'failed', error: "User info not valid"}); 
         }
         if(!mongoose.Types.ObjectId.isValid(jobId)) {
-            return res.status(200).send({error: "Job info not valid"}); 
+            return res.status(400).json({ status: 'failed', error: "Job info not valid"}); 
         }
 
         const result = await jobApplicationValidation(req.body);
@@ -151,7 +154,7 @@ exports.jobApplication = async (req, res, next) => {
         const checkIfUserAlreadyAppliedForSameJob = await JobApplicationModel.findOne({ userId: currenUser, jobId: jobId });
         
         if(checkIfUserAlreadyAppliedForSameJob) {
-            return res.status(200).send({error: "You already applied for this job"});
+            return res.status(400).json({ status: 'failed', error: "You already applied for this job"});
         }
 
 
@@ -160,14 +163,17 @@ exports.jobApplication = async (req, res, next) => {
 
         const applied = await applyForJob.save();
 
-        if(!applied) return res.status(400).send({ error: "Unable to complete job application"});
+        if(!applied) return res.status(400).json({ status: 'failed', error: "Unable to complete job application"});
 
-        return res.status(201).send({success: "User data saved, kindly upload your resumee and cover letter", 
-        data: { id: applied._id, } });
+        return res.status(201).json({ 
+        status: 'success', 
+        success: "User data saved, kindly upload your resumee and cover letter", 
+        data: { id: applied._id, } 
+    });
 
     } catch (error) {
       
-        return res.status(500).send({ error: error.message });
+        return res.status(500).json({ status: 'failed', error: error?.message });
     }
 }
 
@@ -183,16 +189,16 @@ exports.uploadCoverLetterAndResumee = async (req, res, next) => {
 
     try {
         if(!mongoose.Types.ObjectId.isValid(currenUser)) {
-            return res.status(400).send({error: "User info not valid"}); 
+            return res.status(400).json({  status: 'failed', error: "User info not valid"}); 
         }
         if(!mongoose.Types.ObjectId.isValid(jobId)) {
-            return res.status(400).send({error: "Job info not valid"}); 
+            return res.status(400).json({ status: 'failed', error: "Job info not valid"}); 
         }
 
         const checkIfUserAlreadyAppliedForSameJob = await JobApplicationModel.findOne({userId: currenUser, jobId: jobId });
         
         if(!checkIfUserAlreadyAppliedForSameJob) {
-            return res.status(400).send({error: "You have not applied for this job"}); 
+            return res.status(400).json({ status: 'failed', error: "You have not applied for this job"}); 
         }
         if(checkIfUserAlreadyAppliedForSameJob.resumee && checkIfUserAlreadyAppliedForSameJob.coverLetter) {
 
@@ -225,7 +231,7 @@ exports.uploadCoverLetterAndResumee = async (req, res, next) => {
                 const uploaderResponse = await cloudinary.uploader.upload(path,  { resource_type: "raw" });
                 if(!uploaderResponse) {
                     //Reject if unable to upload image
-                    return res.status(404).send({ error: "Unable to upload document please try again"});
+                    return res.status(404).json({  status: 'failed', error: "Unable to upload document please try again"});
                 }
 
                 urls.push(uploaderResponse);
@@ -248,12 +254,14 @@ exports.uploadCoverLetterAndResumee = async (req, res, next) => {
 
             } }, {new: true});
 
-             for(let item of req.files) fs.unlinkSync(item.path);
+             for(let item of req.files) {
+                fs.unlinkSync(item.path);
+             }
         
-            return res.status(200).send({success: "Documents uploaded successfully"});
+            return res.status(200).json({ status: 'success', success: "Documents uploaded successfully"});
 
     } catch (error) {
-        return res.status(500).send({ error: error.message });
+        return res.status(500).json({ status: 'failed', error: error?.message });
     }
 }
 exports.updateCoverLetterAndResumee = async (req, res, next) => {
@@ -266,16 +274,16 @@ exports.updateCoverLetterAndResumee = async (req, res, next) => {
     const uploadData = {};
     try {
         if(!mongoose.Types.ObjectId.isValid(currenUser)) {
-            return res.status(200).send({error: "User info not valid"}); 
+            return res.status(400).json({ status: 'failed', error: "User info not valid"}); 
         }
         if(!mongoose.Types.ObjectId.isValid(jobId)) {
-            return res.status(200).send({error: "Job info not valid"}); 
+            return res.status(400).json({ status: 'failed', error: "Job info not valid"}); 
         }
 
         const checkIfUserAlreadyAppliedForSameJob = await JobApplicationModel.findOne({userId: currenUser, jobId: jobId });
         
         if(!checkIfUserAlreadyAppliedForSameJob) {
-            return res.status(200).send({error: "You have not applied for this job"}); 
+            return res.status(400).json({ status: 'failed',error: "You have not applied for this job"}); 
         }
 
         //Upload Image to cloudinary
@@ -284,25 +292,25 @@ exports.updateCoverLetterAndResumee = async (req, res, next) => {
             let uploaderResponse = await cloudinary.uploader.destroy(checkIfUserAlreadyAppliedForSameJob.resumeePublicId);        
             if(!uploaderResponse) {
                 //Reject if unable to upload image
-                return res.status(404).send({ error: "Unable to delete profile image please try again"});
+                return res.status(404).json({ status: 'failed', error: "Unable to delete profile image please try again"});
             }
 
             //Upload Image to cloudinary
             uploaderResponse = await cloudinary.uploader.upload(req.file.path);
 
-            uploadData[resumeePublicId] =  uploaderResponse.public_id;
-            uploadData[resumee] = uploaderResponse.secure_url;
+            uploadData["resumeePublicId"] =  uploaderResponse?.public_id;
+            uploadData["resumee"] = uploaderResponse?.secure_url;
         }
-        if(req.file.coverLetterPublicId) {
+        if(req?.file?.coverLetterPublicId) {
             let uploaderResponse = await cloudinary.uploader.destroy(checkIfUserAlreadyAppliedForSameJob.coverLetterPublicId);        
             if(!uploaderResponse) {
                 //Reject if unable to upload image
-                return res.status(404).send({ error: "Unable to delete profile image please try again"});
+                return res.status(404).json({ status: 'failed', error: "Unable to delete profile image please try again"});
             }
             //Upload Image to cloudinary
-            uploaderResponse = await cloudinary.uploader.upload(req.file.path);
-            uploadData[coverLetterPublicId] =  uploaderResponse.public_id;
-            uploadData[coverLetter] = uploaderResponse.secure_url;
+            uploaderResponse = await cloudinary.uploader.upload(req?.file?.path);
+            uploadData[coverLetterPublicId] =  uploaderResponse?.public_id;
+            uploadData[coverLetter] = uploaderResponse?.secure_url;
         }
 
         // const result = await jobApplicationValidation(req.body);
@@ -310,10 +318,10 @@ exports.updateCoverLetterAndResumee = async (req, res, next) => {
         const updateApplication = await JobApplicationModel.updateOne({userId: currenUser, jobId: jobId},
             {   $set:  uploadData}, {new: true});
         
-        return res.status(200).send({success: "Documents updated successfully"});
+        return res.status(200).json({ status: 'success', success: "Documents updated successfully"});
 
     } catch (error) {
-        return res.status(500).send({ error: error.message });
+        return res.status(500).json({ status: 'success', error: error?.message });
     }
 }
 
@@ -330,15 +338,16 @@ exports.updateJobApplication = async (req, res, next) => {
         "phonenumber": "07065066382"
         }
      */
-    const currenUser = req.user.id;
-    const {jobId} = req.params;
+    const currenUser = req?.user?.id;
+    const { jobId } = req?.params;
 
     try {
+        
         if(!mongoose.Types.ObjectId.isValid(currenUser)) {
-            return res.status(400).send({message: "User info not valid"}); 
+            return res.status(400).json({ status: 'failed', message: "User info not valid"}); 
         }
         if(!mongoose.Types.ObjectId.isValid(jobId)) {
-            return res.status(400).send({error: "Job info not valid"}); 
+            return res.status(400).json({ status: 'failed', error: "Job info not valid"}); 
         }
 
         const result = await jobApplicationValidation(req.body, true);
@@ -346,15 +355,15 @@ exports.updateJobApplication = async (req, res, next) => {
         const checkIfUserAlreadyAppliedForSameJob = await JobApplicationModel.findOne({userId: currenUser, jobId: jobId });
         
         if(!checkIfUserAlreadyAppliedForSameJob) {
-            return res.status(400).send({error: "You have not applied for this job"}); 
+            return res.status(400).json({ status: 'failed', error: "You have not applied for this job"}); 
         }
 
         const updateApplication = await JobApplicationModel.updateOne({userId: currenUser, jobId: jobId}, {$set: result}, {new: true});
 
-        return res.status(200).send({success: "User data saved successfully"});
+        return res.status(200).json({ status: 'success', success: "User data saved successfully"});
 
     } catch (error) {
-        return res.status(500).send({ error: error.message });
+        return res.status(500).json({ status: 'failed', error: error.message });
     }
 }
 
@@ -362,8 +371,6 @@ exports.updateJobApplication = async (req, res, next) => {
 exports.createNewJob = async (req, res, next) => {
 
     const userId = req?.user?.id;
-
-    console.log(req.body)
 
     /**
      * POST REQUEST
@@ -386,8 +393,6 @@ exports.createNewJob = async (req, res, next) => {
 
     try {
 
-        return res.status(200).send(req.body);
-
         const jobPayload = { ...req.body, userId, createdBy: userId  };
 
         const createNewJob = new JobModel(jobPayload);
@@ -395,14 +400,14 @@ exports.createNewJob = async (req, res, next) => {
         const createdJob = await createNewJob.save();
 
         if(!createdJob) {
-            return res.status(400).send({ success: "Unable to create new job"});
+            return res.status(400).json({ status: 'failed', success: "Unable to create new job"});
         }
 
-        return res.status(200).send(createdJob);
+        return res.status(200).json(createdJob);
 
     } catch (error) {
-        console.log(error)
-        return res.status(500).send({ error: error?.message });
+        // console.log(error)
+        return res.status(500).json({ status: 'failed', error: error?.message });
     }
 }
 
@@ -415,11 +420,11 @@ exports.listJobs = async (req, res, next) => {
         const jobs = await JobModel.find({});
         
         if(!jobs || jobs.length === 0) {
-            return res.status(200).send({ success: "No job found"});
+            return res.status(400).json({ status: 'failed', success: "No job found"});
         }
-        return res.status(200).send(jobs);
+        return res.status(200).json(jobs);
     } catch (error) {
-        return res.status(500).send({ error: error.message });
+        return res.status(500).json({ status: 'failed', error: error.message });
     }
 }
 
@@ -433,15 +438,15 @@ exports.findJobById  = async (req, res, next) => {
 
     try {
         if(!mongoose.Types.ObjectId.isValid(jobId)) {
-            return res.status(200).send({ message: "Unknown job parameter"});
+            return res.status(400).json({ status: 'failed', message: "Unknown job parameter"});
         }
         const job = await JobModel.find({});
         if(!job) {
-            return res.status(200).send({ message: "No job found"});
+            return res.status(400).json({ status: 'failed', message: "No job found"});
         }
-        return res.status(200).send(job);
+        return res.status(200).json(job);
     } catch (error) {
-        return res.status(500).send({ message: error.message });
+        return res.status(500).json({ status: 'failed', message: error?.message });
     }
 }
 
@@ -450,15 +455,15 @@ exports.updateJobById  = async (req, res, next) => {
     const jobId = req.params.jobId;
     try {
         if(!mongoose.Types.ObjectId.isValid(jobId)) {
-            return res.status(200).send({ message: "Unknown job parameter"});
+            return res.status(400).json({ status: 'failed', message: "Unknown job parameter"});
         }
         const job = await JobModel.findByIdAndUpdate({_id: jobId}, {$set: req.body}, {new: true});
         if(!job) {
-            return res.status(200).send({ message: "Unable to update job"});
+            return res.status(400).json({ status: 'failed', message: "Unable to update job"});
         }
-        return res.status(200).send({ message: "Job updated successfully"});
+        return res.status(200).json({ status: 'success', message: "Job updated successfully"});
     } catch (error) {
-        return res.status(500).send({ message: error.message });
+        return res.status(500).json({ status: 'failed', message: error.message });
     }
 }
 
@@ -466,14 +471,14 @@ exports.deleteJobById  = async (req, res, next) => {
     const jobId = req.params.jobId;
     try {
         if(!mongoose.Types.ObjectId.isValid(jobId)) {
-            return res.status(200).send({ message: "Unknown job parameter"});
+            return res.status(400).json({  status: 'failed',message: "Unknown job parameter"});
         }
         const job = await JobModel.findByIdAndDelete({_id: jobId});
         if(!job) {
-            return res.status(200).send({ message: "No job found"});
+            return res.status(400).json({ status: 'failed', message: "No job found"});
         }
-        return res.status(200).send({ message: "Job deleted successfully"});
+        return res.status(200).json({ status: 'success', message: "Job deleted successfully"});
     } catch (error) {
-        return res.status(500).send({ message: error.message });
+        return res.status(500).json({ status: 'failed', message: error?.message });
     }
 }

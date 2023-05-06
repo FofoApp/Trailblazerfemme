@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const fs = require('fs');
 
-const JobModel = require('./../../models/jobModel/JobModel')
+const JobModel = require('./../../models/jobModel/JobModel');
 const UserModel = require('./../../models/UserModel');
 const JobCategoryModel = require('./../../models/jobModel/JobCategory');
 const ProductModel = require('../../models/productModel/ProductModel');
@@ -14,32 +14,35 @@ exports.jobs = async (req, res, next) => {
      
     //GET REQUEST
     //http://localhost:2000/api/dashboard
-    let { page, size } = req.query;
+   
+    const DEFAULT_PAGE = 1;
+    const DEFAULT_SIZE = 5;
 
-    if(!page) page = 1;
-    if(!size) size = 10;
+    let { page = DEFAULT_PAGE, size = DEFAULT_SIZE } = req.query;
 
-    page = parseInt(page);
-    size = parseInt(size);
+    page = Number(page);
+    size = Number(size);
 
     const limit = size;
     const skip = (page - 1) * size;
 
 
     try {
-        let jobCategories = [];
-        let jobs = [];
 
         const adminArray = [];
         const paidArray = [];
 
         jobCategories = await JobCategoryModel.find({});
-        jobs = await JobModel.find({}).limit(5);
+        let jobCategoryCounts = await JobCategoryModel.countDocuments({});
+
+        const jobs = await JobModel.find({}).limit(5);
 
         let products = await ProductModel.find({}).limit(5);
-        let productLength = await ProductModel.find({});
+        let productCounts = await ProductModel.countDocuments({});
 
-        const jobCount = await JobModel.find({});
+        const jobCount = await JobModel.countDocuments({});
+
+        const userCounts = await UserModel.countDocuments({});
 
         const users = await UserModel.find({}).select(`-updatedAt -following -followers -recentlySearchedBook 
         -recentlyPlayedPodcast -booksRead -library -books -createdAt`)
@@ -60,20 +63,22 @@ exports.jobs = async (req, res, next) => {
 
 
         const jobData = {
-            jobCategories: jobCategories?.length,
+            jobCategories: jobCategoryCounts,
+            total_number_of_jobs_categories: jobCategoryCounts,
+
             jobs,
-            total_number_of_jobs: jobCount.length,
-            total_number_of_jobs_categories: jobCategories?.length,
+            total_number_of_jobs: jobCount,
+
             total_number_of_jobs_orders: "",
 
-            total_number_of_products: productLength?.length,
+            total_number_of_products: productCounts,
             products,
 
             adminCounts: adminArray?.length,
 
-            userCounts: users?.length,
+            users: users,
+            userCounts: userCounts,
             paidUserCounts: paidArray?.length,
-            users: users
         }
 
         return res.status(200).json(jobData);
@@ -95,6 +100,7 @@ exports.createNewJob = async (req, res, next) => {
      *{
         "name": "Test new job",
         "company_name": "Company name",
+        "location": "Company name",
         "description": "Job Description",
         "link": "http://localhost:2000/api/jobs/create",
         "authorImages": "Author name",
@@ -112,15 +118,15 @@ exports.createNewJob = async (req, res, next) => {
      */
 
 
-    const userId = req?.user?.id || null;
+    const userId = req?.user?.id;
 
-    let jobImages = []
-    let authorImages = []
+    let jobImages = [];
+    let authorImages = [];
 
     try {
 
         if(!mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(200).json({ status: "success", message: "Unknown user Id"});
+            return res.status(400).json({ status: "failed", message: "Unknown user Id"});
         }
                 
         // //Upload jobImages to cloudinary
@@ -130,20 +136,19 @@ exports.createNewJob = async (req, res, next) => {
   
             if(!secure_url || !public_id) {
             //Reject if unable to upload image
-                return res.status(404).json({ status: 'failed', message: "Unable to upload image please try again"});
+                return res.status(400).json({ status: 'failed', message: "Unable to upload image please try again"});
             }
 
             // Push image item to array
-            jobImages.push({public_id, secure_url})
+            jobImages.push({ public_id, secure_url })
 
             // Delete image form temporary system storage
-            req?.files?.jobImages?.map((image) => fs.unlinkSync(image?.path))
+            req?.files?.jobImages?.map((image) => fs.unlinkSync(image?.path));
 
         }
                 
         // //Upload authorImages to cloudinary
         if(req?.files?.authorImages) {
-
 
             const { public_id, secure_url } = await cloudinaryImageUploadMethod(req?.files?.authorImages);
    
@@ -153,7 +158,7 @@ exports.createNewJob = async (req, res, next) => {
             }
 
             // Push image item to array
-            authorImages.push({public_id, secure_url});
+            authorImages.push({ public_id, secure_url });
 
             // Delete image form temporary system storage
             req?.files?.authorImages?.map((image) => fs.unlinkSync(image?.path));
@@ -173,13 +178,12 @@ exports.createNewJob = async (req, res, next) => {
         const createdJob = await createNewJob.save();
 
         if(!createdJob) {
-            return res.status(401).json({ message: "Unable to create new job"});
+            return res.status(401).json({ status: 'failed', message: "Unable to create new job"});
         }
 
         return res.status(200).json({ status: 'success', message: "Job Created successfully" });
 
     } catch (error) {
-      
         return res.status(500).json({ status: 'failed', message: error?.message });
     }
 }
@@ -225,12 +229,14 @@ exports.findJobById  = async (req, res, next) => {
     //http://localhost:2000/api/jobs/jobId/get
     //http://localhost:2000/api/jobs/62902e117ecadf9305054e1a/get
 
-    const { jobId } = req.params;
+    const { jobId } = req?.params;
 
 try {
+
     if(!mongoose.Types.ObjectId.isValid(jobId)) {
-        return res.status(200).json({ message: "Unknown job parameter"});
+        return res.status(400).json({ status: "failed", message: "Unknown job parameter"});
     }
+
     const query = [
         { $match: {_id: mongoose.Types.ObjectId(jobId)} },
         { $lookup: { from: "jobcategories", localField: "categoryId", foreignField: "_id", as: "category" } },
@@ -238,9 +244,15 @@ try {
         { $project: {
              id: "$_id",
             _id: 0,
-            "title": 1,
+            "name": 1,
             "company_name": 1,
-            "image": 1,
+            "location": 1,
+            "link": 1,
+            "jobImages": 1,
+            "authorImages": 1,
+            "jobType": 1,
+            "jobField": 1,
+            "accessType": 1,
             "description": 1,
             "position": 1,
             "qualification": 1,
@@ -254,6 +266,7 @@ try {
     ];
 
     let job = await JobModel.aggregate(query);
+
     job = job[0];
 
     if(!job) {
@@ -277,6 +290,7 @@ exports.updateJobById = async (req, res, next) => {
      * {
         "name": "Test new job",
         "company_name": "Company name",
+        "location": "Company name",
         "description": "Job Description",
         "link": "http://localhost:2000/api/jobs/create",
         "authorImages": "Author name",

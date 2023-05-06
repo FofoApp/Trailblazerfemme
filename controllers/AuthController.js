@@ -78,9 +78,9 @@ exports.register = async (req, res, next) => {
                 userObject.profileImagePath = userExist?.profileImagePath
             }
               
-            const accessToken = signInAccessToken(userObject);
+            const accessToken = await signInAccessToken(userObject);
 
-            const refreshToken = signInRefreshToken(userObject);
+            const refreshToken = await signInRefreshToken(userObject);
     
             let refreshAccessToken = await RefreshAccessToken.findOne({ userId: userExist?.id });
             
@@ -109,9 +109,9 @@ exports.register = async (req, res, next) => {
 
             const userObject = {  id, email, roles, username, field };
 
-            const accessToken = signInAccessToken(userObject);
+            const accessToken = await signInAccessToken(userObject);
 
-            const refreshToken = signInRefreshToken(userObject);
+            const refreshToken = await signInRefreshToken(userObject);
     
             let refreshAccessToken = await RefreshAccessToken.findOne({ userId: userExist?.id });
             
@@ -252,8 +252,8 @@ exports.login = async (req, res, next) => {
         }
     
 
-        const accessToken =  signInAccessToken(user);
-        const refreshToken = signInRefreshToken(user);
+        const accessToken =  await signInAccessToken(user);
+        const refreshToken = await signInRefreshToken(user);
 
         //if Refresh tokenn is set
         const isRefreshTokenSet = await RefreshAccessToken.findOne({userId: user?.id});
@@ -306,8 +306,8 @@ exports.refreshToken = async (req, res, next) => {
         }
 
         const userId = await verifyRefreshToken(refreshToken);
-        const accessToken = signInAccessToken(userId);
-        const refToken = signInRefreshToken(userId);
+        const accessToken = await signInAccessToken(userId);
+        const refToken = await signInRefreshToken(userId);
 
         return res.status(200).json({ status:"success", accessToken: accessToken, refreshToken: refToken });
 
@@ -809,9 +809,9 @@ exports.verifyOtp = async (req, res, next) => {
             userObject.profileImagePath = verified?.profileImagePath
         }
           
-        const accessToken = signInAccessToken(userObject);
+        const accessToken = await signInAccessToken(userObject);
 
-        const refreshToken = signInRefreshToken(userObject);
+        const refreshToken = await signInRefreshToken(userObject);
 
         let refreshAccessToken = await RefreshAccessToken.findOne({ userId: verified.id });
         

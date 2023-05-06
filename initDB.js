@@ -7,9 +7,9 @@ module.exports = async () => {
 
       // const MONGO_URI = process.env.NODE_ENV === 'development' ?  process.env.MONGODB_URI_DEV : process.env.MONGODB_URI_PROD
 
-      let MONGO_URI = process.env.MONGODB_URI_PROD;
+      // let MONGO_URI = process.env.MONGODB_URI_PROD;
 
-      // let MONGO_URI =  process.env.MONGODB_URI_DEV;
+      let MONGO_URI =  process.env.MONGODB_URI_DEV;
 
       try{
             mongoose.connect(MONGO_URI, {
