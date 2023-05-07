@@ -74,7 +74,7 @@ try {
 
 exports.listProducts = async (req, res, next) => {
     //GET REQUEST
-    //http://localhost:2000/api/product/lists
+    //http://localhost:2000/api/product/lists?search=gucci
     let { page, size } = req.query;
 
     if(!page) page = 1;

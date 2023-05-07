@@ -12,7 +12,7 @@ const Product = require('../../models/productModel/ProductModel');
 exports.shop = async (req, res, next) => {
 
 //GET REQUEST
-//http://localhost:2000/api/product
+//http://localhost:2000/api/product??search=gucci
 
     try {
 
@@ -181,13 +181,13 @@ exports.createNewProduct = async (req, res, next) => {
 
 exports.listProducts = async (req, res, next) => {
     //GET REQUEST
-    //http://localhost:2000/api/product/lists
+    //http://localhost:2000/api/product/lists?search=gucci
 
     try {
 
-        const search = req.query.search ? {
-            name: { $regex: '.*' + req.query.search + ".*", $options: 'i' } 
-        } : {}
+        const search = req.query.search 
+            ? { name: { $regex: '.*' + req.query.search + ".*", $options: 'i' } } 
+            : {}
 
         const product_category = await productCategoryModel.find({})
                                                           .populate({

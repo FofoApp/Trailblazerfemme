@@ -273,7 +273,7 @@ try {
         return res.status(404).json({status: "failed", message: "No job found"});
     }
 
-    return res.status(200).json({ status: 'suceess', job });
+    return res.status(200).json({ status: 'success', job });
 
 } catch (error) {
     return res.status(500).json({status: "failed", message: error?.message });
