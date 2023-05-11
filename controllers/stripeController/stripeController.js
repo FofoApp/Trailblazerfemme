@@ -187,16 +187,11 @@ exports.stripeCheckout = async (req, res) => {
 
         });
 
-
-//  MongooseServerSelectionError  //
-
     res.send({ url: session.url })
       
     } catch (error) {
 
-      // console.log(error)
-
-      return res.status(500).json({ error: error.message })
+      return res.status(500).json({ error: error?.message })
 
     }
   }
@@ -231,12 +226,12 @@ exports.hooks = async (req, res) => {
     if(event?.type === 'checkout.session.completed') {
 
         const {
-          product, 
+          product,
           shippingAddress, 
-          taxPrice, 
-          shippingPrice,   
-          userId, 
-          totalPrice, 
+          taxPrice,
+          shippingPrice,
+          userId,
+          totalPrice,
           itemsPrice,
           payment_date,
 
@@ -262,7 +257,7 @@ exports.hooks = async (req, res) => {
 
           paymentResult: {
             id: paymentIntentId,
-            status: "pending",
+            status: "paid",
             update_time: new Date(Date.now()),
           },
 
