@@ -4,8 +4,8 @@ const router = express.Router()
 
 const { 
       stripeCheckout, 
-      hooks, 
       membershipPayment, 
+      hooks, 
       paymentSuccess, 
       cancelPayment,
 } = require('../controllers/stripeController/stripeController')
@@ -19,8 +19,7 @@ const { permissions } = require('./../middlewares/permissionsMiddleware');
 
 
 
-router.route('/webhook')
-            .post(express.raw({type:"application/json"}), hooks);
+router.route('/webhook').post(express.raw({type:"application/json"}), hooks);
 
 
 // router.route('/order-checkout')
@@ -36,9 +35,6 @@ router.route('/order-checkout')
 router.route('/membership-checkout')
       .post(verifyAccessToken, permissions(["user","admin"]), membershipSubscription);
 
-
-
-      
 
 router.route('/payment_success')
       .get(paymentSuccess);

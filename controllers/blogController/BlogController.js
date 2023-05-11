@@ -18,9 +18,10 @@ exports.getSpecificBlogAndItsComments = async (req, res, next) => {
         { $lookup: { from: "profiles", localField: 'comments.userWhoCommentId', foreignField: "userId", as: "profile" } },
         { $project: { 
             _id: 1, 
-            title:1, 
-            description:1, 
-            blogImage:1, 
+            name:1, 
+            description: 1, 
+            blogImages: 1, 
+            authorImages: 1,
             profile:1,
              "author._id":1, 
              "author.fullname":1,
@@ -81,7 +82,7 @@ exports.blog = async (req, res) => {
         const hotm = await BlogModel.paginate({}, 
             { 
                 page: 1, limit: 5,  
-                select: "createdAt name blogLikes description blogImage createdBy blogComments blogviews",
+                select: "createdAt name blogLikes description  blogImages authorImages createdBy blogComments blogviews",
                 populate: [{
                     path: 'createdBy',
                     model: 'User',
@@ -103,7 +104,7 @@ exports.blog = async (req, res) => {
         const recents = await BlogModel.paginate({},
                 {
                     page: recent_page, limit: 5,
-                    select: "createdAt name blogComments blogLikes description blogImage createdBy blogviews",
+                    select: "createdAt name blogComments blogLikes description  blogImages authorImages createdBy blogviews",
                     populate: [{
                         path: 'createdBy',
                         model: 'User',
@@ -128,7 +129,7 @@ exports.blog = async (req, res) => {
         const populars = await BlogModel.paginate({},
             {
                 page: populars_page, limit: 5,
-                select: "createdAt name blogComments blogLikes description blogImage createdBy blogviews",
+                select: "createdAt name blogComments blogLikes description  blogImages authorImages createdBy blogviews",
                 populate: [
                     {
                     path: 'createdBy',
@@ -208,7 +209,7 @@ exports.blog = async (req, res) => {
         //             profileImage: { $first: "$author.profileImage" },
 
 
-        //             blogImage: { $first: "$blogImage" },
+        //              blogImages authorImages: { $first: "$ blogImages authorImages" },
                   
         //             blogviews: { $first: { $size: "$blogviews" } },
         //             blogLikes: { $first: { $size: "$blogLikes" } },
@@ -243,7 +244,7 @@ exports.blog = async (req, res) => {
         //             blogviews: 1,
         //             description:1,
         //             category:1,
-        //             blogImage:1, 
+        //              blogImages authorImages:1, 
         //             createdBy:1,
         //             createdAt:1,
 
@@ -334,7 +335,7 @@ exports.blog = async (req, res) => {
         //             //     fullname: { $first: "$author.fullname" },
         //             //     profileImage: { $first: "$author.profileImage" },
         //             // } ,
-        //             blogImage: { $first: "$blogImage" },
+        //              blogImages authorImages: { $first: "$ blogImages authorImages" },
         //             // blogLikes: { $first: "$blogLikes" },
         //             blogviews: { $first: { $size: "$blogviews" } },
         //             blogLikes: { $first: { $size: "$blogLikes" } },
@@ -369,7 +370,7 @@ exports.blog = async (req, res) => {
         //             blogLikes:1,
         //             description:1,
         //             category:1,
-        //             blogImage:1, 
+        //              blogImages authorImages:1, 
         //             createdBy:1,
         //             blogviews: 1,
         //             author: 1,
@@ -405,7 +406,7 @@ exports.blog = async (req, res) => {
 
         // const popularBlog  = await BlogModel.aggregate([
         //     {$project: { count: { $cond: { if: { $isArray: "$blogviews" }, then: { $size: "$blogviews" }, else: "$$REMOVE"} }, 
-        //     title: 1, image: 1,description: 1 }},
+        //     name: 1, image: 1,description: 1 }},
         //     // { $limit: 1 }
         // ]);
 
@@ -525,7 +526,7 @@ exports.FetchBlogs = async (req, res, next) => {
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
     // http://localhost:2000/api/blog/lists?category=one
     // http://localhost:2000/api/blog/lists?pages=1&perPage=2
-    // http://localhost:2000/api/blog/lists?sortBy=title&sortOrder=asc
+    // http://localhost:2000/api/blog/lists?sortBy=name&sortOrder=asc
     // http://localhost:2000/api/blog/lists
 
     const userId = req?.user?.id;
@@ -552,7 +553,7 @@ exports.FetchBlogs = async (req, res, next) => {
             {
                 page: 1, limit: 1,
 
-                select: "createdAt name blogLikes blogComments description blogImage  blogviews",
+                select: "createdAt name blogLikes blogComments description  blogImages authorImages  blogviews",
                 populate: [
                     {
                     path: 'createdBy',
@@ -572,7 +573,7 @@ exports.FetchBlogs = async (req, res, next) => {
         const recents = await BlogModel.paginate({},
                 {
                     page: recent_page, limit: 5,
-                    select: "createdAt name blogLikes blogComments  description blogImage createdBy blogviews",
+                    select: "createdAt name blogLikes blogComments  description z createdBy blogviews",
                     populate: [
                         {
                         path: 'createdBy',
@@ -593,7 +594,7 @@ exports.FetchBlogs = async (req, res, next) => {
         const populars = await BlogModel.paginate({},
             {
                 page: populars_page, limit: 5,
-                select: "createdAt name blogLikes blogComments description blogImage createdBy blogviews",
+                select: "createdAt name blogLikes blogComments description  blogImages authorImages createdBy blogviews",
                 populate: [
                     {
                     path: 'createdBy',
@@ -648,7 +649,7 @@ exports.FetchBlogById = async (req, res, next) => {
         }
 
         let blogPosts = await BlogModel.findById(blogId)
-                                    .select('createdAt name blogLikes blogviews blogComments description blogImage createdBy')
+                                    .select('createdAt name blogLikes blogviews blogComments description  blogImages authorImages createdBy')
                                     .populate('createdBy', 'fullname createdAt profileImage')
                                     .populate({
                                         path: 'blogCategory',
@@ -686,7 +687,7 @@ exports.FetchBlogById = async (req, res, next) => {
         // });
 
         const populars = await BlogModel.find()
-        .select('createdAt name blogLikes description blogComments blogImage createdBy blogviews')
+        .select('createdAt name blogLikes description blogComments  blogImages authorImages createdBy blogviews')
         .populate({
             path: 'createdBy',
             model: 'User',
@@ -761,13 +762,13 @@ exports.FetchBlogById = async (req, res, next) => {
                 $group: {
                     _id: "$_id",
                     name: { $first: "$name" },
+                    blogImages: { $first: "$blogImages" },
+                    authorImages: { $first: "$authorImages" },
 
                     authorId: { $first: "$author._id" },
                     authorName: { $first: "$author.fullname" },
+
                     profileImage: { $first: "$author.profileImage" },
-
-
-                    blogImage: { $first: "$blogImage" },
                     description: { $first: "$description" },
                     category: { $first: "$blogCategory.name" },
                     slug: { $first: "$blogCategory.slug" },
@@ -794,7 +795,8 @@ exports.FetchBlogById = async (req, res, next) => {
                     profileImage:1,
 
                     description: 1,
-                    blogImage:1,
+                    blogImages:1,
+                    authorImages: 1,
                     category:1,
                     slug:1,
                     createdAt:1,
@@ -882,7 +884,11 @@ exports.FetchBlogById = async (req, res, next) => {
                     //     fullname: { $first: "$author.fullname" },
                     //     profileImage: { $first: "$author.profileImage" },
                     // } ,
-                    blogImage: { $first: "$blogImage" },
+                    //  blogImages authorImages: { $first: "$ blogImages authorImages" },
+
+                    profileImage: "$profileImage",
+                    blogImages: "$blogImages",
+
                     // blogLikes: { $first: "$blogLikes" },
                     blogviews: { $first: { $size: "$blogviews" } },
                     blogLikes: { $first: { $size: "$blogLikes" } },
@@ -917,7 +923,8 @@ exports.FetchBlogById = async (req, res, next) => {
                     blogLikes:1,
                     description:1,
                     category:1,
-                    blogImage:1, 
+                    blogImages: 1, 
+                    authorImages:1, 
                     createdBy:1,
                     blogviews: 1,
                     author: 1,
@@ -985,7 +992,7 @@ exports.updateBlogById = async (req, res, next) => {
     // http://localhost:2000/api/blog/6286c236fbc9ab5d15903635/update
     /**
      * {
-        "title": "Blog Title With Blog Category And User",
+        "name": "Blog Title With Blog Category And User",
         "short_description": "Blog short Description",
         "description": "Blog short Description",
         "blogCategory":"6286b37ac420a04878903e9a",
@@ -1018,7 +1025,7 @@ exports.updateBlogById = async (req, res, next) => {
         //DELETE FILE FROM CLOUDINARY IF EXIST
         let updateData = { ...req.body };
      
-        if(findBlogExist.blogImageCloudinaryPublicId && req.file?.fieldname && req.file?.fieldname === 'blogImage') {
+        if(findBlogExist.blogImageCloudinaryPublicId && req.file?.fieldname && req.file?.fieldname === ' blogImages authorImages') {
             let uploaderResponse = await cloudinary.uploader.destroy(findBlogExist.blogImageCloudinaryPublicId); 
             
             if(!uploaderResponse) {
@@ -1029,7 +1036,7 @@ exports.updateBlogById = async (req, res, next) => {
             //Upload Image to cloudinary
             uploaderResponse = await cloudinary.uploader.upload(req.file.path);
             updateData['blogImageCloudinaryPublicId'] =  uploaderResponse.public_id;
-            updateData['blogImage'] = uploaderResponse.secure_url;
+            updateData[' blogImages authorImages'] = uploaderResponse.secure_url;
 
             fs.unlinkSync(req?.file?.path);
         }
@@ -1052,10 +1059,12 @@ exports.updateBlogById = async (req, res, next) => {
                 $project : {
                 "_id":1,
                 "createdAt":1,
-                "title": 1,
+                "name": 1,
                 "short_description":1,
                 "description":1,
                 "image":1,
+                "blogImages":1,
+                "authorImages":1,
                 "category_details.name":1,
                 "category_details.slug":1,
                 "category_details._id":1,
@@ -1127,23 +1136,24 @@ exports.blogComment = async (req, res, next) => {
         
         let updateBlog = await BlogModel.findByIdAndUpdate(blogId,
             { $push: 
-                { blogComments: savedBlogComment._id }  
+                { blogComments: savedBlogComment?._id }  
             }, { new: true } );
 
         const commented_data = {
-            comment: savedBlogComment.comment,
-            createdAt: savedBlogComment.createdAt,
-            blogId: savedBlogComment.blogId,
-            id: savedBlogComment.id,
-            blogImage: updateBlog.blogImage,
+            comment: savedBlogComment?.comment,
+            createdAt: savedBlogComment?.createdAt,
+            blogId: savedBlogComment?.blogId,
+            id: savedBlogComment?.id,
+            blogImages: updateBlog?.blogImages,
+            authorImages: updateBlog?.blogImages,
             
         }
 
         const commentedBy = {
-                fullname: user.fullname,
-                createdAt: user.createdAt,
-                profileImage: user.profileImage,
-                id: user.id
+                fullname: user?.fullname,
+                createdAt: user?.createdAt,
+                profileImage: user?.profileImage,
+                id: user?.id
         }
 
         const sendResult = { ...commented_data, commentedBy }
@@ -1151,7 +1161,7 @@ exports.blogComment = async (req, res, next) => {
         return res.status(200).send({ blog_comment: sendResult });
 
         } catch (error) {
-            return res.status(500).send({ error: error.message });
+            return res.status(500).send({ error: error?.message });
         }
 }
 
@@ -1228,7 +1238,7 @@ exports.deleteBlogById = async (req, res, next) => {
 
 
     } catch (error) {
-        return res.status(500).send({ error: error.message })
+        return res.status(500).send({ error: error?.message })
     }
 }
 

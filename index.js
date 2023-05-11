@@ -11,7 +11,7 @@ const cors = require('cors');
 const createError = require('http-errors');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-// const otpGenerate = require('otp-generator')
+// const otpGenerate = require('otp-generator');
 // const sdk = require('api')(process.env.SEND_CHAMP_SDK);
 
 const PORT = process.env.PORT || 2000;
@@ -19,7 +19,7 @@ const PORT = process.env.PORT || 2000;
 global.publicPath = `${__dirname}/public`;
 
 //INITIALIZE DATABASE
-const connectDB = require('./initDB')
+const connectDB = require('./initDB');
 
 
 const CommunityRoutes = require('./routes/CommunityRoutes');

@@ -96,7 +96,7 @@ exports.stripeCheckout = async (req, res) => {
           customer_email: "olawumi.olusegun@gmail.com",
           metadata: { 
             orderId: order._id.toString(),
-            action: "product"
+            action: "shop"
            },
           success_url: `${process.env.CLIENT_URL}/?success=true`,
           cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
@@ -218,10 +218,9 @@ exports.hooks = async (req, res) => {
   try {
 
     event = stripe.webhooks.constructEvent(payload, sig, signinSecret)
-
         
   } catch (error) {
-      return res.status(400).json({ success: false })
+      return res.status(400).json({ status: "failed", success: false })
       
   }
 
@@ -284,8 +283,8 @@ exports.hooks = async (req, res) => {
       }
 
       
-      // res.status(201).send({ stage: 4, message: "Membership subscription successful" })
-      // return res.end()
+      // res.status(201).send({ stage: 4, message: "Payment successfull" })
+      return res.end()
   
     }
   
@@ -326,12 +325,11 @@ exports.hooks = async (req, res) => {
                   paymentIntentId: paymentIntentId,
           }
     
-    
+
           const create_new_subscriber = new MembershipSubscriber(membership_data);
           const save_new_subscriber = await create_new_subscriber.save();
-             
-              
-          const updateUser = await User.findByIdAndUpdate(userId, 
+
+          const updateUser = await User.findByIdAndUpdate(userId,
             { "$set": {
                   "subscriptionId": save_new_subscriber?.id,
                   "isPaid": save_new_subscriber?.isPaid,
@@ -348,22 +346,21 @@ exports.hooks = async (req, res) => {
           }, { new: true })
     
              console.log({ updateUser })
+
           // req.membershipId = membershipId; 
           // req.userId = userId;
 
-          // res.status(201).send({ save_new_subscriber, stage: 4, message: "Membership subscription successful" })
+          // res.status(201).send({ stage: 4,  message: "Payment successfull" })
           // res.end()
         
         }
-
-
     
-      } 
+      }
 
     break;
 
     default:
-      console.log(`Unhandled event type ${event.type}`);
+      console.log(`Unhandled event type ${ event.type }`);
   }
 
 
