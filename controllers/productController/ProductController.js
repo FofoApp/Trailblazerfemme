@@ -12,7 +12,7 @@ const Product = require('../../models/productModel/ProductModel');
 exports.shop = async (req, res, next) => {
 
 //GET REQUEST
-//http://localhost:2000/api/product??search=gucci
+//http://localhost:2000/api/product?search=gucci
 
     try {
 

@@ -1,4 +1,6 @@
 const mongoose = require('mongoose')
+const mongoosePaginate = require('mongoose-paginate-v2');
+
 
 const orderSchema = new mongoose.Schema({
     
@@ -42,6 +44,20 @@ const orderSchema = new mongoose.Schema({
       }, { timestamps: true, });
 
 
+      orderSchema.options.toJSON = {
+      // virtuals: true,
+      transform: function(doc, ret, options){
+        
+          ret.id = ret._id;
+          delete ret._id;
+          delete ret.__v;
+
+          return ret;
+      }
+  };
+
+orderSchema.plugin(mongoosePaginate);
 const Order = mongoose.model('Order', orderSchema);
+
 
 module.exports = Order

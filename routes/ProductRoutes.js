@@ -15,6 +15,7 @@ const uploadCv = require('./../helpers/multerCVupload');
 
 router.get('/', verifyAccessToken, permissions(["user","admin"]), ProductController.shop);
 router.get('/order', verifyAccessToken, permissions(["user","admin"]), CartController.getAllOrdersForAUser);
+router.get('/order_lists', verifyAccessToken, permissions(["user", "admin"]), CartController.allOrders);
 router.get('/:productId/reviews', verifyAccessToken, permissions(["user","admin"]), ProductController.getAllReviews);
 router.post('/:productId/review', verifyAccessToken, permissions(["user","admin"]), ProductController.productReview);
 
@@ -36,6 +37,8 @@ router.patch('/:productId/update', verifyAccessToken, permissions(["admin"]), up
 
 router.delete('/:productId/delete', verifyAccessToken, permissions(["admin"]), ProductController.deleteProductById);
 // router.delete('/:productId/delete', verifyAccessToken,  ProductController.deleteProductById);
+
+
 
 
 

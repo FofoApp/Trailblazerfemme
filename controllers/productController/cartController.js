@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const CartModel = require('../../models/productModel/cartModel');
 const ProductModel = require('../../models/productModel/ProductModel');
+const Order = require('../../models/productModel/orderModel');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 
@@ -25,7 +26,53 @@ exports.getAllOrdersForAUser = async (req, res, next) => {
     }
 }
 
+exports.allOrders = async (req, res, next) => {
 
+    //http://localhost:2000/api/product/all_order?search="Adewumi"
+
+    let { page = 1, limit = 5 } = req.query;
+
+    if(page) page = Number(page);
+    if(limit) limit = Number(limit);
+
+    const search = req?.query?.search 
+    ? { user: { $regex: '.*' + req.query.search + ".*", $options: 'i' } } 
+    : {}
+ 
+    try {
+
+        const orders = await Order.paginate({},
+            {
+                page, limit,
+
+                select: "orderItems shippingAddress taxPrice shippingPrice totalPrice paymentResult isPaid isDelivered orderId createdAt",
+                populate: [
+                    {
+                    path: 'user',
+                    model: 'User',
+                    select: 'id fullname profileImage createdAt',
+                    },
+                    {
+                        path: 'orderItems.product',
+                        model: 'Product',
+                        select: 'name product_images createdAt',
+                    }
+            ],
+                sort: { createdAt: -1 },
+            }
+            );
+
+        if(!orders || orders.length === 0) {
+            return res.status(400).json({ status: "failed", error: "No order(s) found"});
+        }
+
+        return res.status(200).json({ status: "success", orders });
+
+    } catch (error) {
+        // console.log(error)
+        return res.status(500).send({ status: "failed", message: error?.message });
+    }
+}
 
 exports.addToCart = async (req, res, next) => {
     //http://localhost:2000/api/product/add-to-cart
