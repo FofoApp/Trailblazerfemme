@@ -482,8 +482,8 @@ exports.createNewBlog = async (req, res, next) => {
                 return res.status(404).send({ status: "failed", message: "Unable to upload image please try again"});
             }
 
-            authorImageUrl = blogImageresponse?.public_id;
-            authorImagePublicId = authorImageresponse?.secure_url;
+            authorImageUrl =  authorImageresponse?.secure_url;
+            authorImagePublicId =  blogImageresponse?.public_id;
 
         }
 

@@ -347,10 +347,11 @@ exports.hooks = async (req, res) => {
               "$addToSet": {  "membershipSubscriberId": save_new_subscriber?.id,  }
           },
           { new: true  });
+          // { "new": true, "upsert": true },
 
-          console.log({ updateUser })
+          // console.log({ updateUser })
 
-          // req.membershipId = membershipId; 
+          // req.membershipId = membershipId;
           // req.userId = userId;
 
           // res.status(201).send({ stage: 4,  message: "Payment successfull" })
