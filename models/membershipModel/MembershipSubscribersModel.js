@@ -4,6 +4,7 @@ const mongoosePaginate = require('mongoose-paginate-v2');
 const membershipSubscriberSchema = new mongoose.Schema({
     // membershipType: Free | Gold | Premium e.t.c
     membershipType: { type: String, required: true },
+    receipt_email: { type: String },
     membershipId: {type: mongoose.Schema.Types.ObjectId, ref: "Membership"},
     userId: {type: mongoose.Schema.Types.ObjectId, ref: "User"},
     isActive: { type: Boolean, default: false },

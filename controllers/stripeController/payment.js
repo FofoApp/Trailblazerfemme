@@ -145,6 +145,7 @@ exports.membershipSubscription = async (req, res, next) => {
     const { membership } = req.body;
 
     const userId = req?.user?.id;
+    const email = req?.user?.email;
 
     try {
 
@@ -164,16 +165,17 @@ exports.membershipSubscription = async (req, res, next) => {
             const membership_data =  {
                 ...membership,
                 userId,
+                receipt_email: email,
                 action: "membership",
                 integration_check: 'accept_a_payment',
-                payment_date: new Date(Date.now()),
+                payment_date: new Date(Date.now()),                           
             }
     
             let paymentIntent = await stripe.paymentIntents.create({
             customer: customer?.id,
             amount: Number(membership?.amount) * 100,
             currency: 'usd',
-            receipt_email: membership?.receipt_email,
+            // receipt_email: membership?.receipt_email,
             
             automatic_payment_methods: { enabled: true, },
 
@@ -182,7 +184,6 @@ exports.membershipSubscription = async (req, res, next) => {
             });
 
             // req.body = paymentIntent;
-
 
             return res.status(200).json({
                 paymentIntent: paymentIntent?.client_secret,

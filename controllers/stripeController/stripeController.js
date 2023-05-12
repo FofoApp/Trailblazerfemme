@@ -178,12 +178,12 @@ exports.stripeCheckout = async (req, res) => {
           // success_url: `${process.env.CLIENT_URL}/?success=true`,
           // cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
 
-          success_url: `https://calm-lime-goldfish-tutu.cyclic.app/api/stripe/payment_success/?success=true`,
-          cancel_url: `https://calm-lime-goldfish-tutu.cyclic.app/api/stripe/payment_canceled/?canceled=true`,
+          // success_url: `https://calm-lime-goldfish-tutu.cyclic.app/api/stripe/payment_success/?success=true`,
+          // cancel_url: `https://calm-lime-goldfish-tutu.cyclic.app/api/stripe/payment_canceled/?canceled=true`,
           
           
-          // success_url: `http://localhost:2000/api/stripe/payment_success/?success=true`,
-          // cancel_url: `http://localhost:2000/api/stripe/payment_canceled/?canceled=true`,
+          success_url: `http://localhost:2000/api/stripe/payment_success/?success=true`,
+          cancel_url: `http://localhost:2000/api/stripe/payment_canceled/?canceled=true`,
 
         });
 
@@ -289,7 +289,7 @@ exports.hooks = async (req, res) => {
 
       if(event?.type === 'checkout.session.completed') {
 
-        const { userId, price, membershipType, mode, membershipId  } = event.data.object.metadata;
+        const { userId, price, membershipType, mode, membershipId, receipt_email  } = event.data.object.metadata;
         
         const paymentStatus = event?.data?.object?.payment_status;
     
@@ -310,7 +310,10 @@ exports.hooks = async (req, res) => {
                   mode,
                   membershipType: membershipType,
                   membershipId: membershipId,
+                  // subscriptionId is the membership mongoose ID
+                  subscriptionId: paymentIntentId,
                   userId,
+                  receipt_email,
                   isActive: true,
                   isPaid: true,
                   amount: price,
@@ -325,22 +328,27 @@ exports.hooks = async (req, res) => {
           const save_new_subscriber = await create_new_subscriber.save();
 
           const updateUser = await User.findByIdAndUpdate(userId,
-            { "$set": {
+            {
+              "$set": {
                   "subscriptionId": save_new_subscriber?.id,
                   "isPaid": save_new_subscriber?.isPaid,
                   "mode": save_new_subscriber?.mode,
                   "isActive": save_new_subscriber?.isActive,
+                  "isMembershipActive": save_new_subscriber?.isActive,
+                  "membershipName": save_new_subscriber?.membershipType,
                   "membershipType": save_new_subscriber?.membershipType,
                   "amount": save_new_subscriber?.amount,
                   "subscription_end_date": save_new_subscriber?.subscription_end_date,
                   "subscription_start_date": save_new_subscriber?.subscription_end_date,
                   "days_between_next_payment": save_new_subscriber?.subscription_end_date,
                   "paymentIntentId": save_new_subscriber?.paymentIntentId,
-                  
-              }
-          }, { new: true })
-    
-             console.log({ updateUser })
+              },
+
+              "$addToSet": {  "membershipSubscriberId": save_new_subscriber?.id,  }
+          },
+          { new: true  });
+
+          console.log({ updateUser })
 
           // req.membershipId = membershipId; 
           // req.userId = userId;
