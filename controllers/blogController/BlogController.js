@@ -573,7 +573,7 @@ exports.FetchBlogs = async (req, res, next) => {
         const recents = await BlogModel.paginate({},
                 {
                     page: recent_page, limit: 5,
-                    select: "createdAt name blogLikes blogComments  description z createdBy blogviews",
+                    select: "createdAt name blogLikes blogComments description  blogImages authorImages  blogviews",
                     populate: [
                         {
                         path: 'createdBy',
