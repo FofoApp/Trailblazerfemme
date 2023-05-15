@@ -31,7 +31,7 @@
     router.patch('/:blogId/like', verifyAccessToken, BlogController.blogLikes);
 
     //DELETE 
-    router.delete('/:blogId/delete', verifyAccessToken, BlogController.deleteBlogById);
+    router.delete('/:blogId/delete', verifyAccessToken,  permissions(["admin"]), BlogController.deleteBlogById);
 
 
 

@@ -615,29 +615,34 @@ exports.deleteBookById = async (req, res, next) => {
     try {
         const bookId = req.params.bookId;
         if(!mongoose.Types.ObjectId.isValid(bookId)) {
-            return res.status(401).send({ error: "Invalid book"})
+            return res.status(401).json({ status: "failed", error: "Invalid book"})
         }
         const findBookExist = await BookModel.findById(bookId);
         
         if(!findBookExist) {
-            return res.status(404).send({ error: "Book not found"})
+            return res.status(404).json({ status: "failed", error: "Book not found"})
         }
 
-        let book_response = await cloudinary.uploader.destroy(findBookExist.bookImage[0].public_id);
+        if(findBookExist?.bookImage?.length > 0) {
+            findBookExist?.bookImage.forEach( async (image) => {
+                let book_response = await cloudinary.uploader.destroy(image?.public_id);
+                if(!book_response)  return res.status(404).json({ status: "failed", error: "Unable to delete book image"});
+            });
+        }
 
-        if(!book_response)  return res.status(404).send({ error: "Unable to delete book image"});
+        if(findBookExist?.author?.length > 0) {
+            findBookExist?.author.forEach( async (image) => {
+                let author_response = await cloudinary.uploader.destroy(image?.public_id);
+                if(!author_response)  return res.status(404).json({ status: "failed", error: "Unable to delete author image"});
+            });
+        }
 
-        let author_response = await cloudinary.uploader.destroy(findBookExist.authorImage[0].public_id);
+        await BookModel.deleteOne({ _id: bookId });
 
-        if(!author_response)  return res.status(404).send({ error: "Unable to delete author image"});
-
-
-        await BookModel.deleteOne({_id: bookId });
-
-        return res.status(200).send({ message: "Book deleted successfully" });
+        return res.status(200).json({ status: "success", message: "Book deleted successfully" });
 
     } catch (error) {
-        return res.status(500).send({ message: error.message });
+        return res.status(500).json({ status: "failed", message: error.message });
     }
 }
 

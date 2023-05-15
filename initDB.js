@@ -11,7 +11,8 @@ module.exports = async () => {
 
       // let MONGO_URI =  process.env.MONGODB_URI_DEV;
 
-      try{
+      try {
+
             mongoose.connect(MONGO_URI, {
                   // useNewUrlParser: true,
                   // useUnifiedTopology: true

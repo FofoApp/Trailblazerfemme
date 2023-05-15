@@ -626,6 +626,7 @@ exports.FetchBlogById = async (req, res, next) => {
 
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
     try {
+
         let { blogId } = req.params;
 
         let currentUser = req.user.id;
@@ -670,22 +671,7 @@ exports.FetchBlogById = async (req, res, next) => {
                                     sort: { createdAt: -1 },
         });
 
-                                    
-        // let blog_ids = blogPosts.map((item) => item.id);
-
-        // let blog_comments = await BlogComment.find({ blogId: blogId })
-        // .select('comment blogId blogLikes createdAt id')
-        // .populate({
-        //     path: 'commentedBy',
-        //     model: 'User',
-        //     select: 'fullname profileImage createdAt',
-        //     // populate: {
-        //     //     path: 'profileId',
-        //     //     model: 'Profile',
-        //     //     select: 'id userId profileImage'
-        //     // }
-        // });
-
+      
         const populars = await BlogModel.find()
         .select('createdAt name blogLikes description blogComments  blogImages authorImages createdBy blogviews')
         .populate({
@@ -706,260 +692,261 @@ exports.FetchBlogById = async (req, res, next) => {
         .sort({ createdAt: -1  })
 
         const singleBlog = { blog: blogPosts, blogComments, popular: populars, }
-        // const singleBlog = { blog: blogPosts, blog_comments, popular: populars, blogComments}
 
 
-        let blogPost = await BlogModel.aggregate([
+        // let blogPost = await BlogModel.aggregate([
 
-            { $match: { $expr: { _id: mongoose.Types.ObjectId(blogId) } } },
+        //     { $match: { $expr: { _id: mongoose.Types.ObjectId(blogId) } } },
 
-            {
-                $lookup: {
-                    from: "users",
-                    localField: 'createdBy',
-                    foreignField: '_id',
-                    as: 'author',
-                }
-            },
+        //     {
+        //         $lookup: {
+        //             from: "users",
+        //             localField: 'createdBy',
+        //             foreignField: '_id',
+        //             as: 'author',
+        //         }
+        //     },
 
-            {$unwind: "$author" },
+        //     {$unwind: "$author" },
             
 
-            {
-                $lookup: {
-                    from: "blogcategories",
-                    localField: 'blogCategory',
-                    foreignField: '_id',
-                    as: 'blogCategory',
-                }
-            },
+        //     {
+        //         $lookup: {
+        //             from: "blogcategories",
+        //             localField: 'blogCategory',
+        //             foreignField: '_id',
+        //             as: 'blogCategory',
+        //         }
+        //     },
 
-            {$unwind: "$blogCategory" },
+        //     {$unwind: "$blogCategory" },
 
-            {
-                $lookup: {
-                    from: "blogcomments",
-                    localField: 'blogComments',
-                    foreignField: '_id',
-                    as: 'blogComments',
-                }
-            },
+        //     {
+        //         $lookup: {
+        //             from: "blogcomments",
+        //             localField: 'blogComments',
+        //             foreignField: '_id',
+        //             as: 'blogComments',
+        //         }
+        //     },
 
-            { $unwind: "$blogComments" },
+        //     { $unwind: "$blogComments" },
 
-            {
-                $lookup: {
-                    from: "users",
-                    localField: 'blogComments.commentedBy',
-                    foreignField: '_id',
-                    as: 'commentBy',
-                }
-            },
+        //     {
+        //         $lookup: {
+        //             from: "users",
+        //             localField: 'blogComments.commentedBy',
+        //             foreignField: '_id',
+        //             as: 'commentBy',
+        //         }
+        //     },
 
-            {$unwind: "$commentBy" },
+        //     {$unwind: "$commentBy" },
 
-            {
-                $group: {
-                    _id: "$_id",
-                    name: { $first: "$name" },
-                    blogImages: { $first: "$blogImages" },
-                    authorImages: { $first: "$authorImages" },
+        //     {
+        //         $group: {
+        //             _id: "$_id",
+        //             name: { $first: "$name" },
+        //             blogImages: { $first: "$blogImages" },
+        //             authorImages: { $first: "$authorImages" },
 
-                    authorId: { $first: "$author._id" },
-                    authorName: { $first: "$author.fullname" },
+        //             authorId: { $first: "$author._id" },
+        //             authorName: { $first: "$author.fullname" },
 
-                    profileImage: { $first: "$author.profileImage" },
-                    description: { $first: "$description" },
-                    category: { $first: "$blogCategory.name" },
-                    slug: { $first: "$blogCategory.slug" },
+        //             profileImage: { $first: "$author.profileImage" },
+        //             description: { $first: "$description" },
+        //             category: { $first: "$blogCategory.name" },
+        //             slug: { $first: "$blogCategory.slug" },
 
-                    comments:{
-                        $push: {
-                        comment: "$blogComments.comment",
-                        commentedBy: "$commentBy",
-                        createdDate: "$blogComments.createdDate",
-                        blogId: "$blogComments.blogId",
-                    }  },
+        //             comments:{
+        //                 $push: {
+        //                 comment: "$blogComments.comment",
+        //                 commentedBy: "$commentBy",
+        //                 createdDate: "$blogComments.createdDate",
+        //                 blogId: "$blogComments.blogId",
+        //             }  },
 
-                }
-            },
-                // {$unwind: "$comments.comment" },
-            {
-                $project: {
-                    id: "$_id",
-                    _id: 0,
-                    name: 1,
+        //         }
+        //     },
+        //         // {$unwind: "$comments.comment" },
+        //     {
+        //         $project: {
+        //             id: "$_id",
+        //             _id: 0,
+        //             name: 1,
 
-                    authorId:1,
-                    authorName:1,
-                    profileImage:1,
+        //             authorId:1,
+        //             authorName:1,
+        //             profileImage:1,
 
-                    description: 1,
-                    blogImages:1,
-                    authorImages: 1,
-                    category:1,
-                    slug:1,
-                    createdAt:1,
+        //             description: 1,
+        //             blogImages:1,
+        //             authorImages: 1,
+        //             category:1,
+        //             slug:1,
+        //             createdAt:1,
 
-                    "comments": {
-                        "$map": {
-                            "input": "$comments",
-                            "as": "comment",
-                            "in": {
-                                "id": "$$comment.commentedBy._id",
-                                "commentedBy": "$$comment.commentedBy.fullname",
-                                "profileImage": "$$comment.commentedBy.profileImage",
-                                "comment": "$$comment.comment",
-                                "blogId": "$$comment.blogId",
-                            }
-                        }
-                    }
-                }
-            },
+        //             "comments": {
+        //                 "$map": {
+        //                     "input": "$comments",
+        //                     "as": "comment",
+        //                     "in": {
+        //                         "id": "$$comment.commentedBy._id",
+        //                         "commentedBy": "$$comment.commentedBy.fullname",
+        //                         "profileImage": "$$comment.commentedBy.profileImage",
+        //                         "comment": "$$comment.comment",
+        //                         "blogId": "$$comment.blogId",
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     },
 
-            ]);
-
-
-        let popular = await BlogModel.aggregate([
-
-            { $match: {} },
-
-            {
-                $lookup: {
-                    from: "users",
-                    localField: 'createdBy',
-                    foreignField: '_id',
-                    as: 'author',
-                }
-            },
-
-            {$unwind: "$author" },
-
-            {
-                $lookup: {
-                    from: "blogcategories",
-                    localField: 'blogCategory',
-                    foreignField: '_id',
-                    as: 'blogCategory',
-                }
-            },
-
-            {$unwind: "$blogCategory" },
-
-            {
-                $lookup: {
-                    from: "blogcomments",
-                    localField: 'blogComments',
-                    foreignField: '_id',
-                    as: 'blogComments',
-                }
-            },
-
-            { $unwind: "$blogComments" },
+        //     ]);
 
 
-            {
-                $lookup: {
-                    from: "users",
-                    localField: 'blogComments.commentedBy',
-                    foreignField: '_id',
-                    as: 'commentBy',
-                }
-            },
+        // let popular = await BlogModel.aggregate([
 
-            {$unwind: "$commentBy" },
+        //     { $match: {} },
 
-            {
-                $group: {
-                    _id: "$_id",
-                    // category: { $first: "$blogCategory" },
-                    name: { $first: "$name" },
+        //     {
+        //         $lookup: {
+        //             from: "users",
+        //             localField: 'createdBy',
+        //             foreignField: '_id',
+        //             as: 'author',
+        //         }
+        //     },
 
-                    authorId: { $first: "$author._id" },
-                    authorName: { $first: "$author.fullname" },
-                    profileImage: { $first: "$author.profileImage" },
+        //     {$unwind: "$author" },
 
-                    // author: {
-                    //     id: { $first: "$author._id" },
-                    //     fullname: { $first: "$author.fullname" },
-                    //     profileImage: { $first: "$author.profileImage" },
-                    // } ,
-                    //  blogImages authorImages: { $first: "$ blogImages authorImages" },
+        //     {
+        //         $lookup: {
+        //             from: "blogcategories",
+        //             localField: 'blogCategory',
+        //             foreignField: '_id',
+        //             as: 'blogCategory',
+        //         }
+        //     },
 
-                    profileImage: "$profileImage",
-                    blogImages: "$blogImages",
+        //     {$unwind: "$blogCategory" },
 
-                    // blogLikes: { $first: "$blogLikes" },
-                    blogviews: { $first: { $size: "$blogviews" } },
-                    blogLikes: { $first: { $size: "$blogLikes" } },
+        //     {
+        //         $lookup: {
+        //             from: "blogcomments",
+        //             localField: 'blogComments',
+        //             foreignField: '_id',
+        //             as: 'blogComments',
+        //         }
+        //     },
 
-
-                    description: { $first: "$description" },
-                    category: { $first: "$blogCategory.name" },
-                    slug: { $first: "$blogCategory.slug" },
-
-                    comments:{
-                        $push: {
-                        comment: "$blogComments.comment",
-                        commentedBy: "$commentBy",
-                        createdDate: "$blogComments.createdDate",
-                        blogId: "$blogComments.blogId",
-                    }  },
-
-                }
-            },
-
-            {
-                $project: {
-                    id: "$_id",
-                    _id: 0,
-                    authorId:1,
-                    authorName:1,
-                    profileImage:1,
+        //     { $unwind: "$blogComments" },
 
 
-                    createdAt:1,
-                    name:1,
-                    blogLikes:1,
-                    description:1,
-                    category:1,
-                    blogImages: 1, 
-                    authorImages:1, 
-                    createdBy:1,
-                    blogviews: 1,
-                    author: 1,
+        //     {
+        //         $lookup: {
+        //             from: "users",
+        //             localField: 'blogComments.commentedBy',
+        //             foreignField: '_id',
+        //             as: 'commentBy',
+        //         }
+        //     },
 
-                    sort : { '$add' : [ '$blogviews', '$blogLikes' ] },
+        //     {$unwind: "$commentBy" },
+
+        //     {
+        //         $group: {
+        //             _id: "$_id",
+        //             // category: { $first: "$blogCategory" },
+        //             name: { $first: "$name" },
+
+        //             authorId: { $first: "$author._id" },
+        //             authorName: { $first: "$author.fullname" },
+        //             profileImage: { $first: "$author.profileImage" },
+
+        //             // author: {
+        //             //     id: { $first: "$author._id" },
+        //             //     fullname: { $first: "$author.fullname" },
+        //             //     profileImage: { $first: "$author.profileImage" },
+        //             // } ,
+        //             //  blogImages authorImages: { $first: "$ blogImages authorImages" },
+
+        //             profileImage: "$profileImage",
+        //             blogImages: "$blogImages",
+
+        //             // blogLikes: { $first: "$blogLikes" },
+        //             blogviews: { $first: { $size: "$blogviews" } },
+        //             blogLikes: { $first: { $size: "$blogLikes" } },
+
+
+        //             description: { $first: "$description" },
+        //             category: { $first: "$blogCategory.name" },
+        //             slug: { $first: "$blogCategory.slug" },
+
+        //             comments:{
+        //                 $push: {
+        //                 comment: "$blogComments.comment",
+        //                 commentedBy: "$commentBy",
+        //                 createdDate: "$blogComments.createdDate",
+        //                 blogId: "$blogComments.blogId",
+        //             }  },
+
+        //         }
+        //     },
+
+        //     {
+        //         $project: {
+        //             id: "$_id",
+        //             _id: 0,
+        //             authorId:1,
+        //             authorName:1,
+        //             profileImage:1,
+
+
+        //             createdAt:1,
+        //             name:1,
+        //             blogLikes:1,
+        //             description:1,
+        //             category:1,
+        //             blogImages: 1, 
+        //             authorImages:1, 
+        //             createdBy:1,
+        //             blogviews: 1,
+        //             author: 1,
+
+        //             sort : { '$add' : [ '$blogviews', '$blogLikes' ] },
 
 
 
-                        "comments": {
-                        "$map": {
-                            "input": "$comments",
-                            "as": "comment",
-                            "in": {
-                                "id": "$$comment.commentedBy._id",
-                                "commentedBy": "$$comment.commentedBy.fullname",
-                                "profileImage": "$$comment.commentedBy.profileImage",
-                                "comment": "$$comment.comment",
-                                "blogId": "$$comment.blogId",
-                            }
-                        }
-                    }
+        //                 "comments": {
+        //                 "$map": {
+        //                     "input": "$comments",
+        //                     "as": "comment",
+        //                     "in": {
+        //                         "id": "$$comment.commentedBy._id",
+        //                         "commentedBy": "$$comment.commentedBy.fullname",
+        //                         "profileImage": "$$comment.commentedBy.profileImage",
+        //                         "comment": "$$comment.comment",
+        //                         "blogId": "$$comment.blogId",
+        //                     }
+        //                 }
+        //             }
                     
-                }
-            },
+        //         }
+        //     },
 
-            { $sort: { sort: -1 } }
+        //     { $sort: { sort: -1 } }
 
 
-            ]);
+        //     ]);
         
 
-        // return res.status(200).send({blogPost, popular});
+
         return res.status(200).send(singleBlog);
+
     } catch (error) {
-        return res.status(500).send({ message: error.message })
+        console.log(error)
+        return res.status(500).send({ message: error?.message })
     }
 }
 
@@ -1207,38 +1194,67 @@ exports.deleteBlogById = async (req, res, next) => {
     // NOTE::::: REMEMBER TO VALIDATE YOUR REQUEST INPUT(S) BEFORE SAVING TO DB
 
     let {blogId} = req.params;
-    let currentUser = req.user.id;
+
+    const { id: currentUser, role } = req.user;
+
+
     try {
+
+
         if(!mongoose.Types.ObjectId.isValid(blogId)){
-            return res.status(400).send({ message:'Invalid blog id' });
+            return res.status(400).json({status: "failed", message:'Invalid blog id' });
+        }
+        
+        if(!mongoose.Types.ObjectId.isValid(currentUser)){
+            return res.status(400).json({status: "failed", message:'Invalid user id' });
         }
 
         const findBlogExist = await BlogModel.findById(blogId);
 
         if(!findBlogExist) {
-            return res.status(400).send({ error: "Blog not found"});
+            return res.status(400).json({ status: "failed", error: "Blog not found"});
         }
 
-        let publicId  = findBlogExist.blogImageCloudinaryPublicId;
+        const deleteBlogImages  = findBlogExist?.blogImages;
 
-        let uploaderResponse = await cloudinary.uploader.destroy(publicId);
+        const deleteauthorImages  = findBlogExist?.authorImages;
 
-        if(!uploaderResponse) {
-            return res.status(200).send({ message: "Unable to delete image, try again!"});
+        if(deleteBlogImages?.length > 0) {
+
+            deleteBlogImages.forEach(async (blogImage) => {
+
+                let uploaderResponse = await cloudinary.uploader.destroy(blogImage?.public_id);
+                
+                if(!uploaderResponse) {
+                    return res.status(400).json({ status: "failed", message: "Unable to delete image, try again!"});
+                }
+            })
         }
 
-        if(currentUser.toString() !== findBlogExist.createdBy.toString()) {
-            return res.status(400).send({ error:'You can only delete blog created by you'});
+        if(deleteauthorImages?.length > 0) {
+
+            deleteauthorImages.forEach(async (authorImage) => {
+
+                let uploaderResponse = await cloudinary.uploader.destroy(authorImage?.public_id);
+              
+                if(!uploaderResponse) {
+                    return res.status(400).json({ status: "failed", message: "Unable to delete image, try again!"});
+                }
+            })
+        }
+        
+
+        if( role !== 'admin') {
+            return res.status(400).json({status: "failed", error:'You are unauthorized'});
         }
 
         await findBlogExist.remove();
+        
 
-        return res.status(400).send({ message:'Blog deleted successfully'});
-
-
+        return res.status(400).json({ status: "success", message:'Blog deleted successfully'});
 
     } catch (error) {
-        return res.status(500).send({ error: error?.message })
+        return res.status(500).json({ status: "failed", error: error?.message })
     }
 }
 
