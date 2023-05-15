@@ -47,7 +47,12 @@ app.use(morgan('dev'));
 
 app.use(
       cors({
-        origin: ["http://localhost:2000", "http://localhost:3000", "https://checkout.stripe.com"],
+        origin: [
+            "http://localhost:2000", 
+            "http://localhost:3000", 
+            "https://checkout.stripe.com",
+            "https://trailblazeradmin.netlify.app",
+      ],
       })
     );
 
