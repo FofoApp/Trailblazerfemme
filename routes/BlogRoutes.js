@@ -33,15 +33,11 @@
     //DELETE 
     router.delete('/:blogId/delete', verifyAccessToken,  permissions(["admin"]), BlogController.deleteBlogById);
 
-
-
     //BLOG CATEGORY ROUTES
     router.get('/categories', verifyAccessToken, BlogCategoryController.FetchBlogCategories);
     router.get('/category/:blogCategoryId/show', verifyAccessToken, BlogCategoryController.FetchBlogCategoryById);
     router.post('/category/create', verifyAccessToken,  BlogCategoryController.createNewBlogCategory);
     router.patch('/category/:blogCategoryId/update', verifyAccessToken, permissions(["admin"]),  BlogCategoryController.updateBlogCategoryById);
     router.delete('/category/:blogCategoryId/delete', verifyAccessToken, permissions(["admin"]), BlogCategoryController.deleteBlogCategoryById);
-
-
 
     module.exports = router;

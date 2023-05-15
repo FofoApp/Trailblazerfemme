@@ -32,6 +32,7 @@ const runCron = require('../runCron')
 const moment = require('moment');
 const Membership = require('../models/adminModel/AdminMembershipModel');
 const MembershipSubscriber = require('../models/membershipModel/MembershipSubscribersModel');
+const { getFirstName } = require('../helpers/splitName');
 runCron();
 exports.register = async (req, res, next) => {
 
@@ -86,12 +87,17 @@ exports.register = async (req, res, next) => {
             
             if(refreshAccessToken) {
                 await refreshAccessToken.remove();
-            }
-
+            }       
+            
             refreshAccessToken = new RefreshAccessToken({ userId: userExist?.id,  accessToken, refreshToken});
+            
+            const firstname = getFirstName(userExist?.fullname)
+            const sentMail  = await sendMail(email, otpCode, firstname);
 
-            const sentMail  = await sendMail(email, otpCode);          
-         
+            if(!sentMail) {
+                return res.status(400).json({ status: "failed", message: "Unable to send mail"})
+            }
+                 
             await refreshAccessToken.save();
     
              res.status(200).json({ accessToken, refreshToken, userId: userExist?.id, stage: 1, otp: otpCode,  message: "Otp has been sent to your email"});
@@ -166,7 +172,9 @@ exports.register = async (req, res, next) => {
 
         const saveOTP = await Otpmodel.create({ otp: otpCode, userId: savedUser.id, phonenumber: savedUser.phonenumber});
 
-        if(!saveOTP)return res.status(400).json({ message: "Unable to send otp code"})
+        if(!saveOTP) {
+            return res.status(400).json({ message: "Unable to send otp code"})
+        }
 
         const {id, email, roles, username, field, profileImagePath } = savedUser;
 
@@ -185,8 +193,13 @@ exports.register = async (req, res, next) => {
         }
 
         refreshAccessToken = new RefreshAccessToken({ userId: savedUser?.id,  accessToken, refreshToken });
-       
-        await sendMail(email, otpCode, res)
+        
+        const firstname = getFirstName(savedUser?.fullname)
+        const sentMail  = await sendMail(email, otpCode, firstname);
+
+        if(!sentMail) {
+            return res.status(400).json({ status: "failed", message: "Unable to send mail"})
+        }
 
         await refreshAccessToken.save();
 
@@ -194,6 +207,7 @@ exports.register = async (req, res, next) => {
 
        
     } catch (error) {
+        console.log(error)
         if(error.isJoi === true) {
             //unprocessible entry errors: server can't understand or process the entries
             return res.status(422).json({ error: "validation error"})

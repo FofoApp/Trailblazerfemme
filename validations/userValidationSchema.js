@@ -9,6 +9,7 @@ exports.registerValidation = (userInputs, field = false) => {
         email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).lowercase().required(),
         phonenumber: Joi.string().required(),
         field: Joi.string().required(),
+        location: Joi.string(),
         jobTitle: Joi.string(),
         cityState: Joi.string(),
         membership: Joi.string(),

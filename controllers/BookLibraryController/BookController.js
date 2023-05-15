@@ -611,12 +611,17 @@ exports.updateBookById = async (req, res, next) => {
 }
 
 exports.deleteBookById = async (req, res, next) => {
+    
     //NOTE: REMEMBER TO VALIDATE USER INPUTS 
+
+    const { bookId } = req.params;
+    
     try {
-        const bookId = req.params.bookId;
+
         if(!mongoose.Types.ObjectId.isValid(bookId)) {
             return res.status(401).json({ status: "failed", error: "Invalid book"})
         }
+
         const findBookExist = await BookModel.findById(bookId);
         
         if(!findBookExist) {
@@ -626,14 +631,19 @@ exports.deleteBookById = async (req, res, next) => {
         if(findBookExist?.bookImage?.length > 0) {
             findBookExist?.bookImage.forEach( async (image) => {
                 let book_response = await cloudinary.uploader.destroy(image?.public_id);
-                if(!book_response)  return res.status(404).json({ status: "failed", error: "Unable to delete book image"});
+                if(!book_response) {
+                    return res.status(404).json({ status: "failed", error: "Unable to delete book image"});
+                }
             });
         }
 
         if(findBookExist?.author?.length > 0) {
             findBookExist?.author.forEach( async (image) => {
                 let author_response = await cloudinary.uploader.destroy(image?.public_id);
-                if(!author_response)  return res.status(404).json({ status: "failed", error: "Unable to delete author image"});
+                
+                if(!author_response) {
+                    return res.status(404).json({ status: "failed", error: "Unable to delete author image"});
+                }
             });
         }
 
@@ -642,7 +652,7 @@ exports.deleteBookById = async (req, res, next) => {
         return res.status(200).json({ status: "success", message: "Book deleted successfully" });
 
     } catch (error) {
-        return res.status(500).json({ status: "failed", message: error.message });
+        return res.status(500).json({ status: "failed", message: error?.message });
     }
 }
 
@@ -687,7 +697,7 @@ exports.trendingBooks = async (req, res, next) => {
 
         // return res.status(200).send({ message: "Trending",  populatedData});
     } catch (error) {
-        console.log(error)
+        
         return res.status(500).send({ message: error.message });
     }
 }
