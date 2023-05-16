@@ -282,9 +282,15 @@ exports.updateProductById = async (req, res, next) => {
 
         const { productId } = req.params;
 
-        let {  name, qty = 0, price = 0, size, category, color, description, imageIds } = req.body;
+        if(req.body.product_variation) {
+            req.body.product_variation = JSON.parse(req.body.product_variation)
+        }
 
-        if(imageIds) imageIds = imageIds.split(',')
+        let {  name, qty = 0, price = 0, size, category, color, description, imageIds, product_variation = [] } = req.body;
+
+        if(imageIds) {
+            imageIds = imageIds.split(',')
+        }
 
     try {
         
@@ -293,6 +299,7 @@ exports.updateProductById = async (req, res, next) => {
         if(!mongoose.Types.ObjectId.isValid(productId)) {
             return res.status(401).send({ error: "Invalid Id"});
         }
+
         // if(!mongoose.Types.ObjectId.isValid(imageId)) {
         //     return res.status(401).send({ error: "Invalid image Id"});
         // }
@@ -337,31 +344,38 @@ exports.updateProductById = async (req, res, next) => {
         if(name)   product_data["name"] = name
         if(category) product_data["category"] = category
         if(description) product_data["description"] = description
+        product_data["product_variation"] = product_variation
 
-        if(price)  product_object['price'] = Number(price)
-        if(qty)    product_object["qty"] = Number(qty)
-        if(size)   product_object["size"] = size
-        if(color)  product_object["color"] = color
+        // if(price)  product_object['price'] = Number(price)
+        // if(qty)    product_object["qty"] = Number(qty)
+        // if(size)   product_object["size"] = size
+        // if(color)  product_object["color"] = color
 
-        if(product_images && product_images.length > 0) product_data["product_images"] = product_images
+        if(product_images && product_images.length > 0) {
+            product_data["product_images"] = product_images
+        }
 
-        product_variation.push(product_object)
+        // product_variation.push(product_object)
 
-        if(!!Object.keys(product_object).length) product_data["product_variation"] = product_variation
+        // if(!!Object.keys(product_object).length) {
+        //     product_data["product_variation"] = product_variation
+        // }
 
         const updatedProduct = await ProductModel.findByIdAndUpdate(productId, { $set: product_data }, { new: truncate} );
 
-        if(!updatedProduct) return res.status(400).send("Unable to update product");
+        if(!updatedProduct) {
+            return res.status(400).send("Unable to update product");
+        }
 
         return res.status(200).send({ success: true, product: updatedProduct, });
 
     } catch (error) {
 
-        if(error.message === "Missing required parameter - public_id") {
+        if(error?.message === "Missing required parameter - public_id") {
             return res.status(400).send({ error: "Image id not found" })
         }
 
-        return res.status(500).send({ error: error.message });
+        return res.status(500).send({ error: error?.message });
     }
 }
 
@@ -384,22 +398,28 @@ exports.deleteProductById = async (req, res, next) => {
         const multiDelete = async (public_id) => {
 
             try {
+
                 uploaderResponse = await cloudinary.uploader.destroy(public_id);       
 
-                if(!uploaderResponse) return res.status(400).send({ error: "Unable to delete image"});
+                if(!uploaderResponse) {
+                    return res.status(400).json({ error: "Unable to delete image"});
+                }
 
             } catch (error) {
-                return res.status(500).send({ error: error.message });
+                return res.status(500).json({ error: error?.message });
             }
 
         }
 
-        if(product && product.product_images && product.product_images.length > 0) {
+        if(product && product?.product_images && product?.product_images?.length > 0) {
             
-            product.product_images.forEach((imagePublicId) => {
+            product?.product_images.forEach((imageObject) => {
                 //Delete all product images from cloudinary
-                const deletedImages = multiDelete(imagePublicId.public_id);
-                if(!deletedImages) return res.status(400).send({ error: "Unable to unset images"})
+                const deletedImages = multiDelete(imageObject.public_id);
+
+                if(!deletedImages) {
+                    return res.status(400).json({ error: "Unable to unset images"})
+                }
             });
             
             //Delete product from database
@@ -407,15 +427,15 @@ exports.deleteProductById = async (req, res, next) => {
 
         }
 
-        return res.status(200).send({ success: "Product deleted successfully" });
+        return res.status(200).json({ success: "Product deleted successfully" });
 
     } catch (error) {
 
-        if(error.message === "Missing required parameter - public_id") {
-            return res.status(400).send({ error: "Image id not found" });
+        if(error?.message === "Missing required parameter - public_id") {
+            return res.status(400).json({ error: "Image id not found" });
         }
 
-        return res.status(500).send({ error: error.message });
+        return res.status(500).json({ error: error?.message });
     }
 }
 
@@ -436,7 +456,7 @@ exports.productReview = async (req, res, next) => {
     const { rating, comment } = req.body;
     const { productId } = req.params
 
-    const {id: ratedBy, fullname: name, } = req.user;
+    const { id: ratedBy, fullname: name, } = req.user;
 
     //http://localhost:2000/api/product/review
 
