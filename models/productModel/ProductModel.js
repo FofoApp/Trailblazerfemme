@@ -12,10 +12,10 @@ const productSchema = new mongoose.Schema({
 
     product_variation: [
         {
-            size: {  type: String, uppercase: true, required: [true, 'Size field is required'] },
-            price: {  type: Number, min:0,  default: 0, required: [true, 'Price field is required'] },
-            qty: {  type: Number, min:0,  default: 0, required: [true, 'Quantity field is required'] },
-            color: {  type: String,   default: "", required: [true, 'Color field is required'] },
+            size: {  type: String, uppercase: true, default: null },
+            price: {  type: Number, min:0,  required: [true, 'Please provide price for variable product'] },
+            qty: {  type: Number, min:1,  default: 0, },
+            color: {  type: String,   default: "transparent",  },
         }
     ],
 

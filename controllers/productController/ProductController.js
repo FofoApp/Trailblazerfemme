@@ -112,7 +112,13 @@ exports.createNewProduct = async (req, res, next) => {
 
     */
 
-    let { name, qty = 0, price = 0, size, category, color,description } = req.body;
+    if(req.body.product_variation) {
+        req.body.product_variation = JSON.parse(req.body.product_variation)
+    }
+
+    let { name, qty = 0, price = 0, size, category, color,description, product_variation = [] } = req.body;
+
+
    
     try {
 
@@ -120,10 +126,10 @@ exports.createNewProduct = async (req, res, next) => {
 
         const files = req.files;
 
-        if(!files)  return res.status(400).send({ error: "Upload product images"});
+        if(!files)  return res.status(400).json({ error: "Upload product images"});
 
         if(files.length > 3) {
-            return res.status(400).send({ status: 'failed', error: "Maximum file upload cannot be more than 3" });
+            return res.status(400).json({ status: 'failed', error: "Maximum file upload cannot be more than 3" });
         }
 
         const product_category = await ProductCategory.findById(category)
@@ -148,14 +154,15 @@ exports.createNewProduct = async (req, res, next) => {
             category,
             description,
             product_images,
-            product_variation: [
-                {   
-                    price: Number(price), 
-                    qty: Number(qty),
-                    size,  
-                    color 
-                }
-            ]
+            product_variation,
+            // product_variation: [
+            //     {   
+            //         price: Number(price), 
+            //         qty: Number(qty),
+            //         size,  
+            //         color 
+            //     }
+            // ]
         }
 
         
