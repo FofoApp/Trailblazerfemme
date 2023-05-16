@@ -496,7 +496,7 @@ exports.productReview = async (req, res, next) => {
 
 
         product = await Product.findById(productId)
-        .populate('reviews', "rating name comment ratedBy")
+                               .populate('reviews', "rating name comment ratedBy")
 
         product.numOfReviews = product.reviews.length
 
@@ -514,7 +514,6 @@ exports.productReview = async (req, res, next) => {
             oldProduct = await Product.findById(productId)
 
             oldProduct.reviews.push(savedReview._id)
-
         
             product.ratings = product.reviews.reduce((acc, curr) => acc + curr.rating , 0).toFixed(1) / product.reviews.length
     
