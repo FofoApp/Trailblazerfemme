@@ -1,1 +1,53 @@
 //createDiv(undefined,undefined,'solid 5px blue');
+
+ 
+    const obj =  {
+            size: "MD",
+            price: "234",
+            qty: "3",
+            temp: "OC",
+            name: "segun"
+        }
+        
+    let prodVal = {
+            size: "MD",
+            price: "234",
+            qty: "3",
+            color: "black",
+            temp: "OC"
+        }
+    
+    const firstKey =  Object.keys(obj)
+    const secondKey = Object.keys(prodVal)
+    
+    //   const keys =  firstKey.filter((key) => secondKey.includes(key) )
+                     
+    //                  .reduce((acc, curr) => {
+                        
+    //                     acc[curr] = obj[curr]
+                        
+    //                      return acc
+    //                  }, {})
+    
+
+let container = {};
+ firstKey.filter((key) => secondKey.includes(key))
+            .map((item) =>  container[item] = obj[item])
+
+
+
+let val = {}
+
+const objEnt =  Object.entries(container).map(([key, value]) => {
+    
+    const filterd = ['price', 'qty']
+    
+    if(filterd.includes(key) && !isNaN(Number(value))){
+       return val[key] = Number(value)
+    }
+    
+    return val[key] = value
+
+})
+
+console.log(val)

@@ -36,6 +36,12 @@ const productSchema = new mongoose.Schema({
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
 
     category: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductCategory' },
+
+    // address: {
+    //     city: { type: String, default: null },
+    //     state: { type: String, default: null },
+    //     country: { type: String, default: null },
+    //  }
 }, 
 
 

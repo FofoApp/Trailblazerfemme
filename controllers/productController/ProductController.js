@@ -112,21 +112,46 @@ exports.createNewProduct = async (req, res, next) => {
 
     */
 
-    if(req.body.product_variation) {
-        req.body.product_variation = JSON.parse(req.body.product_variation)
+        const prodVal = [
+            {
+                size: "MD",
+                price: "234",
+                qty: "3",
+                color: "black",
+            }
+        ];
+
+        // Check if product variation was passed through request body object
+        if(req?.body?.product_variation) {
+
+        // convert product variation to javascript object
+        let variationArray = JSON.parse(req?.body?.product_variation)
+
+        if(!Array.isArray(variationArray)) {
+
+        res.status(400).json({ status: "failed", error: "Please provide product variation"});
+        return;
+        
+        }
+
+        // Loop through the array and cast price and qty to integer
+        const variation = variationArray.map((item) => ({ ...item, price: Number(item.price), qty: Number(item?.qty) }) );
+
+        // set req.body.product_variation to the new Array
+        req.body.product_variation = variation;
     }
 
-    let { name, qty = 0, price = 0, size, category, color,description, product_variation = [] } = req.body;
+    let { name, category, description, product_variation = [] } = req.body;
 
-
-   
     try {
 
         let product_images = [];
 
         const files = req.files;
 
-        if(!files)  return res.status(400).json({ error: "Upload product images"});
+        if(!files) {
+            return res.status(400).json({ error: "Upload product images"});
+        }
 
         if(files.length > 3) {
             return res.status(400).json({ status: 'failed', error: "Maximum file upload cannot be more than 3" });
@@ -134,11 +159,15 @@ exports.createNewProduct = async (req, res, next) => {
 
         const product_category = await ProductCategory.findById(category)
 
-        if(!product_category) return res.status(400).send({ status: 'failed', error: "Product category not found"});
+        if(!product_category) {
+            return res.status(400).send({ status: 'failed', error: "Product category not found"});
+        }
 
         let product = await ProductModel.findOne({ name });
 
-        if(product) return res.status(400).send({ status: 'failed', error: "Product name already taken"});
+        if(product) {
+            return res.status(400).send({ status: 'failed', error: "Product name already taken"});
+        }
 
         for (const file of files) {
         const { path } = file;
@@ -155,14 +184,6 @@ exports.createNewProduct = async (req, res, next) => {
             description,
             product_images,
             product_variation,
-            // product_variation: [
-            //     {   
-            //         price: Number(price), 
-            //         qty: Number(qty),
-            //         size,  
-            //         color 
-            //     }
-            // ]
         }
 
         
@@ -190,6 +211,18 @@ exports.listProducts = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/product/lists?search=gucci
 
+    const DEFAULT_PAGE = 1;
+    const DEFAULT_SIZE = 5;
+
+    let { page = DEFAULT_PAGE, size = DEFAULT_SIZE } = req.query;
+
+    page = Number(page);
+    size = Number(size);
+
+    const limit = size;
+    const skip = (page - 1) * size;
+
+
     try {
 
         const search = req.query.search 
@@ -203,7 +236,10 @@ exports.listProducts = async (req, res, next) => {
                                                             select: "name product_images "
                                                           })
         
-        const products2 = await ProductModel.paginate(search)
+        const products2 = await ProductModel.paginate(search, {
+            page, limit,
+        })
+        // const products2 = await ProductModel.paginate(search)
 
         // const products = await ProductModel.find({}).populate('category', "name _id")
 
