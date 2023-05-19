@@ -1,10 +1,23 @@
 const JWT = require('jsonwebtoken');
 const mongoose = require("mongoose");
+const moment = require('moment')
 const createError = require('http-errors');
 // const client = require('./../helpers/initRedis');
 const UserModel = require('./../models/UserModel');
 
 const isValidObjectId  = mongoose.Types.ObjectId;
+
+
+exports.isFirstDateBeforeSecondDate = (prevDate, todayDate = Date.now()) => {
+    let firstDate = moment(prevDate);
+    let secondDate = moment(todayDate);
+
+    if(firstDate && secondDate) {
+        return firstDate.isBefore();
+    }
+
+    return false;
+}
 
 
 
@@ -175,14 +188,15 @@ exports.verifyAccessToken =  async (req, res, next) => {
         return next(createError.BadRequest("Bad request, user not found"));
     }
 
+
     const user_data = {
         id: user?.id,
-        fullname: user.fullname,
-        role: user.roles[0],
-        iat: payload.iat,
-        exp: payload.exp,
-        aud: payload.aud,
-        iss: payload.iss
+        fullname: user?.fullname,
+        role: user?.roles[0],
+        iat: payload?.iat,
+        exp: payload?.exp,
+        aud: payload?.aud,
+        iss: payload?.iss
     }
 
     req.user = user_data;

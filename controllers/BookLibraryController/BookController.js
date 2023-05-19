@@ -391,55 +391,58 @@ exports.fetchBookById = async (req, res, next) => {
         const { bookId } = req.params;
 
         if(!mongoose.Types.ObjectId.isValid(bookId)) {
-            return res.status(401).send({ error: "Invalid book"})
+            return res.status(401).json({ status: "failed", message: "Invalid book ID", error: "Invalid book ID"})
         }
-        // sess.startTransaction();
 
-        let findBookExist = await BookModel.findById(bookId,
-                            // {$addToSet: { 'readers': req.user.id } },
-                            // { session: sess  }
-                            )
-                            .select("_id name title bookImage author price ratings store")
-                            .populate({           
+        let findBookExist = await BookModel.findById(bookId)
+                            .select("_id name description bookImage bookLink author price ratings store bookCategoryId")
+                            .populate({
                                 path: 'readers',
-                                select: 'fullname profileImage createdAt',
                                 model: 'User',
+                                select: 'fullname profileImage createdAt',
                                 populate: {
                                     path: 'profileId',
                                     model: 'Profile',
                                     select: 'profileImage',
-                                },
-                                
-                            })
-                            .populate({
-                                path: 'bookCategoryId',
-                                model: 'BookCategory',
-                                select: 'title',
-                                populate: {
-                                    path: 'books',
-                                    model: 'Book',
-                                    select: "title bookImage author store"
                                 }
+                            })
+                            // .populate({
+                            //     path: 'bookCategoryId',
+                            //     model: 'BookCategory',
+                            //     select: 'name title',
+                            //     populate: {
+                            //         path: 'books',
+                            //         model: 'Book',
+                            //         select: "name title bookImage author store"
+                            //     }
+                            // })
+                            
 
-                            });
+        if(!findBookExist) {
+            return res.status(404).json({ status: "failed", error: "Book not found"})
+        }
+                   
 
-                    //TRANSFORM findBookExist DATA TO RETURN FEW OBJECTS
+    //TRANSFORM findBookExist DATA TO RETURN FEW OBJECTS
+    console.log({ bookcat:  findBookExist })
+            const find_book_exist = {
+                id: findBookExist?.id,
+                price: findBookExist?.price,
+                name: findBookExist?.name,
+                description: findBookExist?.description,
+                ratings: findBookExist?.ratings,
+                store: findBookExist?.store,
+                bookCategoryId: findBookExist?.bookCategoryId,
+                bookImage: findBookExist?.bookImage[0]?.image_url,
+                author: {
+                    fullname: findBookExist?.author[0]?.fullname,
+                    image_url: findBookExist?.author[0]?.image_url,
+                },
 
-                            const find_book_exist = {
-                                id: findBookExist.id,
-                                price: findBookExist.price,
-                                name: findBookExist.name,
-                                ratings: findBookExist.ratings,
-                                store: findBookExist.store,
-                                bookCategoryId: findBookExist.bookCategoryId,
-                                bookImage: findBookExist.bookImage[0].image_url,
-                                author: {
-                                    fullname: findBookExist.author[0].fullname,
-                                    image_url: findBookExist.author[0].image_url,
-                                },
+                bookCategoryId: findBookExist?.bookCategoryId,
+            }
 
-                                bookCategoryId: findBookExist.bookCategoryId,
-                            }
+        console.log({ bookcat:  find_book_exist.bookCategoryId })
 
                         let reviews = await BookReview.paginate({ bookId }, {
                             page: review_page,

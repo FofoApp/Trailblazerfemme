@@ -257,6 +257,11 @@ exports.login = async (req, res, next) => {
             throw createError.Unauthorized('Username/password not valid'); 
         }
 
+        // if(user?.isMembershipActive < Date.now()) {
+        //     user.isMembershipActive = false;
+        //     await user.save();
+        // }
+
         let membership_details = {
             // subscriptionId: user?.subscriptionId,
              paid: user?.paid,

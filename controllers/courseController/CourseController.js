@@ -1,4 +1,5 @@
 const CourseCategory = require('./../../models/courseModel/CourseCategoryModel');
+const moment = require('moment');
 const CourseModel = require('./../../models/courseModel/CourseModel');
 const { cloudinary } = require('./../../helpers/cloudinary');
 const CourseReview = require('../../models/courseModel/CourseReviewModel');
@@ -15,6 +16,18 @@ const cloudinaryImageUploadMethod = async file => {
         ) 
     })
   }
+
+
+exports.isFirstDateAfterSecondDate = (prevDate, todayDate = Date.now()) => (req, res, next) =>  {
+    let firstDate = moment(prevDate);
+    let secondDate = moment(todayDate);
+
+    if(firstDate && secondDate) {
+        return firstDate.isAfter();
+    }
+
+    return false;
+}
 
 
 
