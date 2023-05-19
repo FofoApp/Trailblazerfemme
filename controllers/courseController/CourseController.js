@@ -8,7 +8,9 @@ const CourseReview = require('../../models/courseModel/CourseReviewModel');
 const cloudinaryImageUploadMethod = async file => {
     return new Promise(resolve => {
         cloudinary.uploader.upload( file , (err, { secure_url, public_id}) => {
-          if (err) throw new Error("upload image error")
+          if (err) {
+            throw new Error("upload image error")
+          }
 
           resolve({ secure_url, public_id })
 
