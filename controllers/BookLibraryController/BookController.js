@@ -91,22 +91,22 @@ exports.createNewBook = async (req, res, next) => {
         }
 
        const upload_details =  {
-            name: req.body.name,
-            price: req.body.price,
-            bookLink: req.body.bookLink,
-            bookCategoryId: req.body.bookCategoryId,
-            description: req.body.description,
-            store: req.body.store,
+            name: req?.body?.name,
+            price: req?.body?.price,
+            bookLink: req?.body?.bookLink,
+            bookCategoryId: req?.body?.bookCategoryId,
+            description: req?.body?.description,
+            store: req?.body?.store,
 
             bookImage: [{
-                public_id: book_image_upload_result.public_id,
-                image_url: book_image_upload_result.secure_url,
+                public_id: book_image_upload_result?.public_id,
+                image_url: book_image_upload_result?.secure_url,
             }],
             
             author: [{
-                fullname: req.body.author_name,
-                public_id: author_image_upload_result.public_id,
-                image_url: author_image_upload_result.secure_url,
+                fullname: req?.body?.author_name,
+                public_id: author_image_upload_result?.public_id,
+                image_url: author_image_upload_result?.secure_url,
             }],
             uploadedBy: currentUser
         }
@@ -118,17 +118,17 @@ exports.createNewBook = async (req, res, next) => {
          if(!createdBook) return res.status(400).json({ message: "Book not created"})
 
          const result = {
-            id: createdBook.id,
-            name: createdBook.name,
-            price: createdBook.price,
-            bookLink: createdBook.bookLink,
-            store: createdBook.store,
-            description: createdBook.description,
-            createdAt: createdBook.createdAt,
-            bookImage: createdBook.bookImage[0].image_url,
+            id: createdBook?.id,
+            name: createdBook?.name,
+            price: createdBook?.price,
+            bookLink: createdBook?.bookLink,
+            store: createdBook?.store,
+            description: createdBook?.description,
+            createdAt: createdBook?.createdAt,
+            bookImage: createdBook?.bookImage[0]?.image_url,
             author: {
-                fullname: createdBook.author[0].fullname,
-                image_url: createdBook.author[0].image_url,
+                fullname: createdBook?.author[0]?.fullname,
+                image_url: createdBook?.author[0]?.image_url,
             },
          }
 
@@ -136,7 +136,7 @@ exports.createNewBook = async (req, res, next) => {
 
     } catch (error) {
         console.log(error)
-        return res.status(500).send({ message: error.message });
+        return res.status(500).send({ message: error?.message });
     }
 }
 
@@ -649,6 +649,7 @@ exports.deleteBookById = async (req, res, next) => {
 
         if(findBookExist?.author?.length > 0) {
             findBookExist?.author.forEach( async (image) => {
+                
                 let author_response = await cloudinary.uploader.destroy(image?.public_id);
                 
                 if(!author_response) {

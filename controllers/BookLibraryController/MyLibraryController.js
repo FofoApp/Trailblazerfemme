@@ -151,6 +151,7 @@ exports.fetchAllBooksInLibrary = async (req, res, next) => {
 
 
     try {
+        
         //ALL BOOK CATEGORIES
         const categories = await BookCategoryModel.paginate({},
             {   

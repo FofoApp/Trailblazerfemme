@@ -77,7 +77,11 @@ exports.blog = async (req, res) => {
 
     try {
 
-        const categories = await BlogCategoryModel.paginate({}, { page: category_page, limit: 5,  select: "-createdAt -updatedAt -__v"})
+        const categories = await BlogCategoryModel.paginate({}, 
+            {   page: category_page, 
+                limit: 5,  
+                select: "-createdAt -updatedAt -__v"
+            });
     
         const hotm = await BlogModel.paginate({}, 
             { 

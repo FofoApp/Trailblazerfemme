@@ -14,9 +14,12 @@ exports.getAllOrdersForAUser = async (req, res, next) => {
 
     try {
     
+        
         const orders = await CartModel.find({ owner }).sort({ createdAt: -1 });
 
-        if(!orders || orders.length === 0) return res.status(400).send({ error: "No order(s) found"});
+        if(!orders || orders.length === 0) {
+            return res.status(400).json({ status: "failed", message: "No order(s) found", error: "No order(s) found"});
+        }
 
         return res.status(200).send(orders);
 

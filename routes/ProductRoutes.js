@@ -15,9 +15,18 @@ const uploadCv = require('./../helpers/multerCVupload');
 
 router.get('/', verifyAccessToken, permissions(["user","admin"]), ProductController.shop);
 router.get('/order', verifyAccessToken, permissions(["user","admin"]), CartController.getAllOrdersForAUser);
+
+
+//SHOPPING CART
+
+router.get('/my-orders', verifyAccessToken, permissions(["user","admin"]), orderController.getMyOrders );
+router.post('/create-order', verifyAccessToken, permissions(["user","admin"]), orderController.addOrderItem );
+
+
 router.get('/order_lists', verifyAccessToken, permissions(["user", "admin"]), CartController.allOrders);
 router.get('/:productId/reviews', verifyAccessToken, permissions(["user","admin"]), ProductController.getAllReviews);
 router.post('/:productId/review', verifyAccessToken, permissions(["user","admin"]), ProductController.productReview);
+router.get('/:productId/can-review-product', verifyAccessToken, permissions(["user","admin"]), ProductController.canReviewProduct);
 
 router.get('/lists', verifyAccessToken, permissions(["user","admin"]), ProductController.listProducts);
 
@@ -59,10 +68,6 @@ router.delete('/category/:productCategoryId/delete', verifyAccessToken,  permiss
 // router.delete('/category/:productCategoryId/delete', productCategoryController.deleteProductCategoryById);
 
 
-//SHOPPING CART
-
-router.post('/create-order', verifyAccessToken, permissions(["user","admin"]), orderController.addOrderItem );
-router.post('/my-orders', verifyAccessToken, permissions(["user","admin"]), orderController.getMyOrders );
 
 
 // router.get('/myorder', verifyAccessToken, permissions(["user","admin"]), CartController.getAllOrdersForAUser);

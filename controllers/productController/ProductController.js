@@ -8,6 +8,7 @@ const { productValidation } = require('./../../validations/productValidation');
 const ProductCategory = require('../../models/productModel/productCategoryModel');
 const { truncate } = require('fs/promises');
 const Product = require('../../models/productModel/ProductModel');
+const Order = require('../../models/productModel/orderModel');
 
 exports.shop = async (req, res, next) => {
 
@@ -562,8 +563,35 @@ exports.productReview = async (req, res, next) => {
 
         
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         return res.status(500).send({ error: error.message });
+    }
+}
+
+exports.canReviewProduct = async (req, res, next) => {
+
+    const { id: currentUser } = req.user;
+
+    const { productId } = req.params;
+
+    try {
+
+        const canReviewProduct = await Order.find({
+                                    user: currentUser,
+                                    $and: [
+                                        { "orderItems.product": productId },
+                                        { isPaid: true }
+                                    ] });
+
+        let canUserReviewThisProduct = canReviewProduct?.length > 0 ? true : false;
+
+        let message = canReviewProduct?.length > 0 ? "You can review this product" : "You cannot review this product";
+
+        return res.status(200).json({ status: "success", message, canUserReviewThisProduct })
+        
+
+    } catch (error) {
+        return res.status(500).json({ status: "failed", message: error?.message, error: error?.message })
     }
 }
 
