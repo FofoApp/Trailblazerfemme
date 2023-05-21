@@ -122,19 +122,12 @@ exports.stripePayment = async (req, res) => {
       return res.status(500).send({ error: "Unable to proces payment" });
     }
   
-    console.log(paymentIntent);
+ 
 
     try {
-    //   const paymentConfirm = await stripe.paymentIntents.confirm(
-    //     paymentIntent?.id,
-    //     { payment_method: "card" }
-    //   );
-
-    //   console.log(paymentIntent);
       return res.status(200).send(paymentIntent);
       
     } catch (err) {
-        console.log({ err2: err })
       return res.status(500).send(err);
     }
 
@@ -208,6 +201,7 @@ exports.productPayment = async (req, res, next) => {
     const userId = req?.user?.id;
 
     try {
+
         if(!product?.totalPrice) {
             return res.status(400).json({ error: "Please provide total sum for products in cart" })
         }

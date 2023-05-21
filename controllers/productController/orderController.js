@@ -79,6 +79,11 @@ exports.getMyOrders = async(req, res) => {
         {
             page,
             limit: size,
+            populate: {
+                path: "user",
+                model: "User",
+                select: "id fullname profileImage"
+            },
             sort: [
                 [{ _id: 1, createdAt: -1 }]
             ],

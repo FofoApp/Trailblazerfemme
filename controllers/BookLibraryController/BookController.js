@@ -382,20 +382,25 @@ exports.fetchBookById = async (req, res, next) => {
     // let sess = await mongoose.startSession();
     //NOTE: REMEMBER TO VALIDATE USER INPUTS 
 
+    const currentUser = req?.user?.id;
+    const { bookId } = req.params;
     let { review_page = 1, who_read_page = 1 } = req.query;
 
     if(review_page) review_page = Number(review_page);
     if(who_read_page) who_read_page = Number(who_read_page);
 
     try {
-        const { bookId } = req.params;
+
+        if(!mongoose.Types.ObjectId.isValid(currentUser)) {
+            return res.status(401).json({ status: "failed", message: "Invalid user ID", error: "Invalid user ID"})
+        }
 
         if(!mongoose.Types.ObjectId.isValid(bookId)) {
             return res.status(401).json({ status: "failed", message: "Invalid book ID", error: "Invalid book ID"})
         }
 
         let findBookExist = await BookModel.findById(bookId)
-                            .select("_id name description bookImage bookLink author price ratings store bookCategoryId")
+                            .select("_id name description bookImage bookLink author price ratings store reviewIds bookCategoryId")
                             .populate({
                                 path: 'readers',
                                 model: 'User',
@@ -404,8 +409,13 @@ exports.fetchBookById = async (req, res, next) => {
                                     path: 'profileId',
                                     model: 'Profile',
                                     select: 'profileImage',
-                                }
+                                    }
                             })
+                            .populate({
+                                    path: "reviewIds",
+                                    model: "BookReview",
+                                    // select: "id name"
+                                })
                             // .populate({
                             //     path: 'bookCategoryId',
                             //     model: 'BookCategory',
@@ -421,6 +431,9 @@ exports.fetchBookById = async (req, res, next) => {
         if(!findBookExist) {
             return res.status(404).json({ status: "failed", error: "Book not found"})
         }
+
+
+    const updateReaders =  await BookModel.findByIdAndUpdate(bookId, { $addToSet: { readers: currentUser } }, { new: true } )
                    
 
     //TRANSFORM findBookExist DATA TO RETURN FEW OBJECTS
@@ -473,7 +486,8 @@ exports.fetchBookById = async (req, res, next) => {
         }
 
         // 
-        let who_read = await BookModel.paginate({ bookId }, {
+        let who_read = await BookModel.paginate({ bookId }, 
+            {
             page: who_read_page,
             limit: 5,
             populate: {
@@ -490,7 +504,10 @@ exports.fetchBookById = async (req, res, next) => {
 
                 if(read?.readers?.length <= 0) return;
 
-                        bookReaders = read?.readers?.map((user) => {
+                        bookReaders = read?.readers?.filter((user) => {
+                        if(user?.id === currentUser) {
+                            return false;
+                        }
                         return {
                             fullname: user?.fullname,
                             image_url: user?.profileImage,

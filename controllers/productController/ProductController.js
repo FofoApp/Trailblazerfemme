@@ -238,7 +238,23 @@ exports.listProducts = async (req, res, next) => {
                                                           })
         
         const products2 = await ProductModel.paginate(search, {
-            page, limit,
+            page, 
+            limit,
+            populate: {
+                path: 'reviews',
+                model: "ProductReview",
+                select: "comment rating",
+                populate: {
+                    path: 'ratedBy',
+                    model: "User",
+                    select: "id fullname profileImage ",
+                }
+
+                // rating: { type: Number, required: true, },
+                // comment: { type: String, required: true},
+                // ratedBy: { type: ObjectId, ref: 'User', required: true },
+                // name: { type: String, required: true },
+            }
         })
         // const products2 = await ProductModel.paginate(search)
 

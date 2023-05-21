@@ -11,8 +11,9 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
 exports.stripeCheckout = async (req, res) => {
 
-  const loggedInUser = req?.user?.id;
-    
+    const {id: userId, email } = req?.user;
+    const { orderItems, shippingAddress, taxPrice, shippingPrice, itemsPrice, totalPrice } = req.body;
+
     // const completeUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
     // const success_url = `${req.headers.origin}/?success=true`;
     // const cancel_url = `${req.headers.origin}/?canceled=true`;
@@ -25,7 +26,7 @@ exports.stripeCheckout = async (req, res) => {
     // })
 
  
-    const { orderItems, shippingAddress, taxPrice, shippingPrice, itemsPrice, totalPrice } = req.body
+
  
     // console.log(orderItems, shippingAddress, taxPrice, shippingPrice, itemsPrice, totalPrice)
     const line_items = orderItems?.map((item) => {
@@ -33,18 +34,14 @@ exports.stripeCheckout = async (req, res) => {
         return {
             price_data: {
               currency: 'usd',
+              unit_amount: item.price * 100,
               product_data: {
                 name: item.name,
                 description: item.desc,
                 // images: [item.image],
-                // metadata: { 
-                //   id: item.memId, 
-                //   product: item.product,
-                // }
               },
-              unit_amount: item.price * 100,
+              
             },
-
             quantity: item.qty,
 
           }
@@ -53,26 +50,26 @@ exports.stripeCheckout = async (req, res) => {
 
     try {
 
-      const order_details = {
-        user: loggedInUser,
-        orderItems: orderItems,
-        shippingAddress,
+      // const order_details = {
+      //   user: userId,
+      //   orderItems: orderItems,
+      //   shippingAddress: shippingAddress,
 
-        taxPrice,
-        shippingPrice,
-        itemsPrice,
-        totalPrice,
-        isPaid: false,
-        paidAt: Date.now(),
-        isDelivered: false
+      //   taxPrice,
+      //   shippingPrice,
+      //   itemsPrice,
+      //   totalPrice,
+      //   isPaid: false,
+      //   paidAt: Date.now(),
+      //   isDelivered: false
 
-      }
+      // }
 
-      const order = await Order.create(order_details)
+      // const order = await Order.create(order_details)
 
         const session = await stripe.checkout.sessions.create({
 
-            payment_method_types: ['card'],
+        payment_method_types: ['card'],
 
           //   shipping_address_collection: { allowed_countries: ['US', 'CA'] },
           //   shipping_options: [
@@ -93,21 +90,37 @@ exports.stripeCheckout = async (req, res) => {
           
           line_items,
           mode: 'payment',
-          customer_email: "olawumi.olusegun@gmail.com",
-          metadata: { 
-            orderId: order._id.toString(),
-            action: "shop"
-           },
+          customer_email: email,
+          // metadata: { 
+          //   orderId: order._id.toString(),
+          //   action: "shop"
+          //  },
+
+           metadata: {
+            // "orderId": order._id.toString(),
+            "product": JSON.stringify(orderItems),
+            "shippingAddress": JSON.stringify(shippingAddress),
+            "taxPrice": taxPrice,
+            "shippingPrice": shippingPrice,
+            "itemsPrice": itemsPrice,
+            "totalPrice": totalPrice,
+            userId,
+            action: "shop",
+            integration_check: 'accept_a_payment',
+            payment_date: new Date(Date.now()),
+        },
+
+
           success_url: `${process.env.CLIENT_URL}/?success=true`,
           cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
           
         });
       
-         res.send({ url: session.url }); 
+         return res.send({ url: session.url }); 
 
 
     } catch (error) {
-   
+        console.log(error)
         return res.status(500).json({ error: error })
     }
   }
@@ -219,11 +232,12 @@ exports.hooks = async (req, res) => {
       
   }
 
+
+
   switch(event?.data?.object?.metadata?.action) {
 
     case 'shop':
-
-    if(event?.type === 'checkout.session.completed') {
+      if(event?.type === 'checkout.session.completed') {
 
         const {
           product,
@@ -239,11 +253,11 @@ exports.hooks = async (req, res) => {
 
       const paymentStatus = event?.data?.object?.payment_status;
   
-      if(event.data.object.metadata.orderId && paymentStatus === 'paid') {
+      if(event?.data?.object?.metadata && paymentStatus === 'paid') {
   
         const paymentIntentId = event?.data?.object?.payment_intent;
     
-        const orderId = event.data.object.metadata.orderId
+        const orderId = event?.data?.object?.metadata?.orderId
         const newOrderItems = JSON.parse(product)
         const newAddress = JSON.parse(shippingAddress);
 
@@ -287,7 +301,7 @@ exports.hooks = async (req, res) => {
 
     case 'membership':
 
-      if(event?.type === 'checkout.session.completed') {
+      if(event?.type === 'payment_intent.succeeded') {
 
         const { userId, price, membershipType, mode, membershipId, receipt_email  } = event.data.object.metadata;
         

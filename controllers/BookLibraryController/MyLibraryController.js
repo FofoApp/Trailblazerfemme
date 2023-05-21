@@ -147,8 +147,6 @@ exports.fetchAllBooksInLibrary = async (req, res, next) => {
         top_author_page = Number(top_author_page);
     }
 
-    console.log({category_page, book_page, trending_page, top_author_page})
-
 
     try {
         
@@ -158,8 +156,7 @@ exports.fetchAllBooksInLibrary = async (req, res, next) => {
                 page: category_page,
                 limit: 10,
                 select: '-createdAt -updatedAt -__v'
-            }
-            )
+            } );
 
             const  transformLibraryData = (array_data) => {
                 const result = array_data?.docs.map((data) => {
