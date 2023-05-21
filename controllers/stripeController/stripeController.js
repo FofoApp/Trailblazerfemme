@@ -111,11 +111,11 @@ exports.stripeCheckout = async (req, res) => {
         },
 
 
-          // success_url: `${process.env.CLIENT_URL}/?success=true`,
-          // cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
+          success_url: `${process.env.CLIENT_URL}/?success=true`,
+          cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
 
-          success_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?success=true`,
-          cancel_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?canceled=true`,
+          // success_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app//?success=true`,
+          // cancel_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app//?canceled=true`,
           
         });
       
