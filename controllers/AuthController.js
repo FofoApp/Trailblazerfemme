@@ -63,6 +63,7 @@ exports.register = async (req, res, next) => {
 
         const userExist = await User.findOne({ email: result?.email });
 
+        // If user already exists but user account is not yet verified
         if(userExist?.email === result?.email && !userExist?.accountVerified) {
 
             const otpCode = generateFourDigitsOTP();
@@ -139,7 +140,9 @@ exports.register = async (req, res, next) => {
             return res.status(200).json(userdata);
         }
        
-        const user = new User({...result,  nextPaymentDate });
+
+        // New User
+        const user = new User({ ...result,  nextPaymentDate });
 
         // const follow = await FollowersAndFollowingModel.create({userId: user._id});
         
@@ -147,46 +150,27 @@ exports.register = async (req, res, next) => {
 
         const otpCode = generateFourDigitsOTP();
 
-        // const otp = sendSMS(otpCode);
-        // const sentSms  = sendGridMail(user.email, otpCode);
+        const otpExist = await Otpmodel.findById(savedUser?.id);
 
-        // let smsError;
-        // let smsRes;
+        if(otpExist) {
+            await Otpmodel.findByIdAndDelete(savedUser?.id);
+        }
 
-        //     var options = {
-        //         'method': 'POST',
-        //         'url': `${process.env.SENDCHAMP_BASE_URL}`,
-        //         'headers': {
-        //           'Accept': 'application/json',
-        //           'Authorization': `Bearer ${process.env.SENDCHAMP_PUBLIC_KEY}`,
-        //           'Content-Type': 'application/json'
-        //         },
-        //         body: JSON.stringify({
-        //             "to":[`${savedUser.phonenumber}`],
-        //             "message": `Your otp code is ${otpCode}`,
-        //             "sender_name":"Sendchamp",
-        //             "route":"international"
-        //         })
-              
-        //       }
-
-        const saveOTP = await Otpmodel.create({ otp: otpCode, userId: savedUser.id, phonenumber: savedUser.phonenumber});
+        const saveOTP = await Otpmodel.create({ otp: otpCode, userId: savedUser?.id, phonenumber: savedUser?.phonenumber});
 
         if(!saveOTP) {
             return res.status(400).json({ message: "Unable to send otp code"})
         }
 
-        const {id, email, roles, username, field, profileImagePath } = savedUser;
+        const { id, email, roles, username, field, profileImagePath } = savedUser;
 
         const userObject = {  id, email, roles, username, field, profileImagePath };
 
-      
-          
         const accessToken = await signInAccessToken(userObject);
 
         const refreshToken = await signInRefreshToken(userObject);
 
-        let refreshAccessToken = await RefreshAccessToken.findOne({ userId: savedUser.id });
+        let refreshAccessToken = await RefreshAccessToken.findOne({ userId: savedUser?.id });
         
         if(refreshAccessToken) {
             await refreshAccessToken.remove();
@@ -207,16 +191,16 @@ exports.register = async (req, res, next) => {
 
        
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         if(error.isJoi === true) {
             //unprocessible entry errors: server can't understand or process the entries
-            return res.status(422).json({ error: "validation error"})
+            return res.status(422).json({ status: "failed",  error: "validation error"})
         }
         // NODEMAILER ERROR MESSAGE
         if(error?.code === "EAUTH") {
-            return res.status(500).json({ error: "Unable to send email"})
+            return res.status(500).json({ status: "failed",  error: "Unable to send email"})
         }
-        return res.status(500).json({ error: error?.message })
+        return res.status(500).json({ status: "failed",  error: error?.message })
     }
     
 }

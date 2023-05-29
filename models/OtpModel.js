@@ -4,10 +4,10 @@ const mongoose = require('mongoose');
 const otpSchema = new mongoose.Schema({
     userId: { type: String, required: true },
     phonenumber: {type: String, required: true },
-    otp: { type: Number, required: true },
+    otp: { type: String, required: true },
     createdDate: { type: Date, default: Date.now, index: { expires: 300 }}
-//GET DELETED AFTER FIVE MINUTES
-}, 
+    //GET DELETED AFTER FIVE MINUTES
+},
 
 
 { timestamps: true });
