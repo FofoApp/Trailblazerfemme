@@ -192,6 +192,7 @@ exports.verifyAccessToken =  async (req, res, next) => {
 
     const user_data = {
         id: user?.id,
+        email: user?.email,
         fullname: user?.fullname,
         role: user?.roles[0],
         iat: payload?.iat,

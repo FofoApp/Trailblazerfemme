@@ -240,6 +240,7 @@ exports.listProducts = async (req, res, next) => {
         const products2 = await ProductModel.paginate(search, {
             page, 
             limit,
+            select: '-top_sellers',
             populate: {
                 path: 'reviews',
                 model: "ProductReview",
@@ -260,9 +261,9 @@ exports.listProducts = async (req, res, next) => {
         // TOP SELLERS
 
         const top_sellers = await ProductModel.paginate(search, {
-            page,
+            page, 
             limit,
-            select: 'id top_sellers product_images product_variation ',
+            select: '-top_sellers',
             sort: { createdAt: -1 },
         })
 

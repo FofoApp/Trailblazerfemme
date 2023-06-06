@@ -84,8 +84,8 @@ exports.stripeCheckout = async (req, res) => {
         },
 
 
-          // success_url: `${process.env.CLIENT_URL}/?success=true`,
-          // cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
+          success_url: `${process.env.CLIENT_URL}/?success=true`,
+          cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
 
           // success_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?success=true`,
           // cancel_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?canceled=true`,
@@ -104,10 +104,10 @@ exports.stripeCheckout = async (req, res) => {
 
   exports.membershipPayment = async (req, res) => {
 
-    const { membership_data } = req.body
-
-    const userId = req?.user?.id.toString()
-    const membershipId = membership_data?.memId
+    const { membership: subMembership } = req.body
+    const userId = req?.user?.id;
+    console.log(subMembership)
+    const membershipId = subMembership?.membershipId;
 
     try {
 
@@ -125,11 +125,13 @@ exports.stripeCheckout = async (req, res) => {
 
         let membership = await Membership.findById(membershipId);
         
-        if(!membership) return res.status(404).send({ error: "Invalid membership"});
+        if(!membership) {
+          return res.status(404).send({ error: "Invalid membership"});
+        }
 
         const subscriber = await MembershipSubscriber.findOne({ userId: userId, isActive: true });
 
-        const isIncludesFreeMembership = subscriber?.membershipType.split(",").includes('Free')
+        const isIncludesFreeMembership = subscriber?.membershipType.split(",").includes('Free');
 
         const isBefore = moment().isBefore(subscriber?.subscription_end_date);
            
@@ -145,22 +147,22 @@ exports.stripeCheckout = async (req, res) => {
               price_data: { 
                 currency: "usd",
                 product_data: {
-                  name: membership_data.name,
-                  description: membership_data.desc,
+                  name: membership?.name,
+                  description: membership?.description,
                 },
-                unit_amount: membership_data.price * 100,
+                unit_amount: Number(membership?.amount) * 100,
               },
-              quantity: 1, 
+              quantity: 1,
             }, 
-          ], 
+          ],
           mode: "payment",
 
           metadata: {
-            userId: req?.user?.id.toString(),
-            membershipId: membership_data?.memId.toString(),
-            membershipType: membership_data?.name,
-            mode: membership_data?.mode,
-            price: membership_data?.price,
+            userId,
+            membershipId: membership?.id,
+            membershipType: membership?.name,
+            mode: subMembership?.mode,
+            price: membership?.amount,
             action: "membership"
           },
 
@@ -169,8 +171,7 @@ exports.stripeCheckout = async (req, res) => {
 
           // success_url: `https://calm-lime-goldfish-tutu.cyclic.app/api/stripe/payment_success/?success=true`,
           // cancel_url: `https://calm-lime-goldfish-tutu.cyclic.app/api/stripe/payment_canceled/?canceled=true`,
-          
-          
+        
           success_url: `http://localhost:2000/api/stripe/payment_success/?success=true`,
           cancel_url: `http://localhost:2000/api/stripe/payment_canceled/?canceled=true`,
 
@@ -179,7 +180,7 @@ exports.stripeCheckout = async (req, res) => {
     res.send({ url: session.url })
       
     } catch (error) {
-
+      console.log(error)
       return res.status(500).json({ error: error?.message })
 
     }
@@ -191,11 +192,9 @@ exports.hooks = async (req, res) => {
 
   const signinSecret = process.env.STRIPE_WEBHOOK_ENDPOINT
   const payload = req.body;
-  const sig = req.headers['stripe-signature']
+  const sig = req.headers['stripe-signature'];
 
   var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-
-  // console.log(fullUrl)
 
   let event;
 
@@ -207,8 +206,8 @@ exports.hooks = async (req, res) => {
       return res.status(400).json({ status: "failed", success: false })
       
   }
-
-
+  console.log({ metadata: event?.data?.object?.metadata})
+  console.log({ event })
 
   switch(event?.data?.object?.metadata?.action) {
 
@@ -264,6 +263,8 @@ exports.hooks = async (req, res) => {
         }
   
         const order = await Order.create(order_details);
+        
+        console.log({order})
 
       }
 
@@ -277,16 +278,19 @@ exports.hooks = async (req, res) => {
 
     case 'membership':
 
-      if(event?.type === 'payment_intent.succeeded') {
+      if(event?.type === 'checkout.session.completed') {
 
-        const { userId, price, membershipType, mode, membershipId, receipt_email  } = event.data.object.metadata;
-        
+        const { userId, price, membershipType, mode, membershipId, receipt_email  } = event?.data?.object?.metadata;
+        console.log({ metadata: event?.data?.object?.metadata})
+        console.log({ event })
+        // 
         const paymentStatus = event?.data?.object?.payment_status;
     
-        if(event?.data?.object?.metadata?.membershipId && paymentStatus === 'paid') {
+        if(membershipId && paymentStatus === 'paid') {
     
           const paymentIntentId = event?.data?.object?.payment_intent;
           //yearly or monthly
+
           const annually = mode === 'yearly' ? 'years' : "months";
           // const monthly = 'months';
 
@@ -298,8 +302,8 @@ exports.hooks = async (req, res) => {
     
          let  membership_data =   {
                   mode,
-                  membershipType: membershipType,
-                  membershipId: membershipId,
+                  membershipType,
+                  membershipId,
                   // subscriptionId is the membership mongoose ID
                   subscriptionId: paymentIntentId,
                   userId,
@@ -317,11 +321,13 @@ exports.hooks = async (req, res) => {
           const create_new_subscriber = new MembershipSubscriber(membership_data);
           const save_new_subscriber = await create_new_subscriber.save();
 
+          console.log({create_new_subscriber})
+
           const updateUser = await User.findByIdAndUpdate(userId,
             {
               "$set": {
                   "subscriptionId": save_new_subscriber?.id,
-                  "isPaid": save_new_subscriber?.isPaid,
+                  "paid": save_new_subscriber?.isPaid,
                   "mode": save_new_subscriber?.mode,
                   "isActive": save_new_subscriber?.isActive,
                   "isMembershipActive": save_new_subscriber?.isActive,
@@ -337,6 +343,8 @@ exports.hooks = async (req, res) => {
               "$addToSet": {  "membershipSubscriberId": save_new_subscriber?.id,  }
           },
           { new: true  });
+
+          console.log({updateUser})
           // { "new": true, "upsert": true },
 
           // console.log({ updateUser })

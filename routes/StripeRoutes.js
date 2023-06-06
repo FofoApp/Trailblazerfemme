@@ -29,9 +29,9 @@ router.route('/webhook').post(express.raw({type:"application/json"}), hooks);
 // router.route('/membership-checkout')
 //       .post(verifyAccessToken, permissions(["user","admin"]), membershipPayment);
 
+
 router.route('/order-checkout')
       .post(verifyAccessToken, permissions(["user","admin"]), productPayment);
-
 
 router.route('/membership-checkout')
       .post(verifyAccessToken, permissions(["user","admin"]), membershipSubscription);

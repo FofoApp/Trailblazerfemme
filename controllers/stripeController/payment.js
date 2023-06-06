@@ -104,7 +104,7 @@ exports.pay = async (req, res, next) => {
 
 exports.stripePayment = async (req, res) => {
 
-    const { totalAmount, email } = req.body; 
+    const { totalAmount, email } = req.body;
     const loggedInUser = req?.user?.id;
 
     let paymentIntent;
@@ -143,7 +143,12 @@ exports.membershipSubscription = async (req, res, next) => {
     try {
 
         if(!membership?.amount) {
-            return res.status(400).json({ error: "Provide service price" });
+            return res.status(400).json({ error: "Membership price required" });
+        }
+
+        // action: "membership",
+        if(!membership?.action === "membership") {
+            return res.status(400).json({ error: "Invalid action type" });
         }
 
         const customer = await stripe.customers.create();
@@ -156,13 +161,19 @@ exports.membershipSubscription = async (req, res, next) => {
             );
 
             const membership_data =  {
-                ...membership,
+                amount: membership?.amount,
+                membershipType: "Gold", 
+                membershipId: membership?.membershipId, 
+                mode: membership?.mode,
+                
                 userId,
                 receipt_email: email,
                 action: "membership",
                 integration_check: 'accept_a_payment',
                 payment_date: new Date(Date.now()),                           
             }
+
+            console.log(membership_data)
     
             let paymentIntent = await stripe.paymentIntents.create({
             customer: customer?.id,
@@ -186,8 +197,6 @@ exports.membershipSubscription = async (req, res, next) => {
             })
 
         }
-
-
 
     } catch(error) {
         return res.status(500).json({ error: error?.message })
