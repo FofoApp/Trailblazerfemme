@@ -61,6 +61,7 @@ jobSchema.options.toJSON = {
 };
 
 jobSchema.plugin(mongoosePaginate);
+
 const Job = mongoose.model('Job', jobSchema);
 
 module.exports = Job;

@@ -254,8 +254,8 @@ exports.hooks = async (req, res) => {
 
           taxPrice,
           shippingPrice,
-          itemsPrice,
-          totalPrice,
+          itemsPrice: Number(itemsPrice) || 0,
+          totalPrice: Number(totalPrice),
           payment_date,
           isPaid: true,
           paidAt: new Date(Date.now()),

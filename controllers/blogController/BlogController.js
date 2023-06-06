@@ -960,7 +960,7 @@ exports.searchBlogByTitleOrAuthorName = async (req, res) => {
     // POST REQUEST: http://localhost:2000/api/blog/search
     // { "keyword": "Blog title" }
 
-    let { name, authorName } = req.body;
+    let { name: keyword } = req.body;
     const currentUser = req.user.id;
 
 
@@ -968,8 +968,8 @@ exports.searchBlogByTitleOrAuthorName = async (req, res) => {
 
         const searched = await BlogModel.paginate({
             $or: [
-                { name: {  $regex: '.*' + name + '.*',  $options: 'i'  } },
-                { authorName: { $regex: '.*' + authorName + '.*',  $options: 'i' } },
+                { name: {  $regex: '.*' + keyword + '.*',  $options: 'i'  } },
+                { authorName: { $regex: '.*' + keyword + '.*',  $options: 'i' } },
                 // { topic: { $regex: '.*' + keyword + '.*',  $options: 'i' } },
             ],
             },

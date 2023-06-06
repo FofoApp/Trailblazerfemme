@@ -411,7 +411,7 @@ exports.searchBooksByAuthorId = async (req, res) => {
 exports.searchBookInLibrary = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/library/search
-    let { name, author } = req.body;
+    let { name: { keyword }, author } = req.body;
     const currentUser = req.user.id;
 
 
@@ -424,7 +424,7 @@ exports.searchBookInLibrary = async (req, res, next) => {
 
 		let page= (req.query.page) ? parseInt(req.query.page) : 1;
 		let perPage = (req.query.perPage) ? parseInt(req.query.perPage) : 10;
-		let skip = (page-1)*perPage;
+		let skip = (page-1) * perPage;
 
         const recentSearch = await UserModel.findOne({ _id: currentUser }).populate({
             path: "recentlySearchedBook",
@@ -460,15 +460,14 @@ exports.searchBookInLibrary = async (req, res, next) => {
 
     const findSearchKeyword = await BookModel.paginate({
          $or: [
-            { name: {  $regex: '.*' + name + '.*',  $options: 'i'  } },
-            { "author.fullname": {  $regex: '.*' + author + '.*',  $options: 'i' } }
-           
+            { name: {  $regex: '.*' + keyword + '.*',  $options: 'i'  } },
+            { "author.fullname": {  $regex: '.*' + keyword + '.*',  $options: 'i' } }
         ],
-            },
+        },
 
-            {
-                select: "id name bookImage description author price ratings store createdAt ",
-            }
+        {
+            select: "id name bookImage description author price ratings store createdAt ",
+        }
     )
 
       

@@ -18,7 +18,7 @@
     "api": "^4.5.1",
     "axios": "^0.27.2",
     "bcrypt": "^5.0.0",
-    "cloudinary": "^1.29.1",
+    "cloudinary": "^1.37.0",
     "cors": "^2.8.5",
     "dompurify": "^2.3.5",
     "dotenv": "^15.0.0",

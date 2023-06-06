@@ -198,15 +198,20 @@ exports.membershipSubscription = async (req, res, next) => {
 exports.productPayment = async (req, res, next) => {
 
     const { product } = req.body;
+    
     const userId = req?.user?.id;
 
     try {
 
-        if(!product?.totalPrice) {
-            return res.status(400).json({ error: "Please provide total sum for products in cart" })
+        if(product?.orderItems?.length === 0) {
+            return res.status(400).json({ status: "failed", error: "Order item(s) cannot be empty" })
         }
 
         const customer = await stripe.customers.create();
+
+        let totalPrice = product?.orderItems.reduce((acc, curr) => {
+            return acc + (curr.price * curr.qty);
+        }, 0);
 
         if(customer) {
 
@@ -214,22 +219,23 @@ exports.productPayment = async (req, res, next) => {
               { customer: customer?.id },
               { apiVersion: '2022-11-15' }
             );
-    
+
+            // 
             let paymentIntent = await stripe.paymentIntents.create({
             customer: customer?.id,
-            amount: Number(product?.totalPrice) * 100,
+            amount: Number(totalPrice) * 100,
             currency: 'usd',
             receipt_email: product?.receipt_email,
             
             automatic_payment_methods: { enabled: true, },
 
-            metadata: { 
+            metadata: {
                 "product": JSON.stringify(product?.orderItems),
                 "shippingAddress": JSON.stringify(product?.shippingAddress),
                 "taxPrice": product?.taxPrice,
                 "shippingPrice": product?.shippingPrice,
                 "itemsPrice": product?.itemsPrice,
-                "totalPrice": product?.totalPrice,
+                "totalPrice": Number(totalPrice),
                 userId,
                 action: "shop",
                 integration_check: 'accept_a_payment',

@@ -260,7 +260,7 @@ exports.listProducts = async (req, res, next) => {
         // TOP SELLERS
 
         const top_sellers = await ProductModel.paginate(search, {
-            page, 
+            page,
             limit,
             select: 'id top_sellers product_images product_variation ',
             sort: { createdAt: -1 },

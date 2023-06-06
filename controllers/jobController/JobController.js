@@ -428,6 +428,48 @@ exports.listJobs = async (req, res, next) => {
     }
 }
 
+exports.searchJob = async (req, res, next) => {
+
+    const DEFAULT_PAGE = 1;
+    const DEFAULT_SIZE = 5;
+
+    let { page = DEFAULT_PAGE, size = DEFAULT_SIZE } = req.query;
+
+    page = Number(page);
+    size = Number(size);
+
+    const limit = size;
+    const skip = (page - 1) * size;
+
+    const { name } = req.body;
+
+    try {
+
+        const searchedJobn = await JobModel.paginate({
+            $or: [
+               { name:
+                {
+                    $regex: '.*' + name + '.*',  $options: 'i'  
+                }
+            },
+           ],
+           },
+           {
+               page,
+               limit,
+               skip,
+               select: "id name company_name location description link authorName authorImages jobImages position qualification",
+               sort: { createdAt: -1 }
+            }
+       );
+
+       return res.status(200).json({ jobs: searchedJobn })
+        
+    } catch (error) {
+        return res.status(500).json({ status: "failed", error: error?.message, message: error?.message })
+    }
+}
+
 exports.findJobById  = async (req, res, next) => {
 
     //GET REQUEST
