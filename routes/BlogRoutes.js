@@ -16,6 +16,7 @@
     const blogImageFields = [{name: 'blogImages', maxCount: 2 }, {name: 'authorImages', maxCount: 1},]
     router.post('/create', verifyAccessToken, permissions(["admin"]), upload.fields(blogImageFields),  BlogController.createNewBlog);
     router.get('/lists', verifyAccessToken, BlogController.FetchBlogs);
+    router.post('/search', verifyAccessToken, BlogController.searchBlogByTitleOrAuthorName);
     router.get('/:blogId/show', verifyAccessToken, BlogController.FetchBlogById);
     router.patch('/:blogId/update', verifyAccessToken, permissions(["admin"]),  upload.single('blogImage'), BlogController.updateBlogById);
     

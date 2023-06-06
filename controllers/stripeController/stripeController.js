@@ -25,47 +25,26 @@ exports.stripeCheckout = async (req, res) => {
     //     }
     // })
 
- 
-
- 
-    // console.log(orderItems, shippingAddress, taxPrice, shippingPrice, itemsPrice, totalPrice)
     const line_items = orderItems?.map((item) => {
 
         return {
             price_data: {
               currency: 'usd',
-              unit_amount: item.price * 100,
+              unit_amount: item?.price * 100,
               product_data: {
-                name: item.name,
-                description: item.desc,
+                name: item?.name,
+                description: item?.desc,
                 // images: [item.image],
               },
               
             },
-            quantity: item.qty,
+            quantity: item?.qty,
 
           }
     } )
 
 
     try {
-
-      // const order_details = {
-      //   user: userId,
-      //   orderItems: orderItems,
-      //   shippingAddress: shippingAddress,
-
-      //   taxPrice,
-      //   shippingPrice,
-      //   itemsPrice,
-      //   totalPrice,
-      //   isPaid: false,
-      //   paidAt: Date.now(),
-      //   isDelivered: false
-
-      // }
-
-      // const order = await Order.create(order_details)
 
         const session = await stripe.checkout.sessions.create({
 
@@ -87,17 +66,11 @@ exports.stripeCheckout = async (req, res) => {
           // phone_number_collection: { enabled: true },
           // customer: customer.id,
 
-          
           line_items,
           mode: 'payment',
           customer_email: email,
-          // metadata: { 
-          //   orderId: order._id.toString(),
-          //   action: "shop"
-          //  },
 
            metadata: {
-            // "orderId": order._id.toString(),
             "product": JSON.stringify(orderItems),
             "shippingAddress": JSON.stringify(shippingAddress),
             "taxPrice": taxPrice,
@@ -114,8 +87,8 @@ exports.stripeCheckout = async (req, res) => {
           // success_url: `${process.env.CLIENT_URL}/?success=true`,
           // cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
 
-          // success_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app//?success=true`,
-          // cancel_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app//?canceled=true`,
+          // success_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?success=true`,
+          // cancel_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?canceled=true`,
           
         });
       

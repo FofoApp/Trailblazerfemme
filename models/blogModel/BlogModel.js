@@ -61,18 +61,18 @@ blogModelSchema.options.toJSON = {
         
         if(ret.comments) {
             ret.comments.map((comment) => {
-                comment.id = comment._id;
-                delete comment._id;
+                comment.id = comment?._id;
+                delete comment?._id;
                 return comment;
             })
         }
 
-        ret.blogComments = ret.blogComments.length || 0;
-        ret.blogLikes = ret.blogLikes.length || 0;
-        ret.blogviews = ret.blogviews.length || 0;
-        ret.id = ret._id;
-        delete ret._id;
-        delete ret.__v;
+        ret.blogComments = ret.blogComments?.length || 0;
+        ret.blogLikes = ret.blogLikes?.length || 0;
+        ret.blogviews = ret.blogviews?.length || 0;
+        ret.id = ret?._id;
+        delete ret?._id;
+        delete ret?.__v;
 
         return ret;
     }

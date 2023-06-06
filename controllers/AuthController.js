@@ -34,6 +34,58 @@ const Membership = require('../models/adminModel/AdminMembershipModel');
 const MembershipSubscriber = require('../models/membershipModel/MembershipSubscribersModel');
 const { getFirstName } = require('../helpers/splitName');
 runCron();
+
+
+
+
+exports.createDefaultAdmin = async (req, res, next) => {
+
+    const adminData = {
+        fullname: "Olawumi Olusegun",
+        email: "olawumi.olusegun@gmail.com",
+        location: "U.S.A",
+        phonenumber: "+7065066382",
+        field: "Freemium",
+        roles: "admin",
+        password: "password123",
+        isActive: true,
+        paid: true,
+        amount: 0, 
+        accountVerified: true,
+        about: "Admin",
+        isAdmin: true,
+    }
+    
+    try {
+
+        const adminExist = await User.findOne({ email });
+
+        if(adminExist) {
+            return res.status(404).json({ status: 'failed', error: "This Admin already exist", message: "Admin already exist"})
+        }
+
+        // New User
+        const admin = new User(adminData);
+        
+        const savedAdmin = await admin.save();
+        
+        if(!savedAdmin) {
+            return res.status(404).json({ status: 'failed', error: "Unable to register user as admin", message: "Unable to register user as admin"})
+        }
+
+        return res.status(201).json({ status: "success", message: "Admin Created successfully" })
+    
+    } catch (error) {
+        return res.status(500).json({ status: 'failed', error: error?.message, message: error?.message })
+    }
+}
+
+
+
+
+
+
+
 exports.register = async (req, res, next) => {
 
     //POST REQUEST
@@ -477,7 +529,7 @@ exports.updateUser = async (req, res, next) => {
 
         }
 
-        // Delete password from th object that password field does not update
+        // Delete password from object so that password field does not update
         delete result?.password;
 
         //update user details
@@ -504,9 +556,12 @@ exports.uploadProfilePicture = async (req, res, next) => {
     let currentUser = req?.user?.id;
 
     try {
+        
         let user  = await User.findById(currentUser).select('-socialLinks -isPaid -password');
    
-        if(!user) throw createError.Conflict(`User with ${user?.email} does not exist`);
+        if(!user) {
+            throw createError.Conflict(`User with ${user?.email} does not exist`);
+        }
         
         // //Upload Image to cloudinary
         const { public_id, secure_url} = await cloudinary.uploader.upload(req?.file?.path);
@@ -531,7 +586,7 @@ exports.uploadProfilePicture = async (req, res, next) => {
             return res.status(400).json({status: "failed", message: 'Unable to update profile image', stage: 3 });
         }
 
-        return res.status(200).json({status: "success", message: 'Profile Image Updated successfully', stage: 3 });
+        return res.status(200).json({status: "success", message: 'Profile Image Uploaded successfully', stage: 3 });
 
     } catch (error) {
         // return res.status(401).json(error)

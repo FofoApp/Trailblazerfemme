@@ -256,17 +256,35 @@ exports.listProducts = async (req, res, next) => {
                 // name: { type: String, required: true },
             }
         })
+
+        // TOP SELLERS
+
+        const top_sellers = await ProductModel.paginate(search, {
+            page, 
+            limit,
+            select: 'id top_sellers product_images product_variation ',
+            sort: { createdAt: -1 },
+        })
+
+
+
         // const products2 = await ProductModel.paginate(search)
 
         // const products = await ProductModel.find({}).populate('category', "name _id")
 
         if(!products2 || products2?.docs?.length === 0) {
-            return res.status(200).send({ error: "No product found", products: [] });
+            return res.status(200).json({ error: "No product found", products: [] });
         }
 
-        return res.status(200).send({ success: true, categories: product_category, products: products2 });
+        return res.status(200).json({ 
+            success: true,
+            categories: product_category,
+            products: products2,
+            top_sellers
+        });
+        
     } catch (error) {
-        return res.status(500).send({ error: error.message });
+        return res.status(500).send({ error: error?.message });
     }
 }
 

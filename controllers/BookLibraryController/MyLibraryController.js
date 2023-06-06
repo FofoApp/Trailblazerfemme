@@ -411,11 +411,16 @@ exports.searchBooksByAuthorId = async (req, res) => {
 exports.searchBookInLibrary = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/library/search
-    let keyword = req.body.keyword;
+    let { name, author } = req.body;
     const currentUser = req.user.id;
 
 
     try {
+
+        // await BookModel.updateMany({}, { $rename: { name: 'name' } }, { multi: true }, function(err, blocks) {
+        //     if(err) { throw err; }
+        //     console.log('done!');
+        // });
 
 		let page= (req.query.page) ? parseInt(req.query.page) : 1;
 		let perPage = (req.query.perPage) ? parseInt(req.query.perPage) : 10;
@@ -434,66 +439,56 @@ exports.searchBookInLibrary = async (req, res, next) => {
         const search_details = recentSearch.recentlySearchedBook;
         const data  = search_details.map((item) => {
             return {
-                description: item.description,
-                id: item.id,
-                title: item.title,
-                author: item.author,
-                price: item.price,
-                ratings: item.ratings,
-                store: item.store,
-                bookImage: item.bookImage,
+                description: item?.description,
+                id: item?.id,
+                name: item?.name,
+                author: item?.author,
+                price: item?.price,
+                ratings: item?.ratings,
+                store: item?.store,
+                bookImage: item?.bookImage,
 
                 createdBy: {
-                    fullname: item.createdBy.fullname,
-                    id: item.createdBy.id,
-                    profileImage: item.createdBy.profileImage,
-                    createdAt: item.createdBy.createdAt,
+                    fullname: item?.createdBy?.fullname,
+                    id: item?.createdBy?.id,
+                    profileImage: item?.createdBy?.profileImage,
+                    createdAt: item?.createdBy?.createdAt,
                 }
 
             }
         })
 
     const findSearchKeyword = await BookModel.paginate({
-            $or: [
-                { title: {  $regex: '.*' + keyword + '.*',  $options: 'i'  } },
-                { author: { $regex: '.*' + keyword + '.*',  $options: 'i' } },
-                // { topic: { $regex: '.*' + keyword + '.*',  $options: 'i' } },
-            ],
+         $or: [
+            { name: {  $regex: '.*' + name + '.*',  $options: 'i'  } },
+            { "author.fullname": {  $regex: '.*' + author + '.*',  $options: 'i' } }
+           
+        ],
             },
 
             {
-                select: "id title bookImage description author price ratings store createdAt ",
-                populate: {
-                    path: "bookCategoryId",
-                    model:"BookCategory",
-                    select: "id title" 
-                },
-                populate: {
-                    path: "createdBy",
-                    model:"User",
-                    select: "id fullname profileImage createdAt "
-                }
-
+                select: "id name bookImage description author price ratings store createdAt ",
             }
     )
-    
+
       
-        if(!findSearchKeyword || findSearchKeyword.length <= 0) {
+        if(!findSearchKeyword || findSearchKeyword?.length <= 0) {
             return res.status(404).send({ message: "Book with the search phrase not found!"})
         }
        
-        // const updateUserSearchBook = await UserModel.findByIdAndUpdate(currentUser, { $addToSet: { recentlySearchedBook: findSearchKeyword.id } })
-        const doc = await UserModel.findById(currentUser);
-        doc.recentlySearchedBook.addToSet(findSearchKeyword.docs[0]._id);
-        await doc.save();
+        
+        const user = await UserModel.findById(currentUser);
+        user.recentlySearchedBook.addToSet(findSearchKeyword?.docs[0]?._id);
+        await user.save();
 
-        let total = findSearchKeyword ? findSearchKeyword.length : 0;
+        // let total = findSearchKeyword ? findSearchKeyword.length : 0;
 
-        let paginationData = { totalRecords:total, currentPage:page, perPage:perPage, totalPages:Math.ceil(total/perPage) }
+        // let paginationData = { totalRecords:total, currentPage:page, perPage:perPage, totalPages:Math.ceil(total/perPage) }
         
         return res.status(200).send({ searchedBooks:findSearchKeyword, recentSearch : data})
     } catch (error) {
-        return res.status(500).send({ message: error.message });
+        console.log(error)
+        return res.status(500).send({ message: error?.message });
     }
 }
 

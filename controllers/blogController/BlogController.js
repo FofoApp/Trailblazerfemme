@@ -597,7 +597,8 @@ exports.FetchBlogs = async (req, res, next) => {
 
         const populars = await BlogModel.paginate({},
             {
-                page: populars_page, limit: 5,
+                page: populars_page, 
+                limit: 5,
                 select: "createdAt name blogLikes blogComments description  blogImages authorImages createdBy blogviews",
                 populate: [
                     {
@@ -951,6 +952,39 @@ exports.FetchBlogById = async (req, res, next) => {
     } catch (error) {
         console.log(error)
         return res.status(500).send({ message: error?.message })
+    }
+}
+
+
+exports.searchBlogByTitleOrAuthorName = async (req, res) => {
+    // POST REQUEST: http://localhost:2000/api/blog/search
+    // { "keyword": "Blog title" }
+
+    let { name, authorName } = req.body;
+    const currentUser = req.user.id;
+
+
+    try {
+
+        const searched = await BlogModel.paginate({
+            $or: [
+                { name: {  $regex: '.*' + name + '.*',  $options: 'i'  } },
+                { authorName: { $regex: '.*' + authorName + '.*',  $options: 'i' } },
+                // { topic: { $regex: '.*' + keyword + '.*',  $options: 'i' } },
+            ],
+            },
+
+            {
+                select: "id name blogImages description authorName createdAt ",
+
+            }
+    )
+
+    return res.status(200).json({ searchedBlogs: searched })
+    
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ status: "failed", error: error?.message, message: error?.message })
     }
 }
 

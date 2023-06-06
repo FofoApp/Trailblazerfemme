@@ -20,7 +20,7 @@ const upload = require('./../helpers/multer');
 
 //ROUTES
 router.get('/', verifyAccessToken, permissions(["user", "admin"]), MyLibraryController.fetchAllBooksInLibrary);
-router.get('/search', verifyAccessToken, permissions(["user", "admin"]), MyLibraryController.searchBookInLibrary);
+router.post('/search', verifyAccessToken, permissions(["user", "admin"]), MyLibraryController.searchBookInLibrary);
 router.get('/book/:authorId/author', verifyAccessToken, permissions(["user", "admin"]), MyLibraryController.searchBooksByAuthorId);
 router.get('/book/:bookId/book', verifyAccessToken, permissions(["user", "admin"]), MyLibraryController.searchBookInLibraryById);
 router.get('/book/:bookId/read', verifyAccessToken, permissions(["user", "admin"]), MyLibraryController.userReadBook, MyLibraryController.readBook);

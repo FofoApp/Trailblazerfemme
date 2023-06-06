@@ -34,6 +34,14 @@ exports.profile = async (req, res, next) => {
                 profileImage:1, 
                 followers:1,
                 following:1,
+
+                location: 1,
+                city:1,
+                state: 1,
+                field: 1,
+                jobTitle: 1,
+                socialLinks: 1,
+
                 about:1,
                 booksRead:1,
                 membershipType: 1,
