@@ -28,16 +28,18 @@ exports.listMemberships = async (req, res, next) => {
                 membershipType: membership?.name,
                 membershipId: membership?.id,
                 description: membership?.description,
-                createdAt: membership?.createdAt,
-                membersCount: membership?.members?.length || 0,
-                members: membership?.members?.map((user) => ({ id: user?.id, fullname: user?.fullname, fullname: user?.profileImage, }))
-    
+                createdAt: membership?.createdAt,    
             }
         })
 
 
 
-        return res.status(200).json({ status: "success", memberships: data });
+        return res.status(200).json({ 
+            status: "success", 
+            memberships: data,
+            membersCount: data?.members?.length || 0,
+            members: data?.members?.map((user) => ({ id: user?.id, fullname: user?.fullname, fullname: user?.profileImage, }))
+        });
 
     } catch (error) {
         return res.status(500).json({ status: "failed", error: error?.message, message: error?.message });
