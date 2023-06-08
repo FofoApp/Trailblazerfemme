@@ -9,7 +9,6 @@ const MembershipReviewController = require('./../controllers/membershipControlle
 const { membershipPayment } = require('../controllers/stripeController/stripeController')
 
 
-
 const { registerSchema } = require('./../validations/userSchema');
 
 const { validate } = require('./../validations/validationMiddleware');

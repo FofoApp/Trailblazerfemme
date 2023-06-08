@@ -20,7 +20,6 @@ exports.listMemberships = async (req, res, next) => {
         if(!memberships) {
             return res.status(200).json({ status: "success", memberships: [] });
         }
-        console.log({ memberships })
 
         const data = memberships.map((membership) => {
             return {
@@ -121,7 +120,7 @@ exports.chooseMembershipPlan = async (req, res, next) => {
         return res.status(201).send({ save_new_subscriber, stage: 4, message: "Membership subscription successful"  });
 
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         return res.status(500).send({ error: error.message });
     }
 

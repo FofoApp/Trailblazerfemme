@@ -81,10 +81,10 @@ const userSchema = new Schema({
 
 userSchema.options.toJSON = {
     transform: function(doc, ret, options) {
-        ret.id = ret._id
-        delete ret._id
-        delete ret.__v
-        delete ret.password;
+        ret.id = ret?._id
+        delete ret?._id
+        delete ret?.__v
+        delete ret?.password;
         return ret;
      }
 };
@@ -94,11 +94,13 @@ userSchema.pre('save', async function(next) {
     let user = this;
 
     try {
-        if(!user.isModified('password')) return next();
 
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(user.password, salt);
-        user.password = hashedPassword;
+        if(this.isModified('password')) {
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(user?.password, salt);
+            user.password = hashedPassword;
+        }
+
         next();
     
     } catch (error) {
@@ -110,7 +112,7 @@ userSchema.pre('save', async function(next) {
 userSchema.methods.isValidPassword = async function(password){
     let user = this;
     try {
-        return await bcrypt.compare(password, user.password);
+        return await bcrypt.compare(password, user?.password);
     } catch (error) {
         throw error;
     }
