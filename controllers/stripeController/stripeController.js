@@ -283,7 +283,7 @@ exports.hooks = async (req, res) => {
 
         const { userId, amount, membershipType, mode, membershipId, receipt_email  } = event?.data?.object?.metadata;
         console.log({ metadata: event?.data?.object?.metadata})
-        console.log({ event })
+        console.log({ name: "Event object", event })
         // 
         const paymentStatus = event?.data?.object?.payment_status;
     
@@ -322,7 +322,7 @@ exports.hooks = async (req, res) => {
           const create_new_subscriber = new MembershipSubscriber(membership_data);
           const save_new_subscriber = await create_new_subscriber.save();
 
-          console.log({create_new_subscriber})
+          console.log({ name: "create_new_subscriber", create_new_subscriber})
 
           const updateUser = await User.findByIdAndUpdate(userId,
             {
@@ -345,7 +345,7 @@ exports.hooks = async (req, res) => {
           },
           { new: true  });
 
-          console.log({updateUser})
+          console.log({name: "updateUser collection", updateUser})
           // { "new": true, "upsert": true },
 
           // console.log({ updateUser })
@@ -368,7 +368,7 @@ exports.hooks = async (req, res) => {
 
 
   // res.status(201).send({ stage: 4, message: "Membership subscription successful" })
-  res.status(200).end()
+  res.end()
 
 }
 
