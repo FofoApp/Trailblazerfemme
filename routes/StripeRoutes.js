@@ -8,9 +8,14 @@ const {
       hooks, 
       paymentSuccess, 
       cancelPayment,
-} = require('../controllers/stripeController/stripeController')
+} = require('../controllers/stripeController/stripeController');
 
-const { stripePayment, pay, membershipSubscription, productPayment } = require('../controllers/stripeController/payment')
+const { 
+      stripePayment, 
+      pay, 
+      membershipSubscription, 
+      productPayment 
+} = require('../controllers/stripeController/payment');
 
 
 const { verifyAccessToken } = require('./../helpers/jwtHelper');

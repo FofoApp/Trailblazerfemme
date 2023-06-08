@@ -207,7 +207,7 @@ exports.hooks = async (req, res) => {
       
   }
   console.log({ metadata: event?.data?.object?.metadata})
-  console.log({ event })
+  console.log({event: "Event", event })
 
   switch(event?.data?.object?.metadata?.action) {
 

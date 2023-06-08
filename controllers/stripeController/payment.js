@@ -136,7 +136,7 @@ exports.stripePayment = async (req, res) => {
 exports.membershipSubscription = async (req, res, next) => {
 
     const { membership } = req.body;
-
+    console.log({ membership })
     const userId = req?.user?.id;
     const email = req?.user?.email;
 
@@ -144,6 +144,16 @@ exports.membershipSubscription = async (req, res, next) => {
 
         if(!membership?.amount) {
             return res.status(400).json({ error: "Membership price required" });
+        }
+
+        if(!mongoose.Types.ObjectId.isValid(membership?.membershipId)) {
+            return res.status(400).json({ error: "Invalid membership ID"});
+        }
+
+        let isExist = await Membership.findById(membership?.membershipId);
+
+        if(!isExist) {
+            return res.status(400).json({ error: "Invalid membership ID"});
         }
 
         // action: "membership",
@@ -162,9 +172,9 @@ exports.membershipSubscription = async (req, res, next) => {
 
 
             const membership_data =  {
-                amount: membership?.amount,
-                membershipType: membership?.membershipType, 
-                membershipId: membership?.membershipId, 
+                amount: isExist?.amount,
+                membershipType: isExist?.name, 
+                membershipId: isExist?.id,
                 mode: membership?.mode,
                 
                 userId,
@@ -174,7 +184,7 @@ exports.membershipSubscription = async (req, res, next) => {
                 payment_date: new Date(Date.now()),                           
             }
 
-            console.log(membership_data)
+            console.log({ membership_data })
     
             let paymentIntent = await stripe.paymentIntents.create({
             customer: customer?.id,
