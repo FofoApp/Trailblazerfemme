@@ -160,6 +160,7 @@ exports.membershipSubscription = async (req, res, next) => {
               {apiVersion: '2022-11-15'}
             );
 
+
             const membership_data =  {
                 amount: membership?.amount,
                 membershipType: "Gold", 

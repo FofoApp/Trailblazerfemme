@@ -280,7 +280,8 @@ exports.hooks = async (req, res) => {
 
       if(event?.type === 'checkout.session.completed') {
 
-        const { userId, price, membershipType, mode, membershipId, receipt_email  } = event?.data?.object?.metadata;
+
+        const { userId, amount, membershipType, mode, membershipId, receipt_email  } = event?.data?.object?.metadata;
         console.log({ metadata: event?.data?.object?.metadata})
         console.log({ event })
         // 
@@ -310,7 +311,7 @@ exports.hooks = async (req, res) => {
                   receipt_email,
                   isActive: true,
                   isPaid: true,
-                  amount: price,
+                  amount: Number(amount),
                   subscription_start_date: start_date,
                   subscription_end_date: end_date,
                   days_between_next_payment: diff,
