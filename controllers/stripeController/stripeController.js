@@ -186,26 +186,31 @@ exports.stripeCheckout = async (req, res) => {
     }
   }
 
+// exports.hooks = async (req, res) => {
 
+  const signinSecret = process.env.STRIPE_WEBHOOK_ENDPOINT;
 
 exports.hooks = async (req, res) => {
 
-  const signinSecret = process.env.STRIPE_WEBHOOK_ENDPOINT
+  var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;  
+  
   const payload = req.body;
-  const sig = req.headers['stripe-signature'];
-
-  var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
 
   let event;
 
-  try {
-
-    event = stripe.webhooks.constructEvent(payload, sig, signinSecret)
-        
-  } catch (error) {
-      return res.status(400).json({ status: "failed", success: false })
-      
+  if(signinSecret) {
+    const sig = req.headers['stripe-signature'];
+    try {
+      event = stripe.webhooks.constructEvent(payload, sig, signinSecret)
+          
+    } catch (error) {
+        // return res.status(400).json({ status: "failed", success: false })
+        console.log(` Webhook signature verification failed.`, err?.message);
+        return res.sendStatus(400);
+    }
   }
+
+
   console.log({ metadata: event?.data?.object?.metadata})
   console.log({event: "Event", event })
 
@@ -368,7 +373,7 @@ exports.hooks = async (req, res) => {
 
 
   // res.status(201).send({ stage: 4, message: "Membership subscription successful" })
-  res.end()
+  res.send()
 
 }
 

@@ -24,7 +24,7 @@ const { permissions } = require('./../middlewares/permissionsMiddleware');
 
 
 
-// router.route('/webhook').post(express.raw({type:"application/json"}), hooks);
+router.post('/api/stripe/webhook', express.raw({ type:"application/json"}), hooks);
 // router.route('/').post(hooks);
 // stripe listen --forward-to localhost:2000/api/stripe/webhook
 

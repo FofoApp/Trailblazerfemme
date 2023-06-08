@@ -62,7 +62,7 @@ app.use(cors())
 app.use(mongoSanitize());
 app.use(xss());
 // app.use('/api/stripe/webhook2', express.raw({type: "*/*"}));
-app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }), hooks);
+// app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }), hooks);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(hpp());
