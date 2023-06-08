@@ -135,10 +135,10 @@ exports.stripeCheckout = async (req, res) => {
 
         const isBefore = moment().isBefore(subscriber?.subscription_end_date);
            
-        if(subscriber?.userId.toString() === userId.toString() && !isIncludesFreeMembership && isBefore && subscriber?.isActive === true ) {
+        // if(subscriber?.userId.toString() === userId.toString() && !isIncludesFreeMembership && isBefore && subscriber?.isActive === true ) {
       
-            return res.status(400).send({ error: "You still have an active plan"});
-        }
+        //     return res.status(400).send({ error: "You still have an active plan"});
+        // }
 
           const session = await stripe.checkout.sessions.create({
           payment_method_types: ["card"],
@@ -159,10 +159,10 @@ exports.stripeCheckout = async (req, res) => {
 
           metadata: {
             userId,
-            membershipId: membership?.id,
-            membershipType: membership?.name,
+            membershipId: subMembership?.id,
+            membershipType: subMembership?.membershipType,
             mode: subMembership?.mode,
-            price: membership?.amount,
+            amount: Number(membership?.amount),
             action: "membership"
           },
 
@@ -283,7 +283,7 @@ exports.hooks = async (req, res) => {
 
         const { userId, amount, membershipType, mode, membershipId, receipt_email  } = event?.data?.object?.metadata;
         console.log({ metadata: event?.data?.object?.metadata})
-        console.log({ name: "Event object", event })
+        console.log({ name: "Event object", event: event?.data?.object?.metadata })
         // 
         const paymentStatus = event?.data?.object?.payment_status;
     

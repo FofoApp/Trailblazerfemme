@@ -29,18 +29,18 @@ const { permissions } = require('./../middlewares/permissionsMiddleware');
 // stripe listen --forward-to localhost:2000/api/stripe/webhook
 
 
-// router.route('/order-checkout')
-//       .post(verifyAccessToken, permissions(["user","admin"]), stripeCheckout);
-
-// router.route('/membership-checkout')
-//       .post(verifyAccessToken, permissions(["user","admin"]), membershipPayment);
-
-
 router.route('/order-checkout')
-      .post(verifyAccessToken, permissions(["user","admin"]), productPayment);
+      .post(verifyAccessToken, permissions(["user","admin"]), stripeCheckout);
 
 router.route('/membership-checkout')
-      .post(verifyAccessToken, permissions(["user","admin"]), membershipSubscription);
+      .post(verifyAccessToken, permissions(["user","admin"]), membershipPayment);
+
+
+// router.route('/order-checkout')
+//       .post(verifyAccessToken, permissions(["user","admin"]), productPayment);
+
+// router.route('/membership-checkout')
+//       .post(verifyAccessToken, permissions(["user","admin"]), membershipSubscription);
 
 
 router.route('/payment_success')
