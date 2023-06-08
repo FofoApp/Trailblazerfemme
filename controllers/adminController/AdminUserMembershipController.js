@@ -76,7 +76,7 @@ exports.listUserMembership = async (req, res, next) => {
         return res.status(200).send({ memberships });
 
     } catch (error) {
-        return res.status(500).send({ error: error.message });
+        return res.status(500).send({ error: error?.message });
     }
 }
 
