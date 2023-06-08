@@ -10,7 +10,7 @@ exports.listMemberships = async (req, res, next) => {
 
     try {
 
-        let memberships = await Membership.findById({})
+        let memberships = await Membership.find({})
                                                 .populate({
                                                     path: "members",
                                                     model: "User",
