@@ -203,7 +203,7 @@ exports.membershipSubscription = async (req, res, next) => {
 
             // req.body = paymentIntent;
 
-            return res.status(200).json({
+            res.status(200).json({
                 paymentIntent: paymentIntent?.client_secret,
                 customerId: customer?.id,
                 ephemeralKey: ephemeralKey?.secret,
@@ -262,7 +262,7 @@ exports.productPayment = async (req, res, next) => {
                 userId,
                 action: "shop",
                 integration_check: 'accept_a_payment',
-                payment_date: new Date(Date.now()),
+                payment_date: new Date(),
             },
 
             });
