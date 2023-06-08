@@ -163,7 +163,7 @@ exports.membershipSubscription = async (req, res, next) => {
 
             const membership_data =  {
                 amount: membership?.amount,
-                membershipType: "Gold", 
+                membershipType: membership?.membershipType, 
                 membershipId: membership?.membershipId, 
                 mode: membership?.mode,
                 
