@@ -173,9 +173,9 @@ exports.membershipSubscription = async (req, res, next) => {
 
 
             const membership_data =  {
-                amount: isExist?.amount,
-                membershipType: isExist?.name, 
-                membershipId: isExist?.id,
+                amount: membership.amount,
+                membershipType: membership?.membershipType, 
+                membershipId: membership?.membershipId,
                 mode: membership?.mode,
                 
                 userId,
@@ -198,6 +198,8 @@ exports.membershipSubscription = async (req, res, next) => {
             metadata: { ...membership_data },
 
             });
+
+            console.log({ paymentIntent })
 
             // req.body = paymentIntent;
 
