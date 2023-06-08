@@ -37,8 +37,8 @@ exports.listMemberships = async (req, res, next) => {
         return res.status(200).json({ 
             status: "success", 
             memberships: data,
-            membersCount: data?.members?.length || 0,
-            members: data?.members?.map((user) => ({ id: user?.id, fullname: user?.fullname, fullname: user?.profileImage, }))
+            membersCount: memberships?.members?.length || 0,
+            members: memberships?.members?.map((user) => ({ id: user?.id, fullname: user?.fullname, fullname: user?.profileImage, }))
         });
 
     } catch (error) {
