@@ -4,6 +4,51 @@ const MembershipSubscriber = require("../../models/membershipModel/MembershipSub
 const mongoose = require('mongoose');
 const moment = require('moment');
 
+exports.listMemberships = async (req, res, next) => {
+
+    // 
+
+    try {
+
+        let memberships = await Membership.findById({})
+                                                .populate({
+                                                    path: "members",
+                                                    model: "User",
+                                                    select: "_id fullname profileImage"
+                                                })
+
+        if(!memberships) {
+            return res.status(200).json({ status: "success", memberships: [] });
+        }
+        console.log({ memberships })
+
+        const data = memberships.map((membership) => {
+            return {
+                amount: membership?.amount,
+                membershipType: membership?.name,
+                membershipId: membership?.id,
+                description: membership?.description,
+                createdAt: membership?.createdAt,
+                members: {
+                    membersCount: 0,
+                    userInfo: {
+                        id: membership?.members?._id,
+                        fullname: membership?.members?.fullname,
+                        profileImage: membership?.members?.profileImage,
+                    }
+                }
+            }
+        })
+
+
+
+        return res.status(200).json({ status: "success", memberships: data });
+
+    } catch (error) {
+        return res.status(500).json({ status: "failed", error: error?.message, message: error?.message });
+    }
+}
+
 
 exports.chooseMembershipPlan = async (req, res, next) => {
    

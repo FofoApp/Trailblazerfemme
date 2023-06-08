@@ -25,7 +25,7 @@ const router = express.Router();
 //signup, signin, signout
 
 
-router.get('/list-memberships', verifyAccessToken, permissions(["user", "admin"]),  MembershipReviewController.listMemberships);
+router.get('/list-memberships', verifyAccessToken, permissions(["user", "admin"]),  MembershipController.listMemberships);
 router.post('/create_review', verifyAccessToken, permissions(["user", "admin"]),  MembershipReviewController.createMembershipReview, MembershipReviewController.getReviews);
 router.post('/subscribe',  verifyAccessToken, permissions(["user", "admin"]),  MembershipController.chooseMembershipPlan);
 router.post('/create', verifyAccessToken, permissions(["admin"]), AdminUserMembershipController.createUserMembership);
