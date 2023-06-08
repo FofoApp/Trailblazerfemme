@@ -3,6 +3,48 @@ const mongoose = require('mongoose');
 const MembershipReviewModel = require('./../../models/membershipModel/MembershipReviewModel')
 const MembershipModel = require('./../../models/adminModel/AdminMembershipModel')
 
+exports.listMemberships = async (req, res, next) => {
+
+    // 
+
+    try {
+
+        let memberships = await MembershipModel.findById({})
+                                                .populate({
+                                                    path: "members",
+                                                    model: "User",
+                                                    select: ""
+                                                })
+
+        if(!memberships) {
+            return res.status(200).json({ status: "success", memberships: [] });
+        }
+
+        const data = memberships.map((membership) => {
+            return {
+                amount: membership?.amount,
+                membershipType: membership?.name,
+                membershipId: membership?.id,
+                description: membership?.description,
+                createdAt: membership?.createdAt,
+                members: {
+                    membersCount: 0,
+                    userInfo: {
+                        id: membership?.members?.id,
+                        fullname: membership?.members?.fullname,
+                        profileImage: membership?.members?.profileImage,
+                    }
+                }
+            }
+        })
+
+        return res.status(200).json({ status: "success", memberships: data });
+        
+    } catch (error) {
+        return res.status(500).json({ status: "failed", error: error?.message, message: error?.message });
+    }
+}
+
 exports.createMembershipReview = async (req, res, next) => {
 
     const { MembershipId, rating, comment} = req.body;

@@ -137,6 +137,7 @@ exports.membershipSubscription = async (req, res, next) => {
 
     const { membership } = req.body;
     console.log({ membership })
+    console.log({ membershipId: membership?.membershipId })
     const userId = req?.user?.id;
     const email = req?.user?.email;
 
@@ -146,7 +147,7 @@ exports.membershipSubscription = async (req, res, next) => {
             return res.status(400).json({ error: "Membership price required" });
         }
 
-        if(!mongoose.Types.ObjectId.isValid(membership?.membershipId)) {
+        if(!mongoose.Types.ObjectId.isValid(membership?.membershipId) || membership?.membershipId == null ) {
             return res.status(400).json({ error: "Invalid membership ID"});
         }
 
