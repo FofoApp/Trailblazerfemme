@@ -136,8 +136,8 @@ exports.stripePayment = async (req, res) => {
 exports.membershipSubscription = async (req, res, next) => {
 
     const { membership } = req.body;
-    console.log({ membership })
-    console.log({ membershipId: membership?.membershipId })
+    console.log({ membership });
+    console.log({ membershipId: membership?.membershipId });
     const userId = req?.user?.id;
     const email = req?.user?.email;
 
@@ -147,19 +147,19 @@ exports.membershipSubscription = async (req, res, next) => {
             return res.status(400).json({ error: "Membership price required" });
         }
 
-        if(!mongoose.Types.ObjectId.isValid(membership?.membershipId) || membership?.membershipId == null ) {
-            return res.status(400).json({ error: "Invalid membership ID"});
+        if(!mongoose.Types.ObjectId.isValid(membership?.membershipId) || !membership?.membershipId ) {
+            return res.status(400).json({ status: "failed", error: "Invalid membership ID"});
         }
 
         let isExist = await Membership.findById(membership?.membershipId);
 
         if(!isExist) {
-            return res.status(400).json({ error: "Invalid membership ID"});
+            return res.status(400).json({ status: "failed", error: "Invalid membership ID"});
         }
 
-        // action: "membership",
+        // action: "membership"
         if(!membership?.action === "membership") {
-            return res.status(400).json({ error: "Invalid action type" });
+            return res.status(400).json({ status: "failed", error: "Invalid action type" });
         }
 
         const customer = await stripe.customers.create();
@@ -205,7 +205,7 @@ exports.membershipSubscription = async (req, res, next) => {
                 paymentIntent: paymentIntent?.client_secret,
                 customerId: customer?.id,
                 ephemeralKey: ephemeralKey?.secret,
-                mode: "membership subscription",
+                mode: `${membership?.mode} subscription`,
             })
 
         }

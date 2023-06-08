@@ -6,7 +6,7 @@ const membershipSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
     amount: { type: Number, required: true },
     accessType: { type: String, required: true},
-    benefits: { type: String, default: "", trim: true },
+    benefits: [{type: String, trim: true, default: [] } ],
     description: { type: String, required: true },
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     reviewsIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "MembershipReview" }],
