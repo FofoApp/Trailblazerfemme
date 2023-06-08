@@ -13,12 +13,13 @@ exports.listMemberships = async (req, res, next) => {
                                                 .populate({
                                                     path: "members",
                                                     model: "User",
-                                                    select: ""
+                                                    select: "_id fullname profileImage"
                                                 })
 
         if(!memberships) {
             return res.status(200).json({ status: "success", memberships: [] });
         }
+        console.log({ memberships })
 
         const data = memberships.map((membership) => {
             return {
@@ -30,7 +31,7 @@ exports.listMemberships = async (req, res, next) => {
                 members: {
                     membersCount: 0,
                     userInfo: {
-                        id: membership?.members?.id,
+                        id: membership?.members?._id,
                         fullname: membership?.members?.fullname,
                         profileImage: membership?.members?.profileImage,
                     }
@@ -38,8 +39,10 @@ exports.listMemberships = async (req, res, next) => {
             }
         })
 
+
+
         return res.status(200).json({ status: "success", memberships: data });
-        
+
     } catch (error) {
         return res.status(500).json({ status: "failed", error: error?.message, message: error?.message });
     }
