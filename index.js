@@ -9,7 +9,7 @@ const morgan = require('morgan');
 const cors = require('cors');
 // const limitter = require('express-rate-limiter');
 const createError = require('http-errors');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const Stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // const otpGenerate = require('otp-generator');
 // const sdk = require('api')(process.env.SEND_CHAMP_SDK);
