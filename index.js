@@ -110,6 +110,36 @@ app.use(hpp());
 
 
 app.get('/', (req, res) => {
+
+      // CALCULATE NEXT PAYMENT
+
+      /**
+       *  const { isAfter, isFuture, addMinutes,addHours,addDays,addMonths,addYears,format} = require('date-fns');
+       *  
+       *  const currentDate = new Date(Date.now());
+       *  const nextPayment = addYears(currentDate, 1);
+       * 
+       *  const dateIsAfter = isAfter(currentDate, nextPayment)
+       *  const dateIsFuture = isFuture(nextPayment)
+       * 
+       *  const daysBetween  = differenceInDays(nextPayment, currentDate)
+       *  
+       *  if(dateIsAfter) {
+       *    console.log("Date is after");
+       *  }
+       * 
+       *  
+       * 
+       *  
+       * 
+       * 
+       */
+
+      
+
+      
+
+
       return res.status(200).json({ message: 'WELCOME TO FOFO APP...' })
 })
 
