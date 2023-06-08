@@ -120,7 +120,7 @@ exports.register = async (req, res, next) => {
 
             const otpCode = generateFourDigitsOTP();
 
-            const otpExist = await Otpmodel.deleteOne({ userId: userExist?._id });
+            const otpExist = await Otpmodel.deleteMany({ userId: userExist?.id });
     
             const newOtp = await Otpmodel.create({ userId: userExist?.id, phonenumber: userExist?.phonenumber, otp: otpCode });
 
@@ -208,6 +208,9 @@ exports.register = async (req, res, next) => {
             await Otpmodel.findByIdAndDelete(savedUser?.id);
         }
 
+        // This may not be neccessary for new user
+        await Otpmodel.deleteMany({  userId: savedUser?.id });
+
         const saveOTP = await Otpmodel.create({ otp: otpCode, userId: savedUser?.id, phonenumber: savedUser?.phonenumber});
 
         if(!saveOTP) {
@@ -231,7 +234,7 @@ exports.register = async (req, res, next) => {
         refreshAccessToken = new RefreshAccessToken({ userId: savedUser?.id,  accessToken, refreshToken });
         
         const firstname = getFirstName(savedUser?.fullname)
-        const sentMail  = await sendMail(email, otpCode, firstname);
+        const sentMail  = await sendMail(email, saveOTP?.otp, firstname);
 
         if(!sentMail) {
             return res.status(400).json({ status: "failed", message: "Unable to send mail"})
@@ -239,7 +242,7 @@ exports.register = async (req, res, next) => {
 
         await refreshAccessToken.save();
 
-        return res.status(200).send({accessToken, refreshToken, userId: savedUser?.id, stage: 1, otp: otpCode,  message: "Otp has been sent to your phone"});
+        return res.status(200).send({accessToken, refreshToken, userId: savedUser?.id, stage: 1, otp: saveOTP?.otp,  message: "Otp has been sent to your phone"});
 
        
     } catch (error) {
