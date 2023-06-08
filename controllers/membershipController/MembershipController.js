@@ -14,7 +14,7 @@ exports.listMemberships = async (req, res, next) => {
                                                 .populate({
                                                     path: "members",
                                                     model: "User",
-                                                    select: "_id fullname profileImage"
+                                                    select: "id fullname profileImage"
                                                 })
 
         if(!memberships) {
@@ -29,14 +29,9 @@ exports.listMemberships = async (req, res, next) => {
                 membershipId: membership?.id,
                 description: membership?.description,
                 createdAt: membership?.createdAt,
-                members: {
-                    membersCount: 0,
-                    userInfo: {
-                        id: membership?.members?._id,
-                        fullname: membership?.members?.fullname,
-                        profileImage: membership?.members?.profileImage,
-                    }
-                }
+                membersCount: membership?.members?.length || 0,
+                members: membership?.members?.map((user) => ({ id: user?.id, fullname: user?.fullname, fullname: user?.profileImage, }))
+    
             }
         })
 
