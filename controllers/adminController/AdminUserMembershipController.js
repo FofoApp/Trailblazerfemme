@@ -5,7 +5,7 @@ const Membership = require('./../../models/adminModel/AdminMembershipModel');
 
 exports.createUserMembership = async (req, res, next) => {
     
-    let { name, amount, benefits, description, accessType } = req.body;
+    let { name, amount, benefits, perks, description, accessType } = req.body;
 
     // const accType = accessType.split(",");
 
@@ -24,39 +24,43 @@ exports.createUserMembership = async (req, res, next) => {
 
 
     try {
+
         const checkIfMembershipExist = await Membership.findOne({ name });
 
         if(checkIfMembershipExist){
-            return res.status(401).send({ error: "Membership name already exsit" });
+            return res.status(401).json({ status: "failed", error: "Membership name already exsit" });
         }
 
-        const createMembership = new Membership({ name, amount, benefits, description, accessType: accessType  });
+        const createMembership = new Membership({ name, amount, benefits, perks, description, accessType: accessType  });
 
         const saveMembership = await createMembership.save();
 
-        if(!saveMembership)  return res.status(403).send({ error: "Membership not created" });
+        if(!saveMembership)  return res.status(403).send({ status: "failed", error: "Membership not created" });
 
         const member_data = { 
             id: saveMembership.id, 
             name: saveMembership.name, 
             accessType: saveMembership.accessType,
             benefits: saveMembership.benefits,
+            perks: saveMembership.perks,
             description: saveMembership.description,
             amount: saveMembership.amount,
             createdAt: saveMembership.createdAt
         }
 
-        return res.status(200).send({ membership: member_data });
+        return res.status(200).json({ status: "failed", membership: member_data });
 
     } catch (error) {
-        return res.status(500).send({ error: error.message });
+        return res.status(500).send({ status: "failed", error: error?.message });
     }
 }
 
 exports.listUserMembership = async (req, res, next) => {
+
     //GET REQUEST 
     //http://localhost:2000/api/membership/lists
     //http://localhost:2000/api/membership/lists
+
     try {
         const memberships = await Membership.paginate({}, {
             page: 1,
