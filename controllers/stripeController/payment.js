@@ -7,7 +7,7 @@ const MembershipSubscriber = require('../../models/membershipModel/MembershipSub
 const Order = require('../../models/productModel/orderModel');
 const User = require('../../models/UserModel');
 
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+const Stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
 
 
@@ -21,22 +21,22 @@ exports.pay = async (req, res, next) => {
             return res.status(400).json({ error: "Provide service price" })
         }
 
-        // const customer = await stripe.customers.create({
+        // const customer = Stripe.customers.create({
         //     email: "olawumi.olusegun@gmail.com",
         //     name: "olawumi Olusegun"
         // });
 
-        const customer = await stripe.customers.create();
+        const customer = Stripe.customers.create();
 
         if(customer) {
 
-            const ephemeralKey = await stripe.ephemeralKeys.create(
+            const ephemeralKey = Stripe.ephemeralKeys.create(
               {customer: customer?.id},
               {apiVersion: '2022-11-15'}
             );
 
     
-            // let paymentMethod = await stripe.paymentMethods.create({
+            // let paymentMethod = Stripe.paymentMethods.create({
             //     type: 'card',
             //     card: {
             //     number: '4242424242424242',
@@ -46,7 +46,7 @@ exports.pay = async (req, res, next) => {
             //     },
             //     });
     
-                let paymentIntent = await stripe.paymentIntents.create({
+                let paymentIntent = Stripe.paymentIntents.create({
                 // payment_method: paymentMethod.id,
                 customer: customer?.id,
                 amount: Number(totalAmount) * 100, // USD*100
@@ -109,7 +109,7 @@ exports.stripePayment = async (req, res) => {
 
     let paymentIntent;
     try {
-      paymentIntent = await stripe.paymentIntents.create({
+      paymentIntent = Stripe.paymentIntents.create({
         amount: Number(totalAmount) * 100,
         currency: "usd",
         payment_method_types: ["card"],
@@ -177,23 +177,24 @@ exports.membershipSubscription = async (req, res, next) => {
             payment_date: new Date(Date.now()),                           
         }
 
-        const customer = await stripe.customers.create({
+        const customer = Stripe.customers.create({
             metadata: { membership_data: JSON.stringify({ ...membership_data }) }
         });
 
+        console.log({ customer })
+
         if(customer) {
 
-            const ephemeralKey = await stripe.ephemeralKeys.create(
+            const ephemeralKey = Stripe.ephemeralKeys.create(
               {customer: customer?.id},
               {apiVersion: '2022-11-15'}
             );
     
-            let paymentIntent = await stripe.paymentIntents.create({
-            // customer: customer?.id,
+            let paymentIntent = Stripe.paymentIntents.create({
+            customer: customer?.id,
             amount: Number(membership?.amount) * 100,
             currency: 'usd',
-            automatic_payment_methods: {enabled: true},
-            // payment_method_types: ["card"],
+            automatic_payment_methods: { enabled: true },
 
             });
 
@@ -227,7 +228,7 @@ exports.productPayment = async (req, res, next) => {
             return res.status(400).json({ status: "failed", error: "Order item(s) cannot be empty" })
         }
 
-        const customer = await stripe.customers.create();
+        const customer = Stripe.customers.create();
 
         let totalPrice = product?.orderItems.reduce((acc, curr) => {
             return acc + (curr.price * curr.qty);
@@ -235,13 +236,13 @@ exports.productPayment = async (req, res, next) => {
 
         if(customer) {
 
-            const ephemeralKey = await stripe.ephemeralKeys.create(
+            const ephemeralKey = Stripe.ephemeralKeys.create(
               { customer: customer?.id },
               { apiVersion: '2022-11-15' }
             );
 
             // 
-            let paymentIntent = await stripe.paymentIntents.create({
+            let paymentIntent = Stripe.paymentIntents.create({
             customer: customer?.id,
             amount: Number(totalPrice) * 100,
             currency: 'usd',

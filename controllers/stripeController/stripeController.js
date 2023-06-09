@@ -7,7 +7,7 @@ const MembershipSubscriber = require('../../models/membershipModel/MembershipSub
 const Order = require('../../models/productModel/orderModel');
 const User = require('../../models/UserModel');
 
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+const Stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
 exports.stripeCheckout = async (req, res) => {
 
@@ -18,7 +18,7 @@ exports.stripeCheckout = async (req, res) => {
     // const success_url = `${req.headers.origin}/?success=true`;
     // const cancel_url = `${req.headers.origin}/?canceled=true`;
 
-    // const customer = await stripe.customers.create({
+    // const customer = await Stripe.customers.create({
     //     metadata: {
     //         userId: "req.user.id",
     //         membership_details: JSON.stringify(req.body.products)
@@ -46,7 +46,7 @@ exports.stripeCheckout = async (req, res) => {
 
     try {
 
-        const session = await stripe.checkout.sessions.create({
+        const session = await Stripe.checkout.sessions.create({
 
         payment_method_types: ['card'],
 
@@ -140,7 +140,7 @@ exports.stripeCheckout = async (req, res) => {
         //     return res.status(400).send({ error: "You still have an active plan"});
         // }
 
-          const session = await stripe.checkout.sessions.create({
+          const session = await Stripe.checkout.sessions.create({
           payment_method_types: ["card"],
           line_items: [
             {
@@ -201,7 +201,7 @@ exports.hooks = async (req, res) => {
 
     try {
 
-      event = stripe.webhooks.constructEvent(req.body, signature, endPointSecret);
+      event = Stripe.webhooks.constructEvent(req.body, signature, endPointSecret);
   
       data = event.data.object;
       eventType = event.type;
@@ -221,15 +221,33 @@ exports.hooks = async (req, res) => {
 
   if(eventType === "checkout.session.completed") {
 
-    stripe.customers.retrieve(data.customer)
-    then((customer) => {
-      console.log("Customer details:", customer)
-      console.log("Customer details:", data)
-    }).catch((error) => {
-      console.log(error)
+    Stripe.customers
+    .retrieve(data.customer)
+    .then(async (customer) => {
+      try {
+        // CREATE ORDER
+        // createOrder(customer, data);
+        console.log("Ordered");
+        console.log("Customer details:", customer, data)
+        res.status(200).json({ message: 'Order created', data: data })
+        res.status(200).send("Order created")
+      } catch (err) {
+        // console.log(typeof createOrder);
+        console.log(err);
+      }
     })
+    .catch((err) => console.log(err.message));
 
-    return
+    // Stripe.customers.retrieve(data.customer)
+    // then((customer) => {
+    //   console.log("Customer details:", customer)
+    //   console.log("Customer details:", data)
+    // }).catch((error) => {
+    //   console.log(error)
+    //   return
+    // })
+
+
   }
 
 
