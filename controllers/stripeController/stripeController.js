@@ -333,9 +333,9 @@ exports.hooks = async (req, res) => {
 
 
 
-  switch(data?.metadata?.action) {
+  switch(eventType) {
    
-    case 'shop':
+    case 'checkout.session.completed':
 
     //   if(eventType === 'checkout.session.completed') {
 
@@ -400,6 +400,13 @@ exports.hooks = async (req, res) => {
     // }
     console.log(`SHOP ACTION`)
     console.log(`EVENT COMPLETED`)
+
+    stripe.customers.retrieve(data.customer)
+          then((customer) => {
+            console.log("Customer details:", customer)
+          }).catch((error) => {
+            console.log(error)
+          })
   
     break;
 
@@ -479,6 +486,13 @@ exports.hooks = async (req, res) => {
       //   }
     
       // }
+
+      stripe.customers.retrieve(data.customer)
+      then((customer) => {
+        console.log("Customer details:", customer)
+      }).catch((error) => {
+        console.log(error)
+      })
 
     break;
 

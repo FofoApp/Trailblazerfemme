@@ -197,9 +197,12 @@ exports.membershipSubscription = async (req, res, next) => {
             currency: 'usd',
             // receipt_email: membership?.receipt_email,
             
-            automatic_payment_methods: { enabled: true, },
+            // automatic_payment_methods: { enabled: true, },
+            payment_method_types: ["card"],
 
-            metadata: JSON.stringify(newMetaData),
+            metadata: {
+                subscription_data: JSON.stringify(newMetaData)
+            },
 
             });
 
