@@ -6,7 +6,7 @@ const router = express.Router()
 
 
 router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, res) => {
-
+    console.log({ signInSecret: process.env.STRIPE_SECRET_KEY })
     let endPointSecret = process.env.STRIPE_WEBHOOK_ENDPOINT;
 
     const payload = req.body;
@@ -66,4 +66,4 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
   });
 
 
-export default router;
+module.exports = router;
