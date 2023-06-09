@@ -28,6 +28,8 @@ const userSchema = new Schema({
     subscription_start_date: { type: Date,   },
     days_between_next_payment: { type: Number, },
 
+    stripeCustomerId:  { type: String, trim: true },
+
     // paymentId: [{ type: mongoose.Schema.Types.ObjectId, ref: "Payment" }],
     // paymentDate: { type: Date },
     // nextPaymentDueDate: { type: Date },

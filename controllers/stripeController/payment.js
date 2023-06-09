@@ -133,6 +133,55 @@ exports.stripePayment = async (req, res) => {
 
 }
 
+const getOrCreateStripeCustomer  = async (user, subscriptionParams) => {
+
+    let customer;
+
+    const customerId = user?.stripeCustomerId;
+
+    if(customerId){
+
+        customer = await Stripe.customers.retrieve(customerId);
+
+    } else {
+
+        const customer = await Stripe.customers.create({
+            name: fullname,
+            email: email,
+            metadata: { subscriptionParams: JSON.stringify({ ...subscriptionParams }) }
+            
+        });
+
+        await user.update({ stripeCustomerId: customer?.id });
+    }
+
+    return customer;
+
+}
+
+const createStripeSubscription = async (customer, subscriptionParams) => {
+    const subscription = await Stripe.subscriptions.create({
+        customer: customer?.id,
+        items: [{ price: subscriptionParams?.amount }],
+        payment_settings: {
+        //   payment_method_options: {
+        //     card: {
+        //       request_three_d_secure: 'any',
+        //     },
+        //   },
+          payment_method_types: ['card'],
+          save_default_payment_method: 'on_subscription',
+        },
+        expand: ['latest_invoice.payment_intent'],
+      });
+
+      return {
+        clientSecret: subscription.latest_invoice.payment_intent.client_secret,
+        subscriptionId: subscription.id,
+      };
+}
+
+
 exports.membershipSubscription = async (req, res, next) => {
 
     const { membership } = req.body;
@@ -162,8 +211,11 @@ exports.membershipSubscription = async (req, res, next) => {
         if(!membership?.action === "membership") {
             return res.status(400).json({ status: "failed", error: "Invalid action type" });
         }
-        const membership_data =  {
-            amount: membership.amount,
+
+        const user = await UserModel.findOne({ email });
+
+        const subscriptionParams =  {
+            amount: membership?.amount,
             membershipType: membership?.membershipType, 
             membershipId: membership?.membershipId,
             mode: membership?.mode,
@@ -175,43 +227,53 @@ exports.membershipSubscription = async (req, res, next) => {
             payment_date: new Date(Date.now()),                           
         }
 
-        const customer = await Stripe.customers.create({
-            name: fullname,
-            email: email,
-            metadata: { membership_data: JSON.stringify({ ...membership_data }) }
-            
-        });
+        return res.status(200).json({ message: "Payment disabled"  })
+        
+
+        // const customer = await Stripe.customers.create({
+        //     email: req.body.email,
+        //     source: req.body.stripeToken,
+        //     payment_method: req.body.paymentMethod,
+        //     invoice_settings: {
+        //         default_payment_method: createSubscriptionRequest.paymentMethod,
+        //       },
+        //   });
+
+        const customer = await getOrCreateStripeCustomer(user, subscriptionParams);
+        const subscription = await createStripeSubscription(customer, subscriptionParams);
 
         //  {apiVersion: '2022-11-15'}
-        const ephemeralKey = await Stripe.ephemeralKeys.create(
-            {customer: customer?.id},
-            {apiVersion: '2020-08-27'}
-          );
+        // const ephemeralKey = await Stripe.ephemeralKeys.create(
+        //     {customer: customer?.id},
+        //     {apiVersion: '2020-08-27'}
+        //   );
 
-          let paymentIntent = await Stripe.paymentIntents.create({
-          customer: customer?.id,
-          amount: Number(membership?.amount) * 100,
-          currency: 'usd',
-          automatic_payment_methods: { enabled: true },
+        //   let paymentIntent = await Stripe.paymentIntents.create({
+        //   customer: customer?.id,
+        //   amount: Number(membership?.amount) * 100,
+        //   currency: 'usd',
+        //   automatic_payment_methods: { enabled: true },
 
-          });
-
-
-        const subscription = await Stripe.subscriptions.create({
-            customer: customer?.id,
-            items: [
-              { price: Number(membership?.amount) * 100 },
-            ],
-            metadata: { membership_data: JSON.stringify({ ...membership_data }) }
-          });
+        //   });
 
 
-          res.status(200).json({
-              paymentIntent: paymentIntent?.client_secret,
-              customerId: customer?.id,
-              ephemeralKey: ephemeralKey?.secret,
-              mode: `${membership?.mode} subscription`,
-          })
+        // const subscription = await Stripe.subscriptions.create({
+        //     customer: customer?.id,
+        //     items: [
+        //       { price: Number(membership?.amount) * 100 },
+        //       { plan: membership?.mode }
+        //     ],
+        //     metadata: { membership_data: JSON.stringify({ ...membership_data }) }
+        //   });
+
+
+        //   res.status(200).json({
+        //       paymentIntent: paymentIntent?.client_secret,
+        //       customerId: customer?.id,
+        //       ephemeralKey: ephemeralKey?.secret,
+        //       mode: `${membership?.mode} subscription`,
+        //   })
+        //   res.status(200).json({ ...subscription  })
 
     } catch(error) {
         console.log(error)
@@ -225,8 +287,10 @@ exports.productPayment = async (req, res, next) => {
     const { product } = req.body;
     
     const userId = req?.user?.id;
-
+    
     try {
+
+        return res.status(200).json({ message: "Payment disabled"  })
 
         if(product?.orderItems?.length === 0) {
             return res.status(400).json({ status: "failed", error: "Order item(s) cannot be empty" })

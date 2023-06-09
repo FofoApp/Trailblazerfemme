@@ -192,15 +192,14 @@ app.use((err, req, res, next) => {
 // app configurations
 app.set('port', PORT);
 
-      connectDB()
-      .then(() => {
+const startApp = async () => {
+      try {
+            await connectDB();
             app.listen(PORT, () => console.log(`App running on port: ${PORT}`));
-      })
-      .catch((error) => console.log(error?.message))
+      } catch (error) {
+            console.log(error?.message)
+      }
+}
 
-      // databaseLoader.init({ MONGODB_HOST: process.env.MONGODB_URI_DEV }).then(() => {
-      //       app.listen(PORT, () => console.log(`App running on port: ${PORT}`));
-      // }).catch((error) => console.log(error?.message))
-
-
-
+// App Run
+startApp();
