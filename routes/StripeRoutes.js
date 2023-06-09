@@ -4,8 +4,7 @@ const router = express.Router()
 
 const { 
       stripeCheckout, 
-      membershipPayment, 
-      hooks, 
+      membershipPayment,
 } = require('../controllers/stripeController/stripeController');
 
 const { 
@@ -19,11 +18,6 @@ const { verifyAccessToken } = require('./../helpers/jwtHelper');
 const { permissions } = require('./../middlewares/permissionsMiddleware');
 
 
-
-router.post('/api/stripe/webhook',  express.raw({ type: 'application/json' }), hooks);
-
-// 
-// router.route('/').post(hooks);
 // stripe listen --forward-to localhost:2000/api/stripe/webhook
 
 

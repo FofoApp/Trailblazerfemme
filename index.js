@@ -38,10 +38,11 @@ const AdminDashboardRoutes = require('./routes/AdminDashboardRoutes');
 const PaymentRoutes = require('./routes/paymentRoutes');
 const CourseRoutes = require('./routes/CourseRoutes');
 const StripeRoutes = require('./routes/StripeRoutes');
+const WebhookRoutes = require('./routes/webhook');
 
-const { recurrentPaymentMiddleware } = require('./middlewares/recurrentPaymentMiddleware');
-const databaseLoader = require('./connection');
-const { hooks } = require('./controllers/stripeController/stripeController');
+// const { recurrentPaymentMiddleware } = require('./middlewares/recurrentPaymentMiddleware');
+// const databaseLoader = require('./connection');
+// const { hooks } = require('./controllers/stripeController/stripeController');
 
 const app = express();
 app.use(morgan('dev'));
@@ -162,6 +163,7 @@ app.use('/api/community', CommunityRoutes);
 app.use('/api/plan', PlanRoute);
 app.use('/api/profile', ProfileRoutes);
 app.use('/api/auth', AuthRoute);
+app.use('/api/stripe', WebhookRoutes);
 
 
 //404 request handler and pass to error handler
