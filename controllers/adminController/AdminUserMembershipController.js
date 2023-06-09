@@ -124,6 +124,7 @@ exports.findUserMembershipById = async (req, res, next) => {
             name: membership.name, 
             accessType: membership.accessType,
             benefits: membership.benefits,
+            perks: membership.perks,
             description: membership.description,
             amount: membership.amount,
             createdAt: membership.createdAt,
