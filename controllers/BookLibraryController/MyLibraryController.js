@@ -487,7 +487,7 @@ exports.searchBookInLibrary = async (req, res, next) => {
 
         // let paginationData = { totalRecords:total, currentPage:page, perPage:perPage, totalPages:Math.ceil(total/perPage) }
         
-        return res.status(200).send({ searchedBooks:searchByBookNameOrAuthorName, recentSearch : data})
+        return res.status(200).send({ searchCourse:searchByBookNameOrAuthorName, recentSearch : data})
     } catch (error) {
         console.log(error)
         return res.status(500).send({ message: error?.message });

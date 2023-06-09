@@ -458,7 +458,7 @@ exports.searchJob = async (req, res, next) => {
                page,
                limit,
                skip,
-               select: "id name company_name location description link authorName authorImages jobImages position qualification",
+               select: "id name createdAt company_name location description link authorName authorImages jobImages position qualification",
                sort: { createdAt: -1 }
             }
        );
