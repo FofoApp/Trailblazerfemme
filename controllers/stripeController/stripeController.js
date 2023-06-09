@@ -213,8 +213,8 @@ exports.hooks = async (req, res) => {
     } catch (error) {
         // return 
         console.log(` Webhook signature verification failed.`, error);
-        res.status(400).send(`Webhook error: ${error?.message} `)
-         return
+        res.status(400).send(`Webhook Error: ${error.message}`);
+        return;
     }
 
   } else {

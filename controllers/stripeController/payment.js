@@ -188,7 +188,8 @@ exports.membershipSubscription = async (req, res, next) => {
                 payment_date: new Date(Date.now()),                           
             }
 
-            console.log({ membership_data })
+  
+            let newMetaData = { ...membership_data }
     
             let paymentIntent = await stripe.paymentIntents.create({
             customer: customer?.id,
@@ -198,7 +199,7 @@ exports.membershipSubscription = async (req, res, next) => {
             
             automatic_payment_methods: { enabled: true, },
 
-            metadata: { ...membership_data },
+            metadata: JSON.stringify(newMetaData),
 
             });
 
@@ -216,6 +217,7 @@ exports.membershipSubscription = async (req, res, next) => {
         }
 
     } catch(error) {
+        console.log(error)
         return res.status(500).json({ error: error?.message })
     }
 }
