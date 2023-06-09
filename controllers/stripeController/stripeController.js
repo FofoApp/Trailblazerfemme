@@ -196,10 +196,12 @@ exports.hooks = async (req, res) => {
   let data;
 
   if(endPointSecret) {
-    let event = null;
+    const signature = request.headers['stripe-signature'];
+    let event = req.body;
+
     try {
 
-      event = stripe.webhooks.constructEvent(payload, sig, endPointSecret);
+      event = stripe.webhooks.constructEvent(req.body, signature, endPointSecret);
   
       data = event.data.object;
       eventType = event.type;
