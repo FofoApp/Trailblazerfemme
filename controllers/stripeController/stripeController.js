@@ -238,16 +238,6 @@ exports.hooks = async (req, res) => {
     })
     .catch((err) => console.log(err.message));
 
-    // Stripe.customers.retrieve(data.customer)
-    // then((customer) => {
-    //   console.log("Customer details:", customer)
-    //   console.log("Customer details:", data)
-    // }).catch((error) => {
-    //   console.log(error)
-    //   return
-    // })
-
-
   }
 
 

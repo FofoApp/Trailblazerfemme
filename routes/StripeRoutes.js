@@ -6,13 +6,9 @@ const {
       stripeCheckout, 
       membershipPayment, 
       hooks, 
-      paymentSuccess, 
-      cancelPayment,
 } = require('../controllers/stripeController/stripeController');
 
 const { 
-      stripePayment, 
-      pay, 
       membershipSubscription, 
       productPayment 
 } = require('../controllers/stripeController/payment');
@@ -45,11 +41,6 @@ router.route('/membership-checkout')
       .post(verifyAccessToken, permissions(["user","admin"]), membershipSubscription);
 
 
-router.route('/payment_success')
-      .get(paymentSuccess);
-
-router.route('/payment_canceled')
-      .get(cancelPayment);
 
 
 module.exports = router

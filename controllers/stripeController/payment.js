@@ -177,7 +177,7 @@ exports.membershipSubscription = async (req, res, next) => {
             payment_date: new Date(Date.now()),                           
         }
 
-        const customer = Stripe.customers.create({
+        const customer = await Stripe.customers.create({
             metadata: { membership_data: JSON.stringify({ ...membership_data }) }
         });
 
@@ -185,12 +185,12 @@ exports.membershipSubscription = async (req, res, next) => {
 
         if(customer) {
 
-            const ephemeralKey = Stripe.ephemeralKeys.create(
+            const ephemeralKey = await Stripe.ephemeralKeys.create(
               {customer: customer?.id},
               {apiVersion: '2022-11-15'}
             );
     
-            let paymentIntent = Stripe.paymentIntents.create({
+            let paymentIntent = await Stripe.paymentIntents.create({
             customer: customer?.id,
             amount: Number(membership?.amount) * 100,
             currency: 'usd',
@@ -236,13 +236,13 @@ exports.productPayment = async (req, res, next) => {
 
         if(customer) {
 
-            const ephemeralKey = Stripe.ephemeralKeys.create(
+            const ephemeralKey = await Stripe.ephemeralKeys.create(
               { customer: customer?.id },
               { apiVersion: '2022-11-15' }
             );
 
             // 
-            let paymentIntent = Stripe.paymentIntents.create({
+            let paymentIntent = await Stripe.paymentIntents.create({
             customer: customer?.id,
             amount: Number(totalPrice) * 100,
             currency: 'usd',
