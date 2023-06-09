@@ -143,6 +143,34 @@ exports.searchCourseByAuthorNameOr = async (req, res) => {
        if(!keyword) {
         return res.status(400).json({ status: "failed", error: "Provide search phrease" });
        }
+
+       
+    // name: { type: String, required: true },
+    // description: { type: String, required: true },
+
+    // category: { type: mongoose.Schema.Types.ObjectId, ref: "CourseCategory"},
+    // duration: { type: String, required: true },
+
+    // courseImage: [{
+    //     public_id: { type: String, required: true },
+    //     image_url: { type: String, required: true },
+    //  }],
+
+    //  adminAccess: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    //  accessType: { type: String, default: 'Free' },
+
+    //  createdBy: [{
+    //     fullname: { type: String, required: true },
+    //     public_id: { type: String, default: "" },
+    //     image_url: { type: String, default: ""  },
+    // }],
+
+    // rating: { type: Number, default: 0 },
+    // numReviews: { type: Number, default: 0 },
+    
+    // courseLikes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User"}],
+    // new_joined: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    // reviewIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "CourseReview"}],
        
        
        try {
@@ -157,7 +185,7 @@ exports.searchCourseByAuthorNameOr = async (req, res) => {
                },
         
                {
-                   select: "id name courseImage description createdBy createdAt ",
+                   select: "id name courseImage duration numReviews rating accessType description createdBy createdAt ",
                }
            )
 

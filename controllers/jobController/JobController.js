@@ -463,7 +463,7 @@ exports.searchJob = async (req, res, next) => {
             }
        );
 
-       return res.status(200).json({ jobs: searchedJob })
+       return res.status(200).json({ jobs: searchedJob });
         
     } catch (error) {
         return res.status(500).json({ status: "failed", error: error?.message, message: error?.message })
@@ -476,7 +476,7 @@ exports.findJobById  = async (req, res, next) => {
     //http://localhost:2000/api/jobs/jobId/get
     //http://localhost:2000/api/jobs/62902e117ecadf9305054e1a/get
 
-    const jobId = req.params.jobId;
+    const jobId = req?.params?.jobId;
 
     try {
         if(!mongoose.Types.ObjectId.isValid(jobId)) {
