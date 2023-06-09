@@ -21,7 +21,7 @@ const upload_data = [
 ];
 
 // router.post('/create', verifyAccessToken, upload.fields([{ name: 'courseImage', maxCount: 1 }, {name: 'authorImage', maxCount: 5 }] ), CourseController.createNewCourse);
-router.post('/create', verifyAccessToken, permissions(["user", "admin"]),  upload.fields(upload_data), CourseController.createNewCourse);
+router.post('/create', verifyAccessToken, permissions(["admin"]),  upload.fields(upload_data), CourseController.createNewCourse);
 router.post('/search', verifyAccessToken, permissions(["user", "admin"]), CourseController.searchCourseByAuthorNameOr);
 router.get('/list', verifyAccessToken, permissions(["user", "admin"]), CourseController.findAllCourses);
 router.get('/:courseId/get', verifyAccessToken, permissions(["user", "admin"]), CourseController.findCourseById);
@@ -29,18 +29,18 @@ router.get('/:courseId/get', verifyAccessToken, permissions(["user", "admin"]), 
 
 //COURSE CATEGORIES
 
-router.post('/category/create',  CourseCategoryController.createCategory);
+router.post('/category/create', permissions(["admin"]),  CourseCategoryController.createCategory);
 router.get('/category/list',  CourseCategoryController.findAllCategories);
 router.get('/category/:categoryId/get',  CourseCategoryController.findCategoryById);
-router.patch('/category/:categoryId/update',  CourseCategoryController.updateCategoryById);
-router.delete('/category/:categoryId/delete',  CourseCategoryController.deleteCategoryById);
+router.patch('/category/:categoryId/update', permissions(["admin"]),  CourseCategoryController.updateCategoryById);
+router.delete('/category/:categoryId/delete', permissions(["admin"]), CourseCategoryController.deleteCategoryById);
 
 
 //COURSE REVIEWS
 
 router.post('/:courseId/create_review', verifyAccessToken, courseReview.createCourseReview);
 router.get('/review/:reviewId',  courseReview.findByReviewById);
-router.delete('/:courseId/review/:reviewId/delete',  courseReview.deleteReviewById);
+router.delete('/:courseId/review/:reviewId/delete', permissions(["admin"]), courseReview.deleteReviewById);
 
 
 
