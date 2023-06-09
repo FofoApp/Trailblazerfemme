@@ -33,6 +33,8 @@ exports.isFirstDateAfterSecondDate = (prevDate, todayDate = Date.now()) => (req,
 
 
 
+
+
 exports.createNewCourse = async (req, res) => {
 
     const { 
@@ -124,6 +126,49 @@ exports.createNewCourse = async (req, res) => {
     } catch (error) {
         // console.log(error)
         return res.status(500).json({ error: error})
+    }
+}
+
+
+exports.searchCourseByAuthorNameOr = async (req, res) => {
+       //http://localhost:2000/api/course/search
+
+       let { keyword  } = req.body;
+       const currentUser = req.user.id;
+
+       let page= (req.query.page) ? parseInt(req.query.page) : 1;
+       let perPage = (req.query.perPage) ? parseInt(req.query.perPage) : 10;
+       let skip = (page-1) * perPage;
+
+       if(!keyword) {
+        return res.status(400).json({ status: "failed", error: "Provide search phrease" });
+       }
+       
+       
+       try {
+        
+               const searchCourseByName = await CourseModel.paginate({
+                $or: [
+                  
+                   { name: {  $regex: '.*' + keyword + '.*',  $options: 'i'  } },
+                   { "createdBy.fullname": {  $regex: '.*' + keyword + '.*',  $options: 'i' } },
+                   { description: {  $regex: '.*' + keyword + '.*',  $options: 'i' } },
+               ],
+               },
+        
+               {
+                   select: "id name courseImage description createdBy createdAt ",
+               }
+           )
+
+           if(!searchCourseByName || searchCourseByName?.length <= 0) {
+            return res.status(404).send({ message: "Course with the search phrase not found!"})
+        }
+
+        return res.status(200).json({ searchedBooks:searchCourseByName, })
+
+    } catch(error) {
+        return res.status(500).json({ status: "failed", error: error?.message });
     }
 }
 

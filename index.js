@@ -52,6 +52,7 @@ app.use(
         origin: [
             "http://localhost:2000", 
             "http://localhost:3000", 
+            "http://localhost:3001",
             "https://checkout.stripe.com",
             "https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app",
             "https://trailblazeradmin.netlify.app",

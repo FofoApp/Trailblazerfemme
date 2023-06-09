@@ -9,6 +9,7 @@ const courseReview = require('./../controllers/courseController/CourseReviewCont
 const upload = require('./../helpers/multer');
 
 const { verifyAccessToken } = require('./../helpers/jwtHelper');
+const { permissions } = require('../middlewares/permissionsMiddleware');
 
 //COURSES
  
@@ -20,9 +21,10 @@ const upload_data = [
 ];
 
 // router.post('/create', verifyAccessToken, upload.fields([{ name: 'courseImage', maxCount: 1 }, {name: 'authorImage', maxCount: 5 }] ), CourseController.createNewCourse);
-router.post('/create',  upload.fields(upload_data), CourseController.createNewCourse);
-router.get('/list',  CourseController.findAllCourses);
-router.get('/:courseId/get',  CourseController.findCourseById);
+router.post('/create', verifyAccessToken, permissions(["user", "admin"]),  upload.fields(upload_data), CourseController.createNewCourse);
+router.post('/search', verifyAccessToken, permissions(["user", "admin"]), CourseController.searchCourseByAuthorNameOr);
+router.get('/list', verifyAccessToken, permissions(["user", "admin"]), CourseController.findAllCourses);
+router.get('/:courseId/get', verifyAccessToken, permissions(["user", "admin"]), CourseController.findCourseById);
 
 
 //COURSE CATEGORIES

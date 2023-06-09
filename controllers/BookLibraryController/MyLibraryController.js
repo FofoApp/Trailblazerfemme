@@ -411,7 +411,8 @@ exports.searchBooksByAuthorId = async (req, res) => {
 exports.searchBookInLibrary = async (req, res, next) => {
     //GET REQUEST
     //http://localhost:2000/api/library/search
-    let { name: { keyword }, author } = req.body;
+
+    let { name  } = req.body;
     const currentUser = req.user.id;
 
 
@@ -458,10 +459,12 @@ exports.searchBookInLibrary = async (req, res, next) => {
             }
         })
 
-    const findSearchKeyword = await BookModel.paginate({
+
+    const searchByBookNameOrAuthorName = await BookModel.paginate({
          $or: [
-            { name: {  $regex: '.*' + keyword + '.*',  $options: 'i'  } },
-            { "author.fullname": {  $regex: '.*' + keyword + '.*',  $options: 'i' } }
+           
+            { name: {  $regex: '.*' + name + '.*',  $options: 'i'  } },
+            { "author.fullname": {  $regex: '.*' + name + '.*',  $options: 'i' } }
         ],
         },
 
@@ -471,20 +474,20 @@ exports.searchBookInLibrary = async (req, res, next) => {
     )
 
       
-        if(!findSearchKeyword || findSearchKeyword?.length <= 0) {
+        if(!searchByBookNameOrAuthorName || searchByBookNameOrAuthorName?.length <= 0) {
             return res.status(404).send({ message: "Book with the search phrase not found!"})
         }
        
         
         const user = await UserModel.findById(currentUser);
-        user.recentlySearchedBook.addToSet(findSearchKeyword?.docs[0]?._id);
+        user.recentlySearchedBook.addToSet(searchByBookNameOrAuthorName?.docs[0]?._id);
         await user.save();
 
-        // let total = findSearchKeyword ? findSearchKeyword.length : 0;
+        // let total = searchByBookNameOrAuthorName ? searchByBookNameOrAuthorName.length : 0;
 
         // let paginationData = { totalRecords:total, currentPage:page, perPage:perPage, totalPages:Math.ceil(total/perPage) }
         
-        return res.status(200).send({ searchedBooks:findSearchKeyword, recentSearch : data})
+        return res.status(200).send({ searchedBooks:searchByBookNameOrAuthorName, recentSearch : data})
     } catch (error) {
         console.log(error)
         return res.status(500).send({ message: error?.message });

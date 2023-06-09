@@ -119,7 +119,7 @@ exports.stripePayment = async (req, res) => {
       });
     } catch (err) {
         console.log({ err1: err })
-      return res.status(500).send({ error: "Unable to proces payment" });
+      return res.status(200).send({ error: "Unable to proces payment" });
     }
   
  
@@ -128,7 +128,7 @@ exports.stripePayment = async (req, res) => {
       return res.status(200).send(paymentIntent);
       
     } catch (err) {
-      return res.status(500).send(err);
+      return res.status(200).send(err);
     }
 
 }
@@ -139,9 +139,8 @@ exports.membershipSubscription = async (req, res, next) => {
 
     const userId = req?.user?.id;
     const email = req?.user?.email;
+    const fullname = req?.user?.fullname;
 
-    console.log({ membership });
-    console.log({ membershipId: membership?.membershipId });
 
     try {
 
@@ -177,10 +176,12 @@ exports.membershipSubscription = async (req, res, next) => {
         }
 
         const customer = await Stripe.customers.create({
+            name: fullname,
+            email: email,
             metadata: { membership_data: JSON.stringify({ ...membership_data }) }
+            
         });
 
-        console.log({ customer })
         //  {apiVersion: '2022-11-15'}
         const ephemeralKey = await Stripe.ephemeralKeys.create(
             {customer: customer?.id},
@@ -195,7 +196,15 @@ exports.membershipSubscription = async (req, res, next) => {
 
           });
 
-          console.log({ paymentIntent })
+
+        const subscription = await Stripe.subscriptions.create({
+            customer: customer?.id,
+            items: [
+              { price: Number(membership?.amount) * 100 },
+            ],
+            metadata: { membership_data: JSON.stringify({ ...membership_data }) }
+          });
+
 
           res.status(200).json({
               paymentIntent: paymentIntent?.client_secret,

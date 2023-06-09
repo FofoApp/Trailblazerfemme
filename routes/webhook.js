@@ -12,7 +12,7 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
     const payload = req.body;
     let eventType = null;
     let data;
-    
+
     console.log({ signInSecret: process.env.STRIPE_SIGNIN_SECRET });
 
     if(endPointSecret) {
@@ -43,8 +43,8 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
     console.log({ eventType })
   
     if(eventType === "checkout.session.completed") {
-  
-      Stripe.customers
+
+      Stripe.subscriptions
       .retrieve(data.customer)
       .then(async (customer) => {
         try {
