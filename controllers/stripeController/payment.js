@@ -140,7 +140,6 @@ exports.membershipSubscription = async (req, res, next) => {
     const userId = req?.user?.id;
     const email = req?.user?.email;
 
-    console.log({ stripeSecret: process.env.STRIPE_SECRET_KEY });
     console.log({ membership });
     console.log({ membershipId: membership?.membershipId });
 
@@ -183,31 +182,27 @@ exports.membershipSubscription = async (req, res, next) => {
 
         console.log({ customer })
 
-        if(customer) {
+        const ephemeralKey = await Stripe.ephemeralKeys.create(
+            {customer: customer?.id},
+            {apiVersion: '2022-11-15'}
+          );
+  
+          let paymentIntent = await Stripe.paymentIntents.create({
+          customer: customer?.id,
+          amount: Number(membership?.amount) * 100,
+          currency: 'usd',
+          automatic_payment_methods: { enabled: true },
 
-            const ephemeralKey = await Stripe.ephemeralKeys.create(
-              {customer: customer?.id},
-              {apiVersion: '2022-11-15'}
-            );
-    
-            let paymentIntent = await Stripe.paymentIntents.create({
-            customer: customer?.id,
-            amount: Number(membership?.amount) * 100,
-            currency: 'usd',
-            automatic_payment_methods: { enabled: true },
+          });
 
-            });
+          console.log({ paymentIntent })
 
-            console.log({ paymentIntent })
-
-            res.status(200).json({
-                paymentIntent: paymentIntent?.client_secret,
-                customerId: customer?.id,
-                ephemeralKey: ephemeralKey?.secret,
-                mode: `${membership?.mode} subscription`,
-            })
-
-        }
+          res.status(200).json({
+              paymentIntent: paymentIntent?.client_secret,
+              customerId: customer?.id,
+              ephemeralKey: ephemeralKey?.secret,
+              mode: `${membership?.mode} subscription`,
+          })
 
     } catch(error) {
         console.log(error)
