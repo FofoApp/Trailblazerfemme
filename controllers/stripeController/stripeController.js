@@ -186,11 +186,11 @@ exports.stripeCheckout = async (req, res) => {
     }
   }
 
-let endPointSecret;
+
 //let endPointSecret  = process.env.STRIPE_WEBHOOK_ENDPOINT;
 
 exports.hooks = async (req, res) => {
-
+  let endPointSecret;
   const payload = req.body;
   let eventType = null;
   let data;
@@ -205,6 +205,9 @@ exports.hooks = async (req, res) => {
   
       data = event.data.object;
       eventType = event.type;
+
+      console.log({ firstEventTyppe: eventType })
+      console.log({ firstData: data })
     
     } catch (error) {
       console.log(` Webhook signature verification failed.`, error);
@@ -232,7 +235,7 @@ exports.hooks = async (req, res) => {
         res.status(200).json({ message: 'Order created', data: data })
         res.status(200).send("Order created")
       } catch (err) {
-        // console.log(typeof createOrder);
+
         console.log(err);
       }
     })
@@ -243,46 +246,6 @@ exports.hooks = async (req, res) => {
 
 
 }
-
-
-exports.paymentSuccess = async (req, res, next) =>{
-
-  const { success } = req.query
-
-  try {
-
-    if(success === 'true') {
-      return res.status(200).json({ message: "Payment successful"})
-    }
-
-    return res.status(200).json({ message: "Payment not successful"})
-
-  } catch (error) {
-    return res.status(500).json({ message: "Payment not successful"})
-  }
-}
-
-
-exports.cancelPayment = async (req, res, next) => {
-
-  const { canceled } = req.query
-  
-  try {
-
-    if(canceled === 'true') {
-
-      return res.status(200).json({ message: "Payment canceled"})
-    }
-
-    return res.status(200).json({ message: "not canceled"})
-
-
-  } catch (error) {
-    return res.status(500).json({ message: "Payment not canceled"})
-  }
-}
-
-
 
 
 
