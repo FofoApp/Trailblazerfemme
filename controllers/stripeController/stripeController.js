@@ -186,9 +186,11 @@ exports.stripeCheckout = async (req, res) => {
     }
   }
 
-// exports.hooks = async (req, res) => {
+  let endPointSecret;
+  let eventType;
+  let data;
 
-  const signinSecret = process.env.STRIPE_WEBHOOK_ENDPOINT;
+//  = process.env.STRIPE_WEBHOOK_ENDPOINT
 
 exports.hooks = async (req, res) => {
 
@@ -196,28 +198,36 @@ exports.hooks = async (req, res) => {
   
   const payload = req.body;
 
-  let event;
-
-  if(signinSecret) {
+  if(endPointSecret) {
+    let event;
     const sig = req.headers['stripe-signature'];
+
     try {
-      event = stripe.webhooks.constructEvent(payload, sig, signinSecret)
+
+      event = stripe.webhooks.constructEvent(payload, sig, endPointSecret);
+
+      data = event.data.object;
+      eventType = event.type;
           
     } catch (error) {
         // return res.status(400).json({ status: "failed", success: false })
         console.log(` Webhook signature verification failed.`, err?.message);
         return res.sendStatus(400);
     }
+
+  } else {
+    data = req.body.data.object;
+    eventType = req.body.type;
   }
 
 
-  console.log({ metadata: event?.data?.object?.metadata})
-  console.log({event: "Event", event })
+  console.log({ metadata: data.metadata})
+  console.log({event: "Event", eventType })
 
-  switch(event?.data?.object?.metadata?.action) {
+  switch(data.metadata?.action) {
 
     case 'shop':
-      if(event?.type === 'checkout.session.completed') {
+      if(eventType === 'checkout.session.completed') {
 
         const {
           product,
@@ -229,15 +239,15 @@ exports.hooks = async (req, res) => {
           itemsPrice,
           payment_date,
 
-      } = event.data.object.metadata
+      } = data.metadata
 
-      const paymentStatus = event?.data?.object?.payment_status;
+      const paymentStatus = data.payment_status;
   
-      if(event?.data?.object?.metadata && paymentStatus === 'paid') {
+      if(data.metadata && paymentStatus === 'paid') {
   
-        const paymentIntentId = event?.data?.object?.payment_intent;
+        const paymentIntentId = data.payment_intent;
     
-        const orderId = event?.data?.object?.metadata?.orderId
+        const orderId = data.metadata?.orderId
         const newOrderItems = JSON.parse(product)
         const newAddress = JSON.parse(shippingAddress);
 
@@ -283,18 +293,18 @@ exports.hooks = async (req, res) => {
 
     case 'membership':
 
-      if(event?.type === 'checkout.session.completed') {
+      if(eventType === 'checkout.session.completed') {
 
 
-        const { userId, amount, membershipType, mode, membershipId, receipt_email  } = event?.data?.object?.metadata;
-        console.log({ metadata: event?.data?.object?.metadata})
-        console.log({ name: "Event object", event: event?.data?.object?.metadata })
+        const { userId, amount, membershipType, mode, membershipId, receipt_email  } = data.metadata;
+        console.log({ metadata: data.metadata})
+        console.log({ name: "Event object", event: data.metadata })
         // 
-        const paymentStatus = event?.data?.object?.payment_status;
+        const paymentStatus = data.payment_status;
     
         if(membershipId && paymentStatus === 'paid') {
     
-          const paymentIntentId = event?.data?.object?.payment_intent;
+          const paymentIntentId = data.payment_intent;
           //yearly or monthly
 
           const annually = mode === 'yearly' ? 'years' : "months";
@@ -368,7 +378,7 @@ exports.hooks = async (req, res) => {
     break;
 
     default:
-      console.log(`Unhandled event type ${ event.type }`);
+      console.log(`Unhandled event type ${ eventType }`);
   }
 
 
