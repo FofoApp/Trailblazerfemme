@@ -194,7 +194,7 @@ exports.stripeCheckout = async (req, res) => {
 
 exports.hooks = async (req, res) => {
 
-  var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;  
+  // var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;  
   
   const payload = req.body;
 
@@ -210,9 +210,10 @@ exports.hooks = async (req, res) => {
       eventType = event.type;
           
     } catch (error) {
-        // return res.status(400).json({ status: "failed", success: false })
-        console.log(` Webhook signature verification failed.`, err?.message);
-        return res.sendStatus(400);
+        // return 
+        console.log(` Webhook signature verification failed.`, error);
+        res.status(400).send(`Webhook error: ${error?.message} `)
+         return
     }
 
   } else {
@@ -224,7 +225,7 @@ exports.hooks = async (req, res) => {
   console.log({ metadata: data.metadata})
   console.log({event: "Event", eventType })
 
-  switch(data.metadata?.action) {
+  switch(data?.metadata?.action) {
 
     case 'shop':
       if(eventType === 'checkout.session.completed') {
