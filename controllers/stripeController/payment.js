@@ -136,10 +136,13 @@ exports.stripePayment = async (req, res) => {
 exports.membershipSubscription = async (req, res, next) => {
 
     const { membership } = req.body;
-    console.log({ membership });
-    console.log({ membershipId: membership?.membershipId });
+
     const userId = req?.user?.id;
     const email = req?.user?.email;
+
+    console.log({ stripeSecret: process.env.STRIPE_SECRET_KEY });
+    console.log({ membership });
+    console.log({ membershipId: membership?.membershipId });
 
     try {
 
