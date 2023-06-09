@@ -181,12 +181,12 @@ exports.membershipSubscription = async (req, res, next) => {
         });
 
         console.log({ customer })
-
+        //  {apiVersion: '2022-11-15'}
         const ephemeralKey = await Stripe.ephemeralKeys.create(
             {customer: customer?.id},
-            {apiVersion: '2022-11-15'}
+            {apiVersion: '2020-08-27'}
           );
-  
+
           let paymentIntent = await Stripe.paymentIntents.create({
           customer: customer?.id,
           amount: Number(membership?.amount) * 100,
