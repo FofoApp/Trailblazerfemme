@@ -445,7 +445,7 @@ exports.searchJob = async (req, res, next) => {
 
     try {
 
-        const searchedJobn = await JobModel.paginate({
+        const searchedJob = await JobModel.paginate({
             $or: [
                { name:
                 {
@@ -458,12 +458,12 @@ exports.searchJob = async (req, res, next) => {
                page,
                limit,
                skip,
-               select: "id name createdAt company_name location description link authorName authorImages jobImages position qualification",
+               select: "id name createdAt company_name jobType jobField accessType location description link authorName authorImages jobImages position qualification",
                sort: { createdAt: -1 }
             }
        );
 
-       return res.status(200).json({ jobs: searchedJobn })
+       return res.status(200).json({ jobs: searchedJob })
         
     } catch (error) {
         return res.status(500).json({ status: "failed", error: error?.message, message: error?.message })
