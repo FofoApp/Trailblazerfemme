@@ -35,7 +35,9 @@ exports.createUserMembership = async (req, res, next) => {
 
         const saveMembership = await createMembership.save();
 
-        if(!saveMembership)  return res.status(403).send({ status: "failed", error: "Membership not created" });
+        if(!saveMembership)  {
+            return res.status(403).send({ status: "failed", error: "Membership not created" });
+        }
 
         const member_data = { 
             id: saveMembership.id, 
@@ -48,7 +50,7 @@ exports.createUserMembership = async (req, res, next) => {
             createdAt: saveMembership.createdAt
         }
 
-        return res.status(200).json({ status: "failed", membership: member_data });
+        return res.status(200).json({ status: "success", membership: member_data });
 
     } catch (error) {
         return res.status(500).send({ status: "failed", error: error?.message });
