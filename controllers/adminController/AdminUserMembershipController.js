@@ -67,7 +67,7 @@ exports.listUserMembership = async (req, res, next) => {
         const memberships = await Membership.paginate({}, {
             page: 1,
             limit: 10,
-            select: "id name accessType benefits description amount createdAt members",
+            select: "id name accessType perks benefits description amount createdAt members",
             populate: {
                 path: "members",
                 model: "User",
@@ -79,10 +79,10 @@ exports.listUserMembership = async (req, res, next) => {
             return res.status(401).send({ error: "No membership found" });
         }
 
-        return res.status(200).send({ memberships });
+        return res.status(200).json({ memberships });
 
     } catch (error) {
-        return res.status(500).send({ error: error?.message });
+        return res.status(500).json({ error: error?.message });
     }
 }
 
