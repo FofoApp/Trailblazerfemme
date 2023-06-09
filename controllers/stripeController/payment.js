@@ -200,9 +200,7 @@ exports.membershipSubscription = async (req, res, next) => {
             // automatic_payment_methods: { enabled: true, },
             payment_method_types: ["card"],
 
-            metadata: {
-                subscription_data: JSON.stringify(newMetaData)
-            },
+            metadata: JSON.stringify(newMetaData),
 
             });
 
