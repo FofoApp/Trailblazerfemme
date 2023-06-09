@@ -8,7 +8,7 @@ const router = express.Router()
 router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, res) => {
 
     let endPointSecret = process.env.STRIPE_WEBHOOK_ENDPOINT;
-    
+
     const payload = req.body;
     let eventType = null;
     let data;
@@ -64,3 +64,6 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
   
   
   });
+
+
+export default router;
