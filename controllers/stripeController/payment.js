@@ -164,8 +164,22 @@ exports.membershipSubscription = async (req, res, next) => {
         if(!membership?.action === "membership") {
             return res.status(400).json({ status: "failed", error: "Invalid action type" });
         }
+        const membership_data =  {
+            amount: membership.amount,
+            membershipType: membership?.membershipType, 
+            membershipId: membership?.membershipId,
+            mode: membership?.mode,
+            
+            userId,
+            receipt_email: email,
+            action: "membership",
+            integration_check: 'accept_a_payment',
+            payment_date: new Date(Date.now()),                           
+        }
 
-        const customer = await stripe.customers.create();
+        const customer = await stripe.customers.create({
+            metadata: { membership_data: JSON.stringify({ ...membership_data }) }
+        });
 
         if(customer) {
 
@@ -173,40 +187,17 @@ exports.membershipSubscription = async (req, res, next) => {
               {customer: customer?.id},
               {apiVersion: '2022-11-15'}
             );
-
-
-            const membership_data =  {
-                amount: membership.amount,
-                membershipType: membership?.membershipType, 
-                membershipId: membership?.membershipId,
-                mode: membership?.mode,
-                
-                userId,
-                receipt_email: email,
-                action: "membership",
-                integration_check: 'accept_a_payment',
-                payment_date: new Date(Date.now()),                           
-            }
-
-  
-            let newMetaData = { ...membership_data }
     
             let paymentIntent = await stripe.paymentIntents.create({
-            customer: customer?.id,
+            // customer: customer?.id,
             amount: Number(membership?.amount) * 100,
             currency: 'usd',
-            // receipt_email: membership?.receipt_email,
-            
-            // automatic_payment_methods: { enabled: true, },
-            payment_method_types: ["card"],
-
-            metadata: JSON.stringify(newMetaData),
+            automatic_payment_methods: {enabled: true},
+            // payment_method_types: ["card"],
 
             });
 
             console.log({ paymentIntent })
-
-            // req.body = paymentIntent;
 
             res.status(200).json({
                 paymentIntent: paymentIntent?.client_secret,
