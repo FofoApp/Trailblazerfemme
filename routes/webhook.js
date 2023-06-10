@@ -122,7 +122,7 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
         } = data.metadata;
 
 
-          if(data?.payment_status?.userId && data?.status === 'succeeded') {
+          if(data?.status === 'succeeded') {
 
             const paymentIntentId = data.payment_intent;
 
@@ -171,7 +171,7 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
 
       console.log({ metadata: data })
 
-      const { userId, amount, membershipType, mode, membershipId, receipt_email  } = data.metadata?.subscriptionParams;
+      const { userId, amount, membershipType, mode, membershipId, receipt_email  } = data.metadata;
     
       const paymentStatus = data.payment_status;
 
@@ -243,7 +243,7 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
     
      if(eventType === "payment_intent.succeeded") {
 
-      if(data.payment_status === 'paid') {
+      if(data.status === 'succeeded') {
       
         const paymentIntentId = data.payment_intent;
         //yearly or monthly
