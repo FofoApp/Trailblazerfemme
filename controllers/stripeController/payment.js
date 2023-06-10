@@ -284,7 +284,7 @@ exports.membershipSubscription = async (req, res, next) => {
                 paymentIntent: paymentIntent?.client_secret,
                 customerId: customer?.id,
                 ephemeralKey: ephemeralKey?.secret,
-                mode: `${product?.action} subscription`,
+                mode: `${membership?.action} subscription`,
                 // session, url: session.url 
         
                 })
