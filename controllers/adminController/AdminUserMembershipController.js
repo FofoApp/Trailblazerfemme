@@ -5,11 +5,11 @@ const Membership = require('./../../models/adminModel/AdminMembershipModel');
 
 exports.createUserMembership = async (req, res, next) => {
     
-    let { name, pricePerYear, pricePerMonth, perks, benefits, description, accessType } = req.body;
+    let { name, pricePerYear, pricePerMonth, perks, benefits, description } = req.body;
 
-    let update_data = { name, pricePerYear, pricePerMonth, perks, benefits, description, accessType };
+    let update_data = { name, pricePerYear, pricePerMonth, perks, benefits, description };
 
-    // const accType = accessType.split(",");
+    // const accType .split(",");
 
 
      //POST REQUEST || CREATE MEMBERSHIP FOR USERS
@@ -20,7 +20,7 @@ exports.createUserMembership = async (req, res, next) => {
         "amount": 2000,
         "benefits": "Health care, Feeding, Housing",
         "description": "Bronze description"
-        "accessType": "Free"
+    ": "Free"
         }
      */
 
@@ -44,7 +44,6 @@ exports.createUserMembership = async (req, res, next) => {
         const member_data = { 
             id: saveMembership?.id, 
             name: saveMembership?.name, 
-            accessType: saveMembership?.accessType,
             benefits: saveMembership?.benefits,
             perks: saveMembership?.perks,
             description: saveMembership?.description,
@@ -70,7 +69,7 @@ exports.listUserMembership = async (req, res, next) => {
         const memberships = await Membership.paginate({}, {
             page: 1,
             limit: 10,
-            select: "id name accessType perks pricePerYear pricePerMonth benefits description  createdAt members",
+            select: "id nam perks pricePerYear pricePerMonth benefits description  createdAt members",
             populate: {
                 path: "members",
                 model: "User",
@@ -125,8 +124,7 @@ exports.findUserMembershipById = async (req, res, next) => {
 
         const member_data = { 
             id: membership?.id, 
-            name: membership?.name, 
-            accessType: membership?.accessType,
+            name: membership?.name,
             benefits: membership?.benefits,
             perks: membership?.perks,
             pricePerYear: membership?.pricePerYear,
@@ -155,16 +153,16 @@ exports.updateUserMembership = async (req, res, next) => {
         "amount": 2000,
         "benefits": "Health care, Feeding, Housing",
         "description": "Bronze description",
-        "accessType": "Free"
+    ": "Free"
         }
      */
 
     const { membershipId } = req.params;
 
 
-    let { name, pricePerYear, pricePerMonth, perks, benefits, description, accessType } = req.body;
+    let { name, pricePerYear, pricePerMonth, perks, benefits, description } = req.body;
 
-    let update_data = { name, pricePerYear, pricePerMonth, perks, benefits, description, accessType };
+    let update_data = { name, pricePerYear, pricePerMonth, perks, benefits, description };
 
     console.log(update_data)
 
@@ -186,7 +184,6 @@ exports.updateUserMembership = async (req, res, next) => {
         const member_data = { 
             id: checkIfMembershipExist?.id, 
             name: checkIfMembershipExist?.name, 
-            accessType: checkIfMembershipExist?.accessType,
             benefits: checkIfMembershipExist?.benefits,
             perks: checkIfMembershipExist?.perks,
             description: checkIfMembershipExist?.description,

@@ -6,7 +6,6 @@ const membershipSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
     pricePerYear: { type: Number, default: 0 },
     pricePerMonth: { type: Number, default: 0 },
-    accessType: [{ type: String, required: true}],
     benefits: {type: String, trim: true, default: "" },
     perks: [{ type: String, trim: true, default: [] } ],
     description: { type: String, required: true },
