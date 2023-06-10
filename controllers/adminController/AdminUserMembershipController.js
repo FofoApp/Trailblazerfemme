@@ -154,11 +154,16 @@ exports.updateUserMembership = async (req, res, next) => {
      */
 
     const { membershipId } = req.params;
-    let { name, amount, benefits, description, accessType } = req.body;
 
-    const accType = accessType.split(",");
+    if(req.body?.accessType) {
+        req.body.accessType = accessType.split(",")
+    }
 
-    const update_data = { name, amount, benefits, description, accessType: accessType };
+    let { name, amount, perks, benefits, description, accessType } = req.body;
+
+    let update_data = { name, amount, benefits, description, accessType };
+
+    console.log(update_data)
 
     try {
         
@@ -166,20 +171,24 @@ exports.updateUserMembership = async (req, res, next) => {
             return res.status(401).send({ error: "Invalid membership parameter"});
         }
 
-        const checkIfMembershipExist = await Membership.findByIdAndUpdate(membershipId, { $set: update_data }, {new: true});
+        let checkIfMembershipExist = await Membership.findByIdAndUpdate(membershipId, { 
+            $set: update_data,
+            $addToSet: perks
+        }, {new: true});
 
         if(!checkIfMembershipExist){
             return res.status(401).send({ error: "Unable to update membership" });
         }
 
         const member_data = { 
-            id: checkIfMembershipExist.id, 
-            name: checkIfMembershipExist.name, 
-            accessType: checkIfMembershipExist.accessType,
-            benefits: checkIfMembershipExist.benefits,
-            description: checkIfMembershipExist.description,
-            amount: checkIfMembershipExist.amount,
-            createdAt: checkIfMembershipExist.createdAt
+            id: checkIfMembershipExist?.id, 
+            name: checkIfMembershipExist?.name, 
+            accessType: checkIfMembershipExist?.accessType,
+            benefits: checkIfMembershipExist?.benefits,
+            perks: checkIfMembershipExist?.perks,
+            description: checkIfMembershipExist?.description,
+            amount: checkIfMembershipExist?.amount,
+            createdAt: checkIfMembershipExist?.createdAt
         }
 
         return res.status(200).send({message: "Membership updated successfully", membership: member_data });

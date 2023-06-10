@@ -42,27 +42,45 @@ exports.manuallyCreateAdmin = async (req, res, next) => {
 
 
 exports.manuallyUpgradeToAdmin = async (req, res, next) => {
-    const { userId } = req.body;
+
+    const { userId, email } = req.body;
+
+    const adminUser = req.user;
 
     try {
-        let user = await UserModel.findById(userId);
+
+        if(!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(404).json({ status: 'failed', message: `Invalid user id` })
+        }
+
+        if(!mongoose.Types.ObjectId.isValid(adminUser?.id)) {
+            return res.status(404).json({ status: 'failed', message: `Invalid admin id` })
+        }
+  
+        let user = await UserModel.findOne({ _id: userId, email });
+
+        if(user?.id?.toString() === adminUser?.id ) {
+            return res.status(404).json({ status: 'failed', message: `You can't upgrade yourself to admin` })
+        }
 
         if(!user) {
-            return res.status(404).json({ status: 'failed', message: `User with ID: ${userId} was not found` })
+            return res.status(404).json({ status: 'failed', message: `User with email: ${email} was not found` })
         }
 
         user.isAdmin = true;
-        user.roles = 'admin';
+        user.roles = [];
+        user.roles.push('admin');
 
-        const updatedAdmin = await user.save()
+        const updatedAdmin = await user.save();
 
         if(!updatedAdmin) {
-            return res.status(400).json({ status: 'failed', message: `Unable to update admin` })
+            return res.status(400).json({ status: 'failed', message: `Unable to update admin` });
         }
 
-        return res.status(201).json({ status: 'success', message: 'Admin updated successfully' })
+        return res.status(200).json({ status: 'success', message: `User ${email} is now an admin` });
+
     } catch (error) {
-        return res.status(500).json({ status: 'failed', message: `Server error updating admin` })
+        return res.status(500).json({ status: 'failed', message: `Server error updating admin` });
     }
 }
 
