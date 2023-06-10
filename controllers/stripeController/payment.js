@@ -214,11 +214,7 @@ exports.membershipSubscription = async (req, res, next) => {
 
         const user = await UserModel.findOne({ email });
 
-        const customer = await Stripe.customers.create({
-            name: fullname,
-            email: email,
-            metadata: { subscriptionParams: JSON.stringify({ ...membership }) }
-        });
+
 
         const memData = {
             price_data: {
@@ -248,6 +244,25 @@ exports.membershipSubscription = async (req, res, next) => {
             payment_date: new Date(Date.now()),                           
         }
 
+        const customer = await Stripe.customers.create({
+            name: fullname,
+            email: email,
+            metadata: { subscriptionParams: JSON.stringify({ ...membership }) }
+        });
+
+        const ephemeralKey = await Stripe.ephemeralKeys.create(
+            {customer: customer.id},
+            {apiVersion: '2020-08-27'}
+          );
+          const paymentIntent = await Stripe.paymentIntents.create({
+            amount: 1099,
+            currency: 'eur',
+            customer: customer.id,
+            automatic_payment_methods: {
+              enabled: true,
+            },
+          });
+
         const session = await Stripe.checkout.sessions.create({
             payment_method_types: ['card'],
               customer: customer?.id,
@@ -256,17 +271,24 @@ exports.membershipSubscription = async (req, res, next) => {
             //   customer_email: email,    
             metadata: subscriptionParams,   
     
-              success_url: `${process.env.CLIENT_URL}/?success=true`,
-              cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
+            success_url: `${process.env.CLIENT_URL}/?success=true`,
+            cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
     
               // success_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?success=true`,
               // cancel_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?canceled=true`,
               
             });
 
+            return res.status(200).json({
+                paymentIntent: paymentIntent?.client_secret,
+                customerId: customer?.id,
+                ephemeralKey: ephemeralKey?.secret,
+                mode: `${product?.action} subscription`,
+                session, url: session.url 
+        
+                })
 
-            // console.log({ session })
-        return res.status(200).json({ message: "Payment disabled", session, url: session.url  })
+        
         
 
         // const customer = await Stripe.customers.create({
@@ -324,7 +346,7 @@ exports.membershipSubscription = async (req, res, next) => {
 exports.productPayment = async (req, res, next) => {
 
     const { product } = req.body;
-    const userId = req?.user?.id;
+    const { id: userId, fullname, email } = req.user;
 
     try {
 
@@ -334,11 +356,7 @@ exports.productPayment = async (req, res, next) => {
             return res.status(400).json({ status: "failed", error: "Order item(s) cannot be empty" })
         }
 
-        // const customer = await Stripe.customers.create({
-        //     name: fullname,
-        //     email: email,
-        //     metadata: { subscriptionParams: JSON.stringify({ ...membership }) }
-        // });
+
 
         let totalPrice = product?.orderItems.reduce((acc, curr) => {
             return acc + (curr.price * curr.qty);
@@ -359,12 +377,12 @@ exports.productPayment = async (req, res, next) => {
         })
 
 
-        const metadata = {
+        const shopMetadata = {
             "product": JSON.stringify(product?.orderItems),
             "shippingAddress": JSON.stringify(product?.shippingAddress),
             "taxPrice": product?.taxPrice,
             "shippingPrice": product?.shippingPrice,
-            "itemsPrice": product?.itemsPrice,
+            "itemsPrice": Number(product?.itemsPrice),
             "totalPrice": Number(totalPrice),
             userId,
             action: "shop",
@@ -372,6 +390,26 @@ exports.productPayment = async (req, res, next) => {
             payment_date: new Date(),
         };
 
+        const customer = await Stripe.customers.create({
+            name: fullname,
+            email: email,
+            metadata: shopMetadata
+        });
+
+
+        const ephemeralKey = await Stripe.ephemeralKeys.create(
+            { customer: customer?.id },
+            {apiVersion: '2020-08-27'}
+        );
+
+        const paymentIntent = await Stripe.paymentIntents.create({
+            amount: Number(totalPrice),
+            currency: 'usd',
+            customer: customer?.id,
+            automatic_payment_methods: {
+              enabled: true,
+            },
+          });
 
         const session = await Stripe.checkout.sessions.create({ 
             payment_method_types: ["card"], 
@@ -380,19 +418,17 @@ exports.productPayment = async (req, res, next) => {
             metadata, 
             success_url: `${process.env.CLIENT_URL}/?success=true`,
             cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
-        
-        
         }); 
 
-        // console.log(session)
+        return res.status(200).json({
+        paymentIntent: paymentIntent?.client_secret,
+        customerId: customer?.id,
+        ephemeralKey: ephemeralKey?.secret,
+        mode: `${product?.action} subscription`,
+        session, url: session.url 
+
+        })
        
-
-        return res.status(200).json({ message: "Payment disabled", session, url: session.url  })
-
-
-
-
-
 
 
 
