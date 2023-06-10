@@ -48,10 +48,6 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
 
   const webhookAction = data?.metadata?.action;
 
-  const { userId, }  = data.metadata;
-
-  const paymentStatus = data.payment_status;
-
 
     switch(webhookAction) {
       case 'shop':
@@ -247,7 +243,7 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
     
      if(eventType === "payment_intent.succeeded") {
 
-      if(membershipId && data.payment_status === 'paid') {
+      if(data.payment_status === 'paid') {
       
         const paymentIntentId = data.payment_intent;
         //yearly or monthly
@@ -313,69 +309,7 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
     break;
 
     default:
-    // console.log(`Unhandled event type ${ eventType }`);
-
-    if(membershipId && data.payment_status === 'paid') {
-      
-      const paymentIntentId = data.payment_intent;
-      //yearly or monthly
-
-      const subType = mode === 'yearly' ? 'years' : "months";
-      // const monthly = 'months';
-
-     const days = 'days';
-
-      const start_date = moment();
-      const end_date = moment().add(1, subType);
-
-      const diff = end_date.diff(start_date, days);
-
-    //  const diff = user?.subscription_end_date.diff(user?.subscription_start_date, days);
-
-    let  membership_data = {
-          mode,
-          membershipType,
-          membershipId,
-          // subscriptionId is the membership mongoose ID
-          stripeSubscriptionId: paymentIntentId,
-          userId,
-          receipt_email,
-          isActive: true,
-          isPaid: true,
-          amount: Number(amount),
-          subscription_start_date: start_date,
-          subscription_end_date: end_date,
-          days_between_next_payment: diff,
-          paymentIntentId: paymentIntentId,
-      }
-
-    const create_new_subscriber = new MembershipSubscriber(membership_data);
-    const save_new_subscriber = await create_new_subscriber.save();
-
-    const updateUser = await UserModel.findByIdAndUpdate(membership_data?.userId,
-        {
-          "$set": {
-              "subscriptionId": save_new_subscriber?.id,
-              "paid": save_new_subscriber?.isPaid,
-              "mode": save_new_subscriber?.mode,
-              "isActive": save_new_subscriber?.isActive,
-              "isMembershipActive": save_new_subscriber?.isActive,
-              "membershipName": save_new_subscriber?.membershipType,
-              "membershipType": save_new_subscriber?.membershipType,
-              "amount": save_new_subscriber?.amount,
-              "subscription_end_date": save_new_subscriber?.subscription_end_date,
-              "subscription_start_date": save_new_subscriber?.subscription_start_date,
-              "days_between_next_payment": save_new_subscriber?.days_between_next_payment,
-              "paymentIntentId": save_new_subscriber?.paymentIntentId,
-          },
-
-          "$addToSet": {  "membershipSubscriberId": save_new_subscriber?.id,  }
-      }, { new: true  });
-
-      console.log({name: "updateUser collection", updateUser})
-
-
-}
+    console.log(`Unhandled event type ${ eventType }`);
 
 
 
