@@ -4,7 +4,8 @@ const mongoosePaginate = require('mongoose-paginate-v2');
 
 const membershipSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
-    amount: { type: Number, required: true },
+    pricePerYear: { type: Number, default: 0 },
+    pricePerMonth: { type: Number, default: 0 },
     accessType: [{ type: String, required: true}],
     benefits: {type: String, trim: true, default: "" },
     perks: [{ type: String, trim: true, default: [] } ],

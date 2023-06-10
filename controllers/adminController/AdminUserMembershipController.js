@@ -5,7 +5,9 @@ const Membership = require('./../../models/adminModel/AdminMembershipModel');
 
 exports.createUserMembership = async (req, res, next) => {
     
-    let { name, amount, benefits, perks, description, accessType } = req.body;
+    let { name, pricePerYear, pricePerMonth, perks, benefits, description, accessType } = req.body;
+
+    let update_data = { name, pricePerYear, pricePerMonth, perks, benefits, description, accessType };
 
     // const accType = accessType.split(",");
 
@@ -31,7 +33,7 @@ exports.createUserMembership = async (req, res, next) => {
             return res.status(401).json({ status: "failed", error: "Membership name already exsit" });
         }
 
-        const createMembership = new Membership({ name, amount, benefits, perks, description, accessType: accessType  });
+        const createMembership = new Membership(update_data);
 
         const saveMembership = await createMembership.save();
 
@@ -40,14 +42,15 @@ exports.createUserMembership = async (req, res, next) => {
         }
 
         const member_data = { 
-            id: saveMembership.id, 
-            name: saveMembership.name, 
-            accessType: saveMembership.accessType,
-            benefits: saveMembership.benefits,
-            perks: saveMembership.perks,
-            description: saveMembership.description,
-            amount: saveMembership.amount,
-            createdAt: saveMembership.createdAt
+            id: saveMembership?.id, 
+            name: saveMembership?.name, 
+            accessType: saveMembership?.accessType,
+            benefits: saveMembership?.benefits,
+            perks: saveMembership?.perks,
+            description: saveMembership?.description,
+            pricePerYear: saveMembership?.pricePerYear,
+            pricePerMonth: saveMembership?.pricePerMonth,
+            createdAt: saveMembership?.createdAt
         }
 
         return res.status(200).json({ status: "success", membership: member_data });
@@ -67,7 +70,7 @@ exports.listUserMembership = async (req, res, next) => {
         const memberships = await Membership.paginate({}, {
             page: 1,
             limit: 10,
-            select: "id name accessType perks benefits description amount createdAt members",
+            select: "id name accessType perks pricePerYear pricePerMonth benefits description  createdAt members",
             populate: {
                 path: "members",
                 model: "User",
@@ -119,15 +122,18 @@ exports.findUserMembershipById = async (req, res, next) => {
             return res.status(401).send({ error: "Membership not found" });
         }
 
+
         const member_data = { 
-            id: membership.id, 
-            name: membership.name, 
-            accessType: membership.accessType,
-            benefits: membership.benefits,
-            perks: membership.perks,
-            description: membership.description,
-            amount: membership.amount,
-            createdAt: membership.createdAt,
+            id: membership?.id, 
+            name: membership?.name, 
+            accessType: membership?.accessType,
+            benefits: membership?.benefits,
+            perks: membership?.perks,
+            pricePerYear: membership?.pricePerYear,
+            pricePerMonth: membership?.pricePerMonth,
+            description: membership?.description,
+            amount: membership?.amount,
+            createdAt: membership?.createdAt,
             subscribers
         }
 
@@ -156,9 +162,9 @@ exports.updateUserMembership = async (req, res, next) => {
     const { membershipId } = req.params;
 
 
-    let { name, amount, perks, benefits, description, accessType } = req.body;
+    let { name, pricePerYear, pricePerMonth, perks, benefits, description, accessType } = req.body;
 
-    let update_data = { name, amount, benefits, description, accessType };
+    let update_data = { name, pricePerYear, pricePerMonth, perks, benefits, description, accessType };
 
     console.log(update_data)
 
@@ -184,7 +190,8 @@ exports.updateUserMembership = async (req, res, next) => {
             benefits: checkIfMembershipExist?.benefits,
             perks: checkIfMembershipExist?.perks,
             description: checkIfMembershipExist?.description,
-            amount: checkIfMembershipExist?.amount,
+            pricePerYear: checkIfMembershipExist?.pricePerYear,
+            pricePerMonth: checkIfMembershipExist?.pricePerMonth,
             createdAt: checkIfMembershipExist?.createdAt
         }
 
