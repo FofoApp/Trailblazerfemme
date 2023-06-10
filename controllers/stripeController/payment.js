@@ -247,7 +247,7 @@ exports.membershipSubscription = async (req, res, next) => {
         const customer = await Stripe.customers.create({
             name: fullname,
             email: email,
-            metadata: JSON.stringify({ ...subscriptionParams })
+            metadata: { subscriptionParams: JSON.stringify({ ...subscriptionParams }) }
         });
 
         const ephemeralKey = await Stripe.ephemeralKeys.create(

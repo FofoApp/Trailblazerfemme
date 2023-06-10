@@ -173,9 +173,9 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
 
       console.log("MEMBERSHIP PAYMENT")
 
-      console.log({ metadata: data.metadata })
+      console.log({ metadata: data })
 
-      const { userId, amount, membershipType, mode, membershipId, receipt_email  } = data.metadata;
+      const { userId, amount, membershipType, mode, membershipId, receipt_email  } = data.metadata?.subscriptionParams;
     
       const paymentStatus = data.payment_status;
 
