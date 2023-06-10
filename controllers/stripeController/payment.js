@@ -214,6 +214,27 @@ exports.membershipSubscription = async (req, res, next) => {
 
         const user = await UserModel.findOne({ email });
 
+        const customer = await Stripe.customers.create({
+            name: fullname,
+            email: email,
+            metadata: { subscriptionParams: JSON.stringify({ ...membership }) }
+        });
+
+        const memData = {
+            price_data: {
+              currency: 'usd',
+              unit_amount: Number(membership?.amount) * 100,
+              product_data: {
+                name: membership?.membershipType,
+                // description: item?.desc,
+                // images: [item.image],
+              },
+              
+            },
+            quantity: 1,
+      
+          }
+
         const subscriptionParams =  {
             amount: membership?.amount,
             membershipType: membership?.membershipType, 
@@ -227,7 +248,26 @@ exports.membershipSubscription = async (req, res, next) => {
             payment_date: new Date(Date.now()),                           
         }
 
-        return res.status(200).json({ message: "Payment disabled"  })
+        const session = await Stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+              customer: customer?.id,
+              line_items: memData,
+              mode: 'payment',
+              customer_email: email,
+    
+               metadata: subscriptionParams,   
+    
+              success_url: `${process.env.CLIENT_URL}/?success=true`,
+              cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
+    
+              // success_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?success=true`,
+              // cancel_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?canceled=true`,
+              
+            });
+
+
+
+        return res.status(200).json({ message: "Payment disabled", session  })
         
 
         // const customer = await Stripe.customers.create({
@@ -239,8 +279,8 @@ exports.membershipSubscription = async (req, res, next) => {
         //       },
         //   });
 
-        const customer = await getOrCreateStripeCustomer(user, subscriptionParams);
-        const subscription = await createStripeSubscription(customer, subscriptionParams);
+        // const customer = await getOrCreateStripeCustomer(user, subscriptionParams);
+        // const subscription = await createStripeSubscription(customer, subscriptionParams);
 
         //  {apiVersion: '2022-11-15'}
         // const ephemeralKey = await Stripe.ephemeralKeys.create(

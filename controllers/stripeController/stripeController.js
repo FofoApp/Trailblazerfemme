@@ -30,7 +30,7 @@ exports.stripeCheckout = async (req, res) => {
         return {
             price_data: {
               currency: 'usd',
-              unit_amount: item?.price * 100,
+              unit_amount: Number(item?.price)  * 100,
               product_data: {
                 name: item?.name,
                 description: item?.desc,

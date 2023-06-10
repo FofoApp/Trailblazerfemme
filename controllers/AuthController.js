@@ -182,7 +182,7 @@ exports.register = async (req, res, next) => {
 
              const userdata = {
                 success: true,
-                message: `${result.email} is a verified user, proceed to membership`,
+                message: `${result?.email} is a verified user, proceed to membership`,
                 stage: 2,
                 accessToken,
                 refreshToken,
@@ -242,7 +242,7 @@ exports.register = async (req, res, next) => {
 
         await refreshAccessToken.save();
 
-        return res.status(200).send({accessToken, refreshToken, userId: savedUser?.id, stage: 1, otp: saveOTP?.otp,  message: "Otp has been sent to your phone"});
+        return res.status(200).send({accessToken, refreshToken, userId: savedUser?.id, stage: 1, otp: saveOTP?.otp,  message: "Otp has been sent to your email"});
 
        
     } catch (error) {
