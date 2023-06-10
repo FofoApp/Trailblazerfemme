@@ -30,9 +30,9 @@ router.get('/list-block-users', verifyAccessToken, permissions(["admin"]), Admin
 router.get('/show-blocked-user', verifyAccessToken, permissions(["admin"]), AdminUserController.showblockedUser);
 router.get('/finduser', verifyAccessToken, permissions(["admin"]), AdminUserController.findUserByEmail);
 
-router.post('/manually-create-admin', AdminUserController.manuallyCreateAdmin);
-router.patch('/manually-upgrade-to-admin', AdminUserController.manuallyUpgradeToAdmin);
-
+router.post('/manually-create-admin', verifyAccessToken, permissions(["admin"]), AdminUserController.manuallyCreateAdmin);
+router.patch('/manually-upgrade-to-admin', verifyAccessToken, permissions(["admin"]), AdminUserController.manuallyUpgradeToAdmin);
+router.patch('/make-admin', verifyAccessToken, permissions(["admin"]), AdminUserController.manuallyUpgradeToAdmin);
 
 
 //FIND A USER 
@@ -58,6 +58,7 @@ router.post('/verifyotp', verifyAccessToken, AuthController.verifyOtp);
 router.post('/resend-otp', AuthController.otpPage);
 router.patch('/follow-unfollow/:followId',  verifyAccessToken, AuthController.followAndUnfollow);
 router.patch('/update-password/:userId', AuthController.updatePassword);
+
 
 router.patch('/user/:userId/update', verifyAccessToken,  upload.single('profileImage'),  AuthController.updateUser);
 
