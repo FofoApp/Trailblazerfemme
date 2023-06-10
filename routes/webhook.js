@@ -6,17 +6,19 @@ const router = express.Router()
 
 
 router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, res) => {
-    console.log({ signInSecret: process.env.STRIPE_SECRET_KEY })
-    let endPointSecret = process.env.STRIPE_SIGNIN_SECRET;
+    console.log({ STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY })
+    let endPointSecret;
+
+    //  = process.env.STRIPE_SIGNIN_SECRET;
 
     const payload = req.body;
     let eventType = null;
     let data;
 
-    console.log({ signInSecret: process.env.STRIPE_SIGNIN_SECRET });
+    console.log({ STRIPE_SIGNIN_SECRET: process.env.STRIPE_SIGNIN_SECRET });
 
     if(endPointSecret) {
-      const signature = request.headers['stripe-signature'];
+      const signature = req.headers['stripe-signature'];
       let event = req.body;
   
       try {
@@ -40,27 +42,28 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
       eventType = req.body.type;
     }
   
-    console.log({ eventType })
+
   
     if(eventType === "checkout.session.completed") {
-
-      Stripe.subscriptions
-      .retrieve(data.customer)
-      .then(async (customer) => {
-        try {
-          // CREATE ORDER
-          // createOrder(customer, data);
-          console.log("Ordered");
-          console.log("Customer details:", customer, data)
-          res.status(200).json({ message: 'Order created', data: data })
-          res.status(200).send("Order created")
-        } catch (err) {
+      console.log({ eventType })
+      console.log({ data })
+      // Stripe.subscriptions
+      // .retrieve(data.customer)
+      // .then(async (customer) => {
+      //   try {
+      //     console.log("Ordered");
+      //     console.log("Customer details:", customer, data)
+      //     res.status(200).json({ message: 'Order created', data: data })
+      //     res.status(200).send("Order created")
+      //   } catch (err) {
   
-          console.log(err);
-        }
-      })
-      .catch((err) => console.log(err.message));
+      //     console.log(err);
+      //   }
+      // })
+      // .catch((err) => console.log(err.message));
   
+    } else {
+      console.log("An error occured")
     }
   
   

@@ -5,7 +5,7 @@ const Membership = require('../../models/adminModel/AdminMembershipModel');
 const MembershipSubscriber = require('../../models/membershipModel/MembershipSubscribersModel');
 
 const Order = require('../../models/productModel/orderModel');
-const User = require('../../models/UserModel');
+const UserModel = require('../../models/UserModel');
 
 const Stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
@@ -251,9 +251,9 @@ exports.membershipSubscription = async (req, res, next) => {
         const session = await Stripe.checkout.sessions.create({
             payment_method_types: ['card'],
               customer: customer?.id,
-              line_items: memData,
+              line_items: [memData],
               mode: 'payment',
-              customer_email: email,
+            //   customer_email: email,
     
                metadata: subscriptionParams,   
     
@@ -266,8 +266,8 @@ exports.membershipSubscription = async (req, res, next) => {
             });
 
 
-
-        return res.status(200).json({ message: "Payment disabled", session  })
+            console.log({ session })
+        return res.status(200).json({ message: "Payment disabled", session, url: session.url  })
         
 
         // const customer = await Stripe.customers.create({
