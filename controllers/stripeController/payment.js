@@ -231,23 +231,24 @@ exports.membershipSubscription = async (req, res, next) => {
       
           }
 
-        const subscriptionParams =  {
-            amount: membership?.amount,
-            membershipType: membership?.membershipType, 
-            membershipId: membership?.membershipId,
-            mode: membership?.mode,
+
+        const membershipMetadata = {
+            "amount": JSON.stringify(membership?.amount),
+            "membershipType": JSON.stringify(membership?.membershipType),
+            "membershipId": JSON.stringify(membership?.membershipId),
+            "mode": JSON.stringify(membership?.mode),
             
-            userId,
-            receipt_email: email,
-            action: "membership",
-            integration_check: 'accept_a_payment',
-            payment_date: new Date(Date.now()),                           
-        }
+            "userId": userId,
+            "receipt_email": email,
+            "action": "membership",
+            "integration_check": 'accept_a_payment',
+            "payment_date": JSON.stringify(new Date()),    
+        };
 
         const customer = await Stripe.customers.create({
             name: fullname,
             email: email,
-            metadata: { subscriptionParams: JSON.stringify({ subscriptionParams }) }
+            metadata: membershipMetadata
         });
 
         const ephemeralKey = await Stripe.ephemeralKeys.create(
@@ -280,14 +281,14 @@ exports.membershipSubscription = async (req, res, next) => {
         // success_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?success=true`,
         // cancel_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?canceled=true`,
 
-            return res.status(200).json({
-                paymentIntent: paymentIntent?.client_secret,
-                customerId: customer?.id,
-                ephemeralKey: ephemeralKey?.secret,
-                publishableKey: process.env.STRIPE_PUBLISHABLE_KEY
-                // session, url: session.url 
-        
-                })
+    return res.status(200).json({
+        paymentIntent: paymentIntent?.client_secret,
+        customerId: customer?.id,
+        ephemeralKey: ephemeralKey?.secret,
+        publishableKey: process.env.STRIPE_PUBLISHABLE_KEY
+        // session, url: session.url 
+
+        })
 
         
         

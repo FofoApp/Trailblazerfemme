@@ -122,7 +122,7 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
         } = data.metadata;
 
 
-          if(data?.payment_status?.userId && data?.payment_status === 'paid') {
+          if(data?.payment_status?.userId && data?.status === 'succeeded') {
 
             const paymentIntentId = data.payment_intent;
 
