@@ -27,10 +27,10 @@ exports.listMemberships = async (req, res, next) => {
                 membershipType: membership?.name,
                 membershipId: membership?.id,
                 description: membership?.description,
-                benefits: "",
-                perks: [],
-                pricePerYear: 250,
-                pricePerMonth: 50,
+                benefits: membership?.description,
+                perks: membership?.benefits,
+                pricePerYear: membership?.pricePerYear,
+                pricePerMonth: membership?.pricePerMonth,
                 createdAt: membership?.createdAt,    
             }
         })
