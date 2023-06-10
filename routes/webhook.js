@@ -55,7 +55,7 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
       case 'shop':
         
         // shop action....
-        if(eventType === 'checkout.session.completed') {
+        if(eventType === 'payment_intent.succeeded') {
 
           const {
             product,
@@ -120,7 +120,7 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
 
       console.log("MEMBERSHIP PAYMENT")
 
-      if(eventType === 'checkout.session.completed') {
+      if(eventType === 'payment_intent.succeeded') {
 
         console.log({ metadata: data.metadata })
 
@@ -202,7 +202,7 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
 
     }
   
-    // if(eventType === "checkout.session.completed") {
+    // if(eventType === "payment_intent.succeeded") {
     //   console.log({ eventType })
     //   console.log({ data })
 
