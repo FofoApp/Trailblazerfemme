@@ -48,7 +48,7 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
 
   const webhookAction = data?.metadata?.action;
 
-
+  console.log({ metadata })
     switch(webhookAction) {
       case 'shop':
         
@@ -108,7 +108,7 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
         //   }
 
         // } 
-        
+    
         
          if(eventType === 'payment_intent.succeeded') {
           const {
