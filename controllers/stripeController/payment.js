@@ -233,16 +233,16 @@ exports.membershipSubscription = async (req, res, next) => {
 
 
         const membershipMetadata = {
-            "amount": JSON.stringify(membership?.amount),
-            "membershipType": JSON.stringify(membership?.membershipType),
-            "membershipId": JSON.stringify(membership?.membershipId),
-            "mode": JSON.stringify(membership?.mode),
+            "amount": membership?.amount,
+            "membershipType": membership?.membershipType,
+            "membershipId": membership?.membershipId,
+            "mode": membership?.mode,
             
             "userId": userId,
             "receipt_email": email,
             "action": "membership",
             "integration_check": 'accept_a_payment',
-            "payment_date": JSON.stringify(new Date()),    
+            "payment_date": new Date(),    
         };
 
         const customer = await Stripe.customers.create({

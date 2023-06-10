@@ -10,7 +10,7 @@ const router = express.Router()
 
 router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, res) => {
     // console.log({ STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY })
-    let endPointSecret;
+    let endPointSecret = process.env.STRIPE_SIGNIN_SECRET;
 
     const payload = req.body;
     let eventType = null;
