@@ -263,7 +263,7 @@ exports.membershipSubscription = async (req, res, next) => {
             },
           });
 
-          console.log({ customer, ephemeralKey, paymentIntent  })
+
 
         // const session = await Stripe.checkout.sessions.create({
         //     payment_method_types: ['card'],

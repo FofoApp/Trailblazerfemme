@@ -122,6 +122,8 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
 
       if(eventType === 'checkout.session.completed') {
 
+        console.log({ metadata: data.metadata })
+
           const { userId, amount, membershipType, mode, membershipId, receipt_email  } = data.metadata;
         
           const paymentStatus = data.payment_status;
