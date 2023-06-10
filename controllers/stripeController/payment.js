@@ -247,7 +247,7 @@ exports.membershipSubscription = async (req, res, next) => {
         const customer = await Stripe.customers.create({
             name: fullname,
             email: email,
-            metadata: { subscriptionParams: JSON.stringify({ ...membership }) }
+            metadata: { subscriptionParams: JSON.stringify({ ...subscriptionParams }) }
         });
 
         const ephemeralKey = await Stripe.ephemeralKeys.create(
@@ -263,28 +263,27 @@ exports.membershipSubscription = async (req, res, next) => {
             },
           });
 
-        const session = await Stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-              customer: customer?.id,
-              line_items: [memData],
-              mode: 'payment',
-            //   customer_email: email,    
-            metadata: subscriptionParams,   
+        // const session = await Stripe.checkout.sessions.create({
+        //     payment_method_types: ['card'],
+        //       customer: customer?.id,
+        //       line_items: [memData],
+        //       mode: 'payment',
+        //     //   customer_email: email,    
+        //     metadata: subscriptionParams,   
     
-            success_url: `${process.env.CLIENT_URL}/?success=true`,
-            cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
-    
-              // success_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?success=true`,
-              // cancel_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?canceled=true`,
-              
-            });
+        //     success_url: `${process.env.CLIENT_URL}/?success=true`,
+        //     cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
+            
+        // });
+        // success_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?success=true`,
+        // cancel_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?canceled=true`,
 
             return res.status(200).json({
                 paymentIntent: paymentIntent?.client_secret,
                 customerId: customer?.id,
                 ephemeralKey: ephemeralKey?.secret,
                 mode: `${product?.action} subscription`,
-                session, url: session.url 
+                // session, url: session.url 
         
                 })
 
@@ -337,7 +336,7 @@ exports.membershipSubscription = async (req, res, next) => {
         //   res.status(200).json({ ...subscription  })
 
     } catch(error) {
-        // console.log(error)
+        console.log(error)
         return res.status(500).json({ error: error?.message })
     }
 }
@@ -411,21 +410,21 @@ exports.productPayment = async (req, res, next) => {
             },
           });
 
-        const session = await Stripe.checkout.sessions.create({ 
-            payment_method_types: ["card"], 
-            line_items, 
-            mode: "payment",
-            metadata, 
-            success_url: `${process.env.CLIENT_URL}/?success=true`,
-            cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
-        }); 
+        // const session = await Stripe.checkout.sessions.create({ 
+        //     payment_method_types: ["card"], 
+        //     line_items, 
+        //     mode: "payment",
+        //     metadata, 
+        //     success_url: `${process.env.CLIENT_URL}/?success=true`,
+        //     cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
+        // }); 
 
         return res.status(200).json({
         paymentIntent: paymentIntent?.client_secret,
         customerId: customer?.id,
         ephemeralKey: ephemeralKey?.secret,
         mode: `${product?.action} subscription`,
-        session, url: session.url 
+        // session, url: session.url 
 
         })
        
