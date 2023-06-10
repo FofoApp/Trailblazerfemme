@@ -84,7 +84,7 @@ exports.hooks = async (req, res) => {
       //       paymentIntentId,
   
       //       paymentResult: {
-      //         id: paymentIntentId,
+      //         paymentIntentId: paymentIntentId,
       //         status: "paid",
       //         update_time: new Date(Date.now()),
       //       },

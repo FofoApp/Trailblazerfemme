@@ -253,9 +253,8 @@ exports.membershipSubscription = async (req, res, next) => {
               customer: customer?.id,
               line_items: [memData],
               mode: 'payment',
-            //   customer_email: email,
-    
-               metadata: subscriptionParams,   
+            //   customer_email: email,    
+            metadata: subscriptionParams,   
     
               success_url: `${process.env.CLIENT_URL}/?success=true`,
               cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
@@ -266,7 +265,7 @@ exports.membershipSubscription = async (req, res, next) => {
             });
 
 
-            console.log({ session })
+            // console.log({ session })
         return res.status(200).json({ message: "Payment disabled", session, url: session.url  })
         
 
@@ -316,7 +315,7 @@ exports.membershipSubscription = async (req, res, next) => {
         //   res.status(200).json({ ...subscription  })
 
     } catch(error) {
-        console.log(error)
+        // console.log(error)
         return res.status(500).json({ error: error?.message })
     }
 }
@@ -325,66 +324,127 @@ exports.membershipSubscription = async (req, res, next) => {
 exports.productPayment = async (req, res, next) => {
 
     const { product } = req.body;
-    
     const userId = req?.user?.id;
-    
+
     try {
 
-        return res.status(200).json({ message: "Payment disabled"  })
+        // return res.status(200).json({ message: "Payment disabled"  })
 
         if(product?.orderItems?.length === 0) {
             return res.status(400).json({ status: "failed", error: "Order item(s) cannot be empty" })
         }
 
-        const customer = Stripe.customers.create();
+        // const customer = await Stripe.customers.create({
+        //     name: fullname,
+        //     email: email,
+        //     metadata: { subscriptionParams: JSON.stringify({ ...membership }) }
+        // });
 
         let totalPrice = product?.orderItems.reduce((acc, curr) => {
             return acc + (curr.price * curr.qty);
         }, 0);
 
-        if(customer) {
+        const line_items = product?.orderItems?.map((order) => {
+            return  { 
+                price_data: { 
+                  currency: "usd", 
+                  product_data: { 
+                    name: order?.name, 
+                  }, 
+                  unit_amount: Number(order?.price) * 100, 
+                }, 
+                quantity: order?.qty, 
+              }
+    
+        })
 
-            const ephemeralKey = await Stripe.ephemeralKeys.create(
-              { customer: customer?.id },
-              { apiVersion: '2022-11-15' }
-            );
 
-            // 
-            let paymentIntent = await Stripe.paymentIntents.create({
-            customer: customer?.id,
-            amount: Number(totalPrice) * 100,
-            currency: 'usd',
-            receipt_email: product?.receipt_email,
+        const metadata = {
+            "product": JSON.stringify(product?.orderItems),
+            "shippingAddress": JSON.stringify(product?.shippingAddress),
+            "taxPrice": product?.taxPrice,
+            "shippingPrice": product?.shippingPrice,
+            "itemsPrice": product?.itemsPrice,
+            "totalPrice": Number(totalPrice),
+            userId,
+            action: "shop",
+            integration_check: 'accept_a_payment',
+            payment_date: new Date(),
+        };
+
+
+        const session = await Stripe.checkout.sessions.create({ 
+            payment_method_types: ["card"], 
+            line_items, 
+            mode: "payment",
+            metadata, 
+            success_url: `${process.env.CLIENT_URL}/?success=true`,
+            cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
+        
+        
+        }); 
+
+        // console.log(session)
+       
+
+        return res.status(200).json({ message: "Payment disabled", session, url: session.url  })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // if(customer) {
+
+        //     const ephemeralKey = await Stripe.ephemeralKeys.create(
+        //       { customer: customer?.id },
+        //       { apiVersion: '2022-11-15' }
+        //     );
+
             
-            automatic_payment_methods: { enabled: true, },
+        //     let paymentIntent = await Stripe.paymentIntents.create({
+        //     customer: customer?.id,
+        //     amount: Number(totalPrice) * 100,
+        //     currency: 'usd',
+        //     receipt_email: product?.receipt_email,
+            
+        //     automatic_payment_methods: { enabled: true, },
+        //     metadata: {
+        //         "product": JSON.stringify(product?.orderItems),
+        //         "shippingAddress": JSON.stringify(product?.shippingAddress),
+        //         "taxPrice": product?.taxPrice,
+        //         "shippingPrice": product?.shippingPrice,
+        //         "itemsPrice": product?.itemsPrice,
+        //         "totalPrice": Number(totalPrice),
+        //         userId,
+        //         action: "shop",
+        //         integration_check: 'accept_a_payment',
+        //         payment_date: new Date(),
+        //     },
 
-            metadata: {
-                "product": JSON.stringify(product?.orderItems),
-                "shippingAddress": JSON.stringify(product?.shippingAddress),
-                "taxPrice": product?.taxPrice,
-                "shippingPrice": product?.shippingPrice,
-                "itemsPrice": product?.itemsPrice,
-                "totalPrice": Number(totalPrice),
-                userId,
-                action: "shop",
-                integration_check: 'accept_a_payment',
-                payment_date: new Date(),
-            },
+        //     });
 
-            });
-
-            console.log({ data: new Date() })
+        //     console.log({ data: new Date() })
                 
-            return res.status(200).json({ 
-                paymentIntent: paymentIntent?.client_secret,
-                customerId: customer?.id,
-                ephemeralKey: ephemeralKey?.secret,
-                mode: "shop",
-            })
+        //     return res.status(200).json({ 
+        //         paymentIntent: paymentIntent?.client_secret,
+        //         customerId: customer?.id,
+        //         ephemeralKey: ephemeralKey?.secret,
+        //         mode: "shop",
+        //     })
 
-        }
+        // }
 
     } catch (error) {
+        console.log(error)
         return res.status(500).json({ error: "Error processing product payment"})
     }
 }

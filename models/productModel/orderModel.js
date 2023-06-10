@@ -26,7 +26,7 @@ const orderSchema = new mongoose.Schema({
         paymentIntentId: { type: String, default: "" },
 
         paymentResult: {
-          id: { type: String },
+          paymentIntentId: { type: String },
           status: { type: String },
           update_time: { type: String },
         },
@@ -38,6 +38,7 @@ const orderSchema = new mongoose.Schema({
         isPaid: { type: Boolean, default: false, },
         paidAt: { type: Date,  },
         isDelivered: { type: Boolean,  default: false, },
+        deliveryStatus: { type: String,  default: "pending" },
         deliveredAt: { type: Date, },
         orderId: { type: String, },
 
