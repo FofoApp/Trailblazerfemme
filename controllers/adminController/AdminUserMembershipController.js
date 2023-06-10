@@ -69,7 +69,7 @@ exports.listUserMembership = async (req, res, next) => {
         const memberships = await Membership.paginate({}, {
             page: 1,
             limit: 10,
-            select: "id nam perks pricePerYear pricePerMonth benefits description  createdAt members",
+            select: "id name perks pricePerYear pricePerMonth benefits description  createdAt members",
             populate: {
                 path: "members",
                 model: "User",
