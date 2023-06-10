@@ -299,7 +299,7 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
             "$addToSet": {  "membershipSubscriberId": save_new_subscriber?.id,  }
         }, { new: true  });
 
-        // console.log({name: "updateUser collection", updateUser})
+        console.log({name: "updateUser collection", updateUser})
 
 
   }
