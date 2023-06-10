@@ -255,13 +255,15 @@ exports.membershipSubscription = async (req, res, next) => {
             {apiVersion: '2020-08-27'}
           );
           const paymentIntent = await Stripe.paymentIntents.create({
-            amount: 1099,
-            currency: 'eur',
+            amount: Number(membership?.amount),
+            currency: 'usd',
             customer: customer.id,
             automatic_payment_methods: {
               enabled: true,
             },
           });
+
+          console.log({ customer, ephemeralKey, paymentIntent  })
 
         // const session = await Stripe.checkout.sessions.create({
         //     payment_method_types: ['card'],
@@ -418,6 +420,8 @@ exports.productPayment = async (req, res, next) => {
         //     success_url: `${process.env.CLIENT_URL}/?success=true`,
         //     cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
         // }); 
+
+        console.log({ customer, ephemeralKey, paymentIntent  })
 
         return res.status(200).json({
         paymentIntent: paymentIntent?.client_secret,
