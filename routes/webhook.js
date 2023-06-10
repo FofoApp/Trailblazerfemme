@@ -9,14 +9,14 @@ const router = express.Router()
 
 
 router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, res) => {
-    // console.log({ STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY })
-    let endPointSecret = process.env.STRIPE_SIGNIN_SECRET;
+  
+    let endPointSecret;
+
+    //  = process.env.STRIPE_SIGNIN_SECRET
 
     const payload = req.body;
     let eventType = null;
     let data;
-
-    // console.log({ STRIPE_SIGNIN_SECRET: process.env.STRIPE_SIGNIN_SECRET });
 
     if(endPointSecret) {
       const signature = req.headers['stripe-signature'];

@@ -280,13 +280,13 @@ exports.membershipSubscription = async (req, res, next) => {
         // });
         // success_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?success=true`,
         // cancel_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?canceled=true`,
-console.log({ customer, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY})
+
+
     return res.status(200).json({
         paymentIntent: paymentIntent?.client_secret,
         customerId: customer?.id,
         ephemeralKey: ephemeralKey?.secret,
         publishableKey: process.env.STRIPE_PUBLISHABLE_KEY
-        // session, url: session.url 
 
         })
 
