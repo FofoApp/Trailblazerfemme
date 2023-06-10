@@ -48,7 +48,7 @@ router.post('/webhook',  express.raw({ type: 'application/json' }), async (req, 
 
   const webhookAction = data?.metadata?.action;
 
-  console.log({ metadata })
+  console.log({ metadata: data })
     switch(webhookAction) {
       case 'shop':
         
