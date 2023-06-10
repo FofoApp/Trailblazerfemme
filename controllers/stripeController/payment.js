@@ -284,7 +284,6 @@ exports.membershipSubscription = async (req, res, next) => {
                 paymentIntent: paymentIntent?.client_secret,
                 customerId: customer?.id,
                 ephemeralKey: ephemeralKey?.secret,
-                mode: `${membership?.action} subscription`,
                 publishableKey: process.env.STRIPE_PUBLISHABLE_KEY
                 // session, url: session.url 
         
@@ -428,7 +427,6 @@ exports.productPayment = async (req, res, next) => {
         paymentIntent: paymentIntent?.client_secret,
         customerId: customer?.id,
         ephemeralKey: ephemeralKey?.secret,
-        mode: `${product?.action} subscription`,
         publishableKey: process.env.STRIPE_PUBLISHABLE_KEY
         // session, url: session.url 
 
