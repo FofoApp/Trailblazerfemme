@@ -155,9 +155,6 @@ exports.updateUserMembership = async (req, res, next) => {
 
     const { membershipId } = req.params;
 
-    if(req.body?.accessType) {
-        req.body.accessType = req.body.accessType.split(",")
-    }
 
     let { name, amount, perks, benefits, description, accessType } = req.body;
 
