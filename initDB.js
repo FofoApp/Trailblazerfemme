@@ -11,28 +11,37 @@ module.exports = async () => {
 
       // let MONGO_URI =  process.env.MONGODB_URI_DEV;
 
-      try {
+      try { 
 
-            mongoose.connect(MONGO_URI, {
-                  // useNewUrlParser: true,
-                  // useUnifiedTopology: true
-            })
+            if(MONGO_URI){
+                  await mongoose.connect(MONGO_URI);
+                  console.log("Database connection established")
+                  mongoose.connection.on('connected', () => {
+                        console.log("Mongoose connected to MongoDb")
+                  });
+                  mongoose.connection.on('error', (error) => {
+                        // if(error?.code == 'ECONNREFUSED') {
+                        //       MONGO_URI = process.env.MONGODB_URI_DEV
+                        // }
+                        
+                  });
 
-            mongoose.connection.on('connected', () => {
-                  console.log("Mongoose connected to MongoDb")
-            });
-            mongoose.connection.on('error', (error) => {
-                  // if(error?.code == 'ECONNREFUSED') {
-                  //       MONGO_URI = process.env.MONGODB_URI_DEV
-                  // }
-                  
-            });
+            }
+
+
+
             
       } catch(error) {
-            // console.log(error)
+
+            if(error?.message === "MONGO_URI is not defined") {
+                  throw new Error("Unable to establish database connection")
+            }
             
-            mongoose.connection.on('error', (err) => {
-                  // console.log(err)
+             mongoose.connection.on('error', (err) => {
+                  if(err) {
+                      
+                        process.exit();
+                  }
             });
             
             mongoose.connection.on('disconnected', (err) => {

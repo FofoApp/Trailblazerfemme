@@ -81,11 +81,6 @@ exports.createDefaultAdmin = async (req, res, next) => {
 }
 
 
-
-
-
-
-
 exports.register = async (req, res, next) => {
 
     //POST REQUEST
@@ -98,9 +93,7 @@ exports.register = async (req, res, next) => {
             "roles": "admin",
             "password": "password123"
         }
-
      */
-
 
     const annually = 'years';
     const monthly = 'months';
@@ -109,95 +102,19 @@ exports.register = async (req, res, next) => {
     
     try {
 
-        // if(!email || !password) throw createError.BadRequest();
-
         const result = await registerValidation(req.body);
 
         const userExist = await User.findOne({ email: result?.email });
 
-        // If user already exists but user account is not yet verified
-        if(userExist?.email === result?.email && !userExist?.accountVerified) {
 
-            const otpCode = generateFourDigitsOTP();
-
-            const otpExist = await Otpmodel.deleteMany({ userId: userExist?.id });
-    
-            const newOtp = await Otpmodel.create({ userId: userExist?.id, phonenumber: userExist?.phonenumber, otp: otpCode });
-
-            const { _id: id, email, roles, fullname: username, field } = userExist;
-
-            const userObject = {  id, email, roles, username, field };
-
-            if(userExist?.profileImagePath) {
-                userObject.profileImagePath = userExist?.profileImagePath
-            }
-              
-            const accessToken = await signInAccessToken(userObject);
-
-            const refreshToken = await signInRefreshToken(userObject);
-    
-            let refreshAccessToken = await RefreshAccessToken.findOne({ userId: userExist?.id });
-            
-            if(refreshAccessToken) {
-                await refreshAccessToken.remove();
-            }       
-            
-            refreshAccessToken = new RefreshAccessToken({ userId: userExist?.id,  accessToken, refreshToken});
-            
-            const firstname = getFirstName(userExist?.fullname)
-            const sentMail  = await sendMail(email, otpCode, firstname);
-
-            if(!sentMail) {
-                return res.status(400).json({ status: "failed", message: "Unable to send mail"})
-            }
-                 
-            await refreshAccessToken.save();
-    
-             res.status(200).json({ accessToken, refreshToken, userId: userExist?.id, stage: 1, otp: otpCode,  message: "Otp has been sent to your email"});
-             return
-        }
-
-
-        // const otpUserExist = await Otpmodel.findOne({ userId: userExist?.id });
 
         const nextPaymentDate = calculateNextPayment(annually, moment().format());
 
-        if(userExist?.email === result?.email && userExist?.accountVerified) {
+        // Register new account if user email does not exist
+        if(!userExist) {
 
-            const { _id: id, email, roles, fullname: username, field } = userExist;
+        const user = new User({ ...result });
 
-            const userObject = {  id, email, roles, username, field };
-
-            const accessToken = await signInAccessToken(userObject);
-
-            const refreshToken = await signInRefreshToken(userObject);
-    
-            let refreshAccessToken = await RefreshAccessToken.findOne({ userId: userExist?.id });
-            
-            if(refreshAccessToken) await refreshAccessToken.remove();
-    
-            refreshAccessToken = new RefreshAccessToken({ userId: userExist?.id,  accessToken, refreshToken});
-            
-            await refreshAccessToken.save();
-
-             const userdata = {
-                success: true,
-                message: `${result?.email} is a verified user, proceed to membership`,
-                stage: 2,
-                accessToken,
-                refreshToken,
-                userId: userExist?.id
-            }
-
-            return res.status(200).json(userdata);
-        }
-       
-
-        // New User
-        const user = new User({ ...result,  nextPaymentDate });
-
-        // const follow = await FollowersAndFollowingModel.create({userId: user._id});
-        
         const savedUser = await user.save();
 
         const otpCode = generateFourDigitsOTP();
@@ -205,11 +122,8 @@ exports.register = async (req, res, next) => {
         const otpExist = await Otpmodel.findById(savedUser?.id);
 
         if(otpExist) {
-            await Otpmodel.findByIdAndDelete(savedUser?.id);
+            await Otpmodel.deleteMany({  userId: savedUser?.id });
         }
-
-        // This may not be neccessary for new user
-        await Otpmodel.deleteMany({  userId: savedUser?.id });
 
         const saveOTP = await Otpmodel.create({ otp: otpCode, userId: savedUser?.id, phonenumber: savedUser?.phonenumber});
 
@@ -234,7 +148,9 @@ exports.register = async (req, res, next) => {
         refreshAccessToken = new RefreshAccessToken({ userId: savedUser?.id,  accessToken, refreshToken });
         
         const firstname = getFirstName(savedUser?.fullname)
+
         const sentMail  = await sendMail(email, saveOTP?.otp, firstname);
+
 
         if(!sentMail) {
             return res.status(400).json({ status: "failed", message: "Unable to send mail"})
@@ -242,11 +158,92 @@ exports.register = async (req, res, next) => {
 
         await refreshAccessToken.save();
 
-        return res.status(200).send({accessToken, refreshToken, userId: savedUser?.id, stage: 1, otp: saveOTP?.otp,  message: "Otp has been sent to your email"});
+        return res.status(200).json({ accessToken, refreshToken, userId: savedUser?.id, stage: 1, otp: saveOTP?.otp,  message: "Otp has been sent to your email"});
+
+
+        }
+
+
+        // If user already exists but user account is not yet verified
+        if(userExist && userExist?.email === result?.email && !userExist?.accountVerified) {
+
+            const otpCode = generateFourDigitsOTP();
+
+            const otpExist = await Otpmodel.deleteMany({ userId: userExist?.id });
+    
+            const newOtp = await Otpmodel.create({ userId: userExist?.id, phonenumber: userExist?.phonenumber, otp: otpCode });
+
+            const { _id: id, email, roles, fullname: username, field } = userExist;
+
+            const userObject = {  id, email, roles, username, field };
+
+            if(userExist?.profileImage) {
+                userObject.profileImage = userExist?.profileImage
+            }
+              
+            const accessToken = await signInAccessToken(userObject);
+
+            const refreshToken = await signInRefreshToken(userObject);
+    
+            let refreshAccessToken = await RefreshAccessToken.findOne({ userId: userExist?.id });
+            
+            if(refreshAccessToken) {
+                await RefreshAccessToken.deleteMany({ userId: userExist?.id });
+            }
+            
+            const newRefreshToken = new RefreshAccessToken({ userId: userExist?.id,  accessToken, refreshToken });
+            
+            const firstname = getFirstName(userExist?.fullname)
+            const sentMail  = await sendMail(email, newOtp?.otp, firstname);
+
+            if(!sentMail) {
+                return res.status(400).json({ status: "failed", message: "Unable to send mail"})
+            }
+                 
+            await newRefreshToken.save();
+    
+             res.status(200).json({ accessToken, refreshToken, userId: userExist?.id, stage: 1, otp: otpCode,  message: "Otp has been sent to your email"});
+             return
+        }
+
+        // If account exist, user is verified by has not yet subscribed to a membership plan yet
+
+        if(userExist && userExist?.email === result?.email && userExist?.accountVerified && !userExist?.isMembershipActive) {
+
+        const { _id: id, email, roles, fullname: username, field } = userExist;
+
+        const userObject = {  id, email, roles, username, field };
+
+        const accessToken = await signInAccessToken(userObject);
+
+        const refreshToken = await signInRefreshToken(userObject);
+
+        let refreshAccessToken = await RefreshAccessToken.findOne({ userId: userExist?.id });
+        
+        if(refreshAccessToken) await refreshAccessToken.remove();
+
+        refreshAccessToken = new RefreshAccessToken({ userId: userExist?.id,  accessToken, refreshToken});
+        
+        await refreshAccessToken.save();
+
+            const userdata = {
+            success: true,
+            message: `${result?.email} is a verified user, proceed to membership`,
+            stage: 2,
+            accessToken,
+            refreshToken,
+            userId: userExist?.id
+        }
+
+            return res.status(200).json(userdata);
+        }
+       
+
+        return res.status(400).json({ status: "failed", message: "User already exist"});
 
        
     } catch (error) {
-        // console.log(error)
+       
         if(error.isJoi === true) {
             //unprocessible entry errors: server can't understand or process the entries
             return res.status(422).json({ status: "failed",  error: "validation error"})
@@ -277,7 +274,11 @@ exports.login = async (req, res, next) => {
 
         const result = await loginValidation(req.body);
         
-        const user = await User.findOne({ email: result?.email }).populate("membershipSubscriberId", "isActive membershipId amount membershipType createdAt");
+        const user = await User.findOne({ email: result?.email }).populate({
+            path: "membershipSubscriberId",
+            model: "MembershipSubscriber",
+            select: "isActive membershipId amount membershipType createdAt"
+        });
         
         if(!user) {
             return res.status(404).json({ status: "failed", message: "User not registered" });
@@ -301,12 +302,23 @@ exports.login = async (req, res, next) => {
         //     await user.save();
         // }
 
+        /**
+         * 
+         * COME BACK HERE TO COMPLETE THIS PART
+         * IF !user?.membershipType: THAT MEANS THE USER IS YET TO ANY SUBSCRIBE TO MEMEBRSHIP (EVENT FREE)
+         */
+
+
+        // IF user?.membershipType: MEANS MEMBERSHIP IS ACTIVE, UPDATE NUMBER OF DAYS FOR NEXT ACTIVATION OR RETURN TO FREE MEMBERSHIP
+        // 
+
+
         let membership_details = {
             // subscriptionId: user?.subscriptionId,
              paid: user?.paid,
              membershipType: user?.membershipType, 
              isActive: user?.isActive, 
-            //  amount: user?.amount,
+        //  amount: user?.amount,
         }
     
 
@@ -317,7 +329,7 @@ exports.login = async (req, res, next) => {
         const isRefreshTokenSet = await RefreshAccessToken.findOne({userId: user?.id});
        
         if(isRefreshTokenSet) {
-            isRefreshTokenSet.remove();
+            await RefreshAccessToken.deleteMany({ userId: user?.id });
         }
         
         const refreshAccessToken = new RefreshAccessToken(
@@ -329,16 +341,23 @@ exports.login = async (req, res, next) => {
 
         const savedRefreshAccessToken = await refreshAccessToken.save();
         
-        return res.status(200).send({ 
+        return res.status(200).json({
+            userId: user?.id,
             accessToken, 
             refreshToken, 
             membership_details,
 
             fullname: user?.fullname,
+            profileImage: user?.profileImage,
+            location: user?.location,
+            jobTitle: user?.jobTitle,
+            city: user?.city,
+            socialLinks: user?.socialLinks,
             phonenumber: user?.phonenumber,
             role: user?.roles[0],
 
-            // email: user.email,
+            email: user.email,
+
             // field: user.field,
             // city:  user.cityState
         });
@@ -598,8 +617,6 @@ exports.uploadProfilePicture = async (req, res, next) => {
        
 }
 
-
-
 exports.deleteUser = async (req, res, next) => {
     //DELETE REQUEST
     //http://localhost:2000/api/auth/user/:userId/delete
@@ -628,8 +645,6 @@ exports.deleteUser = async (req, res, next) => {
         next(error)
     }
 }
-
-
 
 exports.resetPassword = async (req, res, next) => {
 
@@ -678,7 +693,7 @@ exports.getResetPasswordToken = async (req, res, next) => {
         //SEND OTP TO USER PHONE
         // Object.assign(doesExist, req.body);
         // doesExist.save();
-        // console.log("user", doesExist)
+      
         // const updatedUser =    await User.findByIdAndUpdate(id, dataToUpdate, { new: true });
 
         return res.status(200).send({status: "success", message: 'User verified'})
@@ -816,7 +831,6 @@ exports.otpPage = async (req, res, next) => {
 
         // if(!otp) res.status(500).send({message: "Unable to send otp"});
 
-        // console.log("otp:", otp)
 
         const { id, phonenumber } = user;
 

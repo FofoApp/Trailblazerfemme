@@ -179,7 +179,7 @@ app.use(async (req, res, next) => {
 app.use((err, req, res, next) => {
 
       const errorStatusCode = req.statusCode === 200 ? 500 : err.statusCode
-
+      
       res.status(errorStatusCode).json({ error: { 
             status: errorStatusCode,
             message: err?.message
@@ -194,10 +194,13 @@ app.set('port', PORT);
 
 const startApp = async () => {
       try {
-            await connectDB();
+           await connectDB();
+
             app.listen(PORT, () => console.log(`App running on port: ${PORT}`));
+            
       } catch (error) {
-            console.log(error?.message)
+            
+            throw new Error("Unable to establish database connection")
       }
 }
 
