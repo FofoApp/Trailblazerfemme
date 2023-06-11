@@ -294,7 +294,7 @@ exports.login = async (req, res, next) => {
         const isMatch = await user.isValidPassword(result?.password);
 
         if(!isMatch) {
-            // throw createError.Unauthorized('');
+            // throw createError.Unauthorized('Username/password not valid');
             return res.status(403).json({ status: "failed", message: "Username/password not valid" });
         }
 
