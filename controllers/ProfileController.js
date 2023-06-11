@@ -270,18 +270,25 @@ exports.updateProfileInfo = async (req, res, next) => {
 
         let acceptFields = ["fullname", "phonenumber", "email", "city", "state", "jobTitle", "field", "socialLinks"]
 
+       
         const data =  Object.entries(req.body).map(([key, value]) => {
-            if(!acceptFields.includes(key)) {
+
+            if(!acceptFields.includes(key) || key == undefined) {
                 delete req.body[key]
             }
+
+
+            if(value.trim() === '' ) {
+                delete req.body[key]
+            }
+
             
         })
 
-        // userExist.set(req.body)
-        // await userExist.save();
 
         let updatedInfo = await UserModel.findByIdAndUpdate(id, { $set: req.body }, { new: true });
 
+    
         if(!updatedInfo) {
             return res.status(400).json({ status: 'failed', message: "Unable to update user image"})
         }
