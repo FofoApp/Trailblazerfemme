@@ -17,9 +17,9 @@ module.exports = () => {
             mongoose.connection
             .on('error', (error) => {
             
-                  process.once("SIGUSR2", function(){
-                  process.kill(process.pid, "SIGUSR2")
-            });
+            //       process.once("SIGUSR2", function(){
+            //       process.kill(process.pid, "SIGUSR2")
+            // });
 
             // Gracefully shutdown when INTERRUPTED signal occured
             process.on('SIGINT', () =>  {
