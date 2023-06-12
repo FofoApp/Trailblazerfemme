@@ -282,7 +282,7 @@ exports.login = async (req, res, next) => {
         });
         
         if(!user) {
-            return res.status(404).json({ status: "failed", message: "Invalid credentials" });
+            return res.status(404).json({ status: "failed", message: "Incorrect login credentials" });
         }
 
         if(!user?.accountVerified) {
@@ -296,7 +296,7 @@ exports.login = async (req, res, next) => {
 
         if(!isMatch) {
             // throw createError.Unauthorized('Username/password not valid');
-            return res.status(403).json({ status: "failed", message: "Invalid credentials" });
+            return res.status(403).json({ status: "failed", message: "Incorrect login credentials" });
         }
 
         // if(user?.isMembershipActive < Date.now()) {
