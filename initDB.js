@@ -15,24 +15,7 @@ module.exports = () => {
       return new Promise(async(resolve, reject) => {
 
             mongoose.connection
-            .on('error', (error) => {
-            
-            //       process.once("SIGUSR2", function(){
-            //       process.kill(process.pid, "SIGUSR2")
-            // });
-
-            // Gracefully shutdown when INTERRUPTED signal occured
-            process.on('SIGINT', () =>  {
-            mongoose.connection.close(() => {
-                  console.log("Mongoose connection is disconnected due to app termination");
-            })
-            process.exit(0);
-
-            });
-
-            // END PROCESS SIGINT
-
-            })
+            .on('error', (error) => reject(error) )
             .on('close', () => console.log("Database connection closed") )
             .once('open', () => resolve(mongoose.connections[0]) )
 
@@ -48,7 +31,8 @@ module.exports = () => {
             } catch (error) {
                   reject(error)
             }
-
+            
+            process.on("SIGINT", () => mongoose.connection.close(() => process.exit(0) ))
   
       })
    
