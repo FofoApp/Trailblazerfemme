@@ -3,57 +3,54 @@ const mongoose = require('mongoose');
 
 dotenv.config();
 
-module.exports = async () => {
+// const MONGO_URI = process.env.NODE_ENV === 'development' ?  process.env.MONGODB_URI_DEV : process.env.MONGODB_URI_PROD
 
-      // const MONGO_URI = process.env.NODE_ENV === 'development' ?  process.env.MONGODB_URI_DEV : process.env.MONGODB_URI_PROD
+
+module.exports = () => {
 
       let MONGO_URI = process.env.MONGODB_URI_PROD;
 
       // let MONGO_URI =  process.env.MONGODB_URI_DEV;
 
-      try { 
+      return new Promise(async(resolve, reject) => {
 
-            if(MONGO_URI){
-                  await mongoose.connect(MONGO_URI);
-                  console.log("Database connection established")
-                  mongoose.connection.on('connected', () => {
-                        console.log("Mongoose connected to MongoDb")
-                  });
-                  mongoose.connection.on('error', (error) => {
-                        // if(error?.code == 'ECONNREFUSED') {
-                        //       MONGO_URI = process.env.MONGODB_URI_DEV
-                        // }
-                        
-                  });
-
-            }
-
-
-
+            mongoose.connection
+            .on('error', (error) => {
             
-      } catch(error) {
-
-            if(error?.message === "MONGO_URI is not defined") {
-                  throw new Error("Unable to establish database connection")
-            }
-            
-             mongoose.connection.on('error', (err) => {
-                  if(err) {
-                      
-                        process.exit();
-                  }
+                  process.once("SIGUSR2", function(){
+                  process.kill(process.pid, "SIGUSR2")
             });
-            
-            mongoose.connection.on('disconnected', (err) => {
-                  console.log("Mongoose connection is disconnected...")
-            });
-            
+
+            // Gracefully shutdown when INTERRUPTED signal occured
             process.on('SIGINT', () =>  {
-                  mongoose.connection.close(() => {
-                        console.log("Mongoose connection is disconnected due to app termination");
-                  })
-                  process.exit(0);
+            mongoose.connection.close(() => {
+                  console.log("Mongoose connection is disconnected due to app termination");
+            })
+            process.exit(0);
+
             });
-      }
+
+            // END PROCESS SIGINT
+
+            })
+            .on('close', () => console.log("Database connection closed") )
+            .once('open', () => resolve(mongoose.connections[0]) )
+
+            try {
+                  
+            if(MONGO_URI) {
+                  await mongoose.connect(MONGO_URI);
+                  console.log("Database connection established");
+            }
+
+            // await mongoose.disconnect()                 
+
+            } catch (error) {
+                  reject(error)
+            }
+
+  
+      })
+   
 
 }

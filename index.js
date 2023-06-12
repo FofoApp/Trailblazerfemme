@@ -189,14 +189,14 @@ app.use((err, req, res, next) => {
 });
 
 
-// app configurations
-app.set('port', PORT);
 
 const startApp = async () => {
-      try {
-           await connectDB();
 
-            app.listen(PORT, () => console.log(`App running on port: ${PORT}`));
+      try {
+
+      await connectDB();
+
+      app.listen(PORT, () => console.log(`App running on port: ${PORT}`));
             
       } catch (error) {
             

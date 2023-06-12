@@ -9,33 +9,34 @@ const { cloudinary } = require('./../helpers/cloudinary');
 const sdk = require('api')('@sendchamp/v1.0#1v843jkyvjm1me');
 const { sendMail } =  require('./../helpers/sendMail')
 
-const { registerValidation, 
-    loginValidation, 
-    resetPasswordSchema, 
-    passwordOnlySchema, 
+const { 
+    registerValidation,
+    loginValidation,
+    resetPasswordSchema,
+    passwordOnlySchema,
     otpValidation
 } = require('../validations/userValidationSchema');
 const User = require('./../models/UserModel');
 const Otpmodel = require('../models/OtpModel');
 const RefreshAccessToken = require('./../models/RefreshAccessTokenModel');
-
-const FollowersAndFollowingModel = require('./../models/FollowersAndFollowingModel');
-
 const { signInAccessToken, signInRefreshToken, verifyRefreshToken, resetPasswordToken } = require('./../helpers/jwtHelper');
-
 const { generateFourDigitsOTP } = require('./../helpers/otpGenerator');
-const { sendGridMail } = require('./../helpers/sendGridMessaging');
 
+
+const { sendGridMail } = require('./../helpers/sendGridMessaging');
 const { sendSMS } = require('./../helpers/twilioSMS');
-const { calculateNextPayment }  = require('./../helpers/billing');
-const runCron = require('../runCron')
-const moment = require('moment');
+const FollowersAndFollowingModel = require('./../models/FollowersAndFollowingModel');
 const Membership = require('../models/adminModel/AdminMembershipModel');
 const MembershipSubscriber = require('../models/membershipModel/MembershipSubscribersModel');
+
+
+const { calculateNextPayment }  = require('./../helpers/billing');
 const { getFirstName } = require('../helpers/splitName');
+
+const runCron = require('../runCron')
+const moment = require('moment');
+
 runCron();
-
-
 
 
 exports.createDefaultAdmin = async (req, res, next) => {
@@ -281,7 +282,7 @@ exports.login = async (req, res, next) => {
         });
         
         if(!user) {
-            return res.status(404).json({ status: "failed", message: "User not found" });
+            return res.status(404).json({ status: "failed", message: "Invalid credentials" });
         }
 
         if(!user?.accountVerified) {
@@ -295,7 +296,7 @@ exports.login = async (req, res, next) => {
 
         if(!isMatch) {
             // throw createError.Unauthorized('Username/password not valid');
-            return res.status(403).json({ status: "failed", message: "Username/password not valid" });
+            return res.status(403).json({ status: "failed", message: "Invalid credentials" });
         }
 
         // if(user?.isMembershipActive < Date.now()) {
