@@ -77,7 +77,7 @@ router.post('/webhook', async (req, res) => {
       
         const source = object;
 
-       console.log({ metadata: source.metadata })
+       console.log({ metadata: source })
 
        console.log(`🔔  Webhook received! The source ${source.id} is chargeable.`);
 

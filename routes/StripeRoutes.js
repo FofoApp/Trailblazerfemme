@@ -18,9 +18,6 @@ const { verifyAccessToken } = require('./../helpers/jwtHelper');
 const { permissions } = require('./../middlewares/permissionsMiddleware');
 
 
-// stripe listen --forward-to localhost:2000/api/stripe/webhook
-
-
 // router.route('/order-checkout')
 //       .post(verifyAccessToken, permissions(["user","admin"]), stripeCheckout);
 

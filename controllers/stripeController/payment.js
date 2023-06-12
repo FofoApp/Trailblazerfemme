@@ -267,6 +267,7 @@ exports.membershipSubscription = async (req, res, next) => {
 
 
 
+
         // const session = await Stripe.checkout.sessions.create({
         //     payment_method_types: ['card'],
         //       customer: customer?.id,
