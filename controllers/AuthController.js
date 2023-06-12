@@ -365,6 +365,7 @@ exports.login = async (req, res, next) => {
         });
 
     } catch (error) {
+        console.log(error)
         if(error.isJoi === true) {      
             const msg = "Invalid parameters"     
             return res.status(422).send({ status:"failed", error: msg, message: msg})
