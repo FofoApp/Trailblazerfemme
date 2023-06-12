@@ -10,8 +10,6 @@ const UserModel = require('./../models/UserModel');
 const Order = require('../models/productModel/orderModel');
 const router = express.Router();
 
-// Stripe.setApiVersion();
-
 router.post('/webhook', async (req, res) => {
 
     let endPointSecret = process.env.STRIPE_SIGNIN_SECRET;
@@ -79,7 +77,7 @@ router.post('/webhook', async (req, res) => {
       
         const source = object;
 
-        console.log(source.metadata)
+       console.log({ metadata: source.metadata })
 
        console.log(`🔔  Webhook received! The source ${source.id} is chargeable.`);
 

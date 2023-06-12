@@ -262,6 +262,7 @@ exports.membershipSubscription = async (req, res, next) => {
             automatic_payment_methods: {
               enabled: true,
             },
+            metadata: membershipMetadata
           });
 
 
