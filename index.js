@@ -39,6 +39,7 @@ const PaymentRoutes = require('./routes/paymentRoutes');
 const CourseRoutes = require('./routes/CourseRoutes');
 const StripeRoutes = require('./routes/StripeRoutes');
 const WebhookRoutes = require('./routes/webhook');
+const WebhookRoutes2 = require('./routes/webh');
 
 // const { recurrentPaymentMiddleware } = require('./middlewares/recurrentPaymentMiddleware');
 // const databaseLoader = require('./connection');
@@ -65,7 +66,13 @@ app.use(mongoSanitize());
 app.use(xss());
 // app.use('/api/stripe/webhook2', express.raw({type: "*/*"}));
 // app.use('/api/stripe', express.raw({ type: 'application/json' }));
-app.use(express.json());
+app.use(express.json({
+      verify: function(req, res, buf) {
+            if (req.originalUrl.startsWith('/webhook')) {
+                  req.rawBody = buf.toString();
+            }
+      }
+}));
 app.use(express.urlencoded({ extended: true }));
 app.use(hpp());
 
@@ -147,7 +154,7 @@ app.get('/', (req, res) => {
 })
 
 
-
+app.use('/', WebhookRoutes2);
 app.use('/api/pay', PaymentRoutes);
 app.use('/api/stripe', StripeRoutes);
 app.use('/api/blog', BlogRoutes);
@@ -164,7 +171,7 @@ app.use('/api/community', CommunityRoutes);
 app.use('/api/plan', PlanRoute);
 app.use('/api/profile', ProfileRoutes);
 app.use('/api/auth', AuthRoute);
-app.use('/api/stripe', WebhookRoutes);
+
 
 
 //404 request handler and pass to error handler
