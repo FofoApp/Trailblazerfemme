@@ -199,7 +199,7 @@ const startApp = async () => {
       app.listen(PORT, () => console.log(`App running on port: ${PORT}`));
             
       } catch (error) {
-            
+            console.log(error)
             throw new Error("Unable to establish database connection")
       }
 }
