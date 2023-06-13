@@ -10,101 +10,7 @@ const UserModel = require('./../models/UserModel');
 const Order = require('../models/productModel/orderModel');
 const router = express.Router();
 
-router.post('/webhook', async (req, res) => {
-
-    let endPointSecret = process.env.STRIPE_SIGNIN_SECRET;
-
-    let eventType;
-
-    let data;
-
-    // Check if webhook signing is configured.
-    if (endPointSecret) {
-      // Retrieve the event by verifying the signature using the raw body and secret.
-      
-      let event;
-      const signature = req.headers['stripe-signature'];
-
-
-      try {
-
-        event = Stripe.webhooks.constructEvent(req.rawBody, signature, endPointSecret);
-
-      } catch (err) {
-        console.log(`⚠️  Webhook signature verification failed.`);
-        return res.sendStatus(400);
-      }
-      // Extract the object from the event.
-      data = event.data;
-      eventType = event.type;
-
-    } else {
-      // Webhook signing is recommended, but if the secret is not configured in `config.js`,
-      // retrieve the event data directly from the request body.
-      data = req.body.data;
-      eventType = req.body.type;
-
-    }
-
-    const object = data.object
-    const eventAction = object?.metadata?.action;
-
-
-    switch(eventAction) {
-        case 'shop':
-            // shop actions
-            const {
-              product,
-              shippingAddress, 
-              taxPrice,
-              shippingPrice,
-              totalPrice,
-              itemsPrice,
-              payment_date,
-          } = object.metadata;
-
-            // Monitor payment_intent.succeeded & payment_intent.payment_failed events.
-            monitorPaymentIntentSucceed(object)
-        
-            // Monitor `source.chargeable` events.
-            monitorPaymentSourceChargeable(object);
-        
-            // Monitor `source.failed` and `source.canceled` events.
-            monitorFailedPayment(object);
-
-
-
-        break;
-
-        case 'membership':
-            // shop actions
-
-            // Monitor payment_intent.succeeded & payment_intent.payment_failed events.
-            monitorPaymentIntentSucceed(object)
-        
-            // Monitor `source.chargeable` events.
-            monitorPaymentSourceChargeable(object);
-        
-            // Monitor `source.failed` and `source.canceled` events.
-            monitorFailedPayment(object);            
-        break;
-
-        default:
-
-            console.log(`Unhandled event type ${ eventType }`);
-    }
-
-    // Return a 200 success code to Stripe.
-    res.sendStatus(200);
-
-  });
-
-
-
-
-
-
-  exports.monitorPaymentIntentSucceed = async (object) => {
+exports.monitorPaymentIntentSucceed = async (object) => {
     
     if (object.object === 'payment_intent') {
 
@@ -228,7 +134,7 @@ router.post('/webhook', async (req, res) => {
         }
   
       }
-  }
+}
 
 
   exports.monitorPaymentSourceChargeable = async (object) => {
@@ -253,7 +159,7 @@ router.post('/webhook', async (req, res) => {
     }
 
 
-  }
+}
 
   exports.monitorFailedPayment = async (object) => {
     
@@ -264,8 +170,96 @@ router.post('/webhook', async (req, res) => {
           await Stripe.paymentIntents.cancel(object.metadata.paymentIntent);
     }
 
-  }
+}
 
+router.post('/webhook', async (req, res) => {
+
+    let endPointSecret = process.env.STRIPE_SIGNIN_SECRET;
+
+    let eventType;
+
+    let data;
+
+    // Check if webhook signing is configured.
+    if (endPointSecret) {
+      // Retrieve the event by verifying the signature using the raw body and secret.
+      
+      let event;
+      const signature = req.headers['stripe-signature'];
+
+
+      try {
+
+        event = Stripe.webhooks.constructEvent(req.rawBody, signature, endPointSecret);
+
+      } catch (err) {
+        console.log(`⚠️  Webhook signature verification failed.`);
+        return res.sendStatus(400);
+      }
+      // Extract the object from the event.
+      data = event.data;
+      eventType = event.type;
+
+    } else {
+      // Webhook signing is recommended, but if the secret is not configured in `config.js`,
+      // retrieve the event data directly from the request body.
+      data = req.body.data;
+      eventType = req.body.type;
+
+    }
+
+    const object = data.object
+    const eventAction = object?.metadata?.action;
+
+
+    switch(eventAction) {
+        case 'shop':
+            // shop actions
+            const {
+              product,
+              shippingAddress, 
+              taxPrice,
+              shippingPrice,
+              totalPrice,
+              itemsPrice,
+              payment_date,
+          } = object.metadata;
+
+            // Monitor payment_intent.succeeded & payment_intent.payment_failed events.
+            monitorPaymentIntentSucceed(object)
+        
+            // Monitor `source.chargeable` events.
+            monitorPaymentSourceChargeable(object);
+        
+            // Monitor `source.failed` and `source.canceled` events.
+            monitorFailedPayment(object);
+
+
+
+        break;
+
+        case 'membership':
+            // shop actions
+
+            // Monitor payment_intent.succeeded & payment_intent.payment_failed events.
+            monitorPaymentIntentSucceed(object)
+        
+            // Monitor `source.chargeable` events.
+            monitorPaymentSourceChargeable(object);
+        
+            // Monitor `source.failed` and `source.canceled` events.
+            monitorFailedPayment(object);            
+        break;
+
+        default:
+
+            console.log(`Unhandled event type ${ eventType }`);
+    }
+
+    // Return a 200 success code to Stripe.
+    res.sendStatus(200);
+
+});
 
 module.exports = router;
   
