@@ -57,7 +57,7 @@ router.post('/webhook', async (req, res) => {
       const paymentIntent = object;
 
       if (eventType === 'payment_intent.succeeded') {
-        console.log({ metadata: source })
+        console.log({ metadata: object })
         console.log(`🔔  Webhook received! Payment for PaymentIntent ${paymentIntent.id} succeeded.`);
 
       } else if (eventType === 'payment_intent.payment_failed') {
@@ -75,7 +75,7 @@ router.post('/webhook', async (req, res) => {
     // Monitor `source.chargeable` events.
     if (object.object === 'source' && object.status === 'chargeable' && object.metadata.paymentIntent ) {
       
-    const source = object;
+        const source = object;
 
        console.log(`🔔  Webhook received! The source ${source.id} is chargeable.`);
 
