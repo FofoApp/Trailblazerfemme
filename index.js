@@ -71,7 +71,7 @@ app.use(xss());
 // app.use('/api/stripe', express.raw({ type: 'application/json' }));
 app.use(express.json({
       verify: function(req, res, buf) {
-            if (req.originalUrl.startsWith('/webhook')) {
+            if (req.originalUrl.startsWith('/api/stripe/webhook')) {
                   req.rawBody = buf.toString();
             }
       }

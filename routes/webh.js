@@ -62,7 +62,7 @@ router.post('/webhook', async (req, res) => {
 
       } else if (eventType === 'payment_intent.payment_failed') {
         
-        const paymentSourceOrMethod = paymentIntent.last_payment_error.payment_method
+    const paymentSourceOrMethod = paymentIntent.last_payment_error.payment_method
           ? paymentIntent.last_payment_error.payment_method
           : paymentIntent.last_payment_error.source;
 
