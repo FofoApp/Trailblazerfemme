@@ -10,7 +10,7 @@ const UserModel = require('./../models/UserModel');
 const Order = require('../models/productModel/orderModel');
 const router = express.Router();
 
-const monitorPaymentIntentSucceed = async (object) => {
+const monitorPaymentIntentSucceed = async (eventType, object) => {
     
     if (object.object === 'payment_intent') {
 
@@ -121,26 +121,24 @@ const monitorPaymentIntentSucceed = async (object) => {
 
             }
           
-          console.log(`🔔  Webhook received! Payment for PaymentIntent ${paymentIntent.id} succeeded.`);
+          console.log(`🔔  Webhook received! Payment for PaymentIntent ${object.id} succeeded.`);
   
         } else if (eventType === 'payment_intent.payment_failed') {
           
-          const paymentSourceOrMethod = paymentIntent.last_payment_error.payment_method
+          const paymentSourceOrMethod = object.last_payment_error.payment_method
             ? paymentIntent.last_payment_error.payment_method
             : paymentIntent.last_payment_error.source;
   
-          console.log(`🔔  Webhook received! Payment on ${paymentSourceOrMethod.object} ${paymentSourceOrMethod.id} of type ${paymentSourceOrMethod.type} for PaymentIntent ${paymentIntent.id} failed.`);
+          console.log(`🔔  Webhook received! Payment on ${paymentSourceOrMethod.object} ${paymentSourceOrMethod.id} of type ${paymentSourceOrMethod.type} for PaymentIntent ${object.id} failed.`);
        
         }
   
       }
 }
 
-  const monitorPaymentSourceChargeable = async (object) => {
+const monitorPaymentSourceChargeable = async (eventType, object) => {
     
     if (object.object === 'source' && object.status === 'chargeable' && object.metadata.paymentIntent ) {
-      
-      const source = object;
 
        console.log(`🔔  Webhook received! The source ${object.id} is chargeable.`);
 
@@ -148,19 +146,21 @@ const monitorPaymentIntentSucceed = async (object) => {
       const paymentIntent = await Stripe.paymentIntents.retrieve(object.metadata.paymentIntent);
       // Check whether this PaymentIntent requires a source.
 
+      console.log({ paymentIntent })
+
       if (paymentIntent.status != 'requires_payment_method') {
         return res.sendStatus(403);
       }
 
       // Confirm the PaymentIntent with the chargeable source.
-      await Stripe.paymentIntents.confirm(paymentIntent.id, {source: object.id});
+      await Stripe.paymentIntents.confirm(paymentIntent.id, { source: object.id });
 
     }
 
 
 }
 
-  const monitorFailedPayment = async (object) => {
+  const monitorFailedPayment = async (eventType, object) => {
     
     if ( object.object === 'source' && ['failed', 'canceled'].includes(object.status) && object.metadata.paymentIntent) {
             
