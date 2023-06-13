@@ -118,7 +118,7 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
                           paymentIntentId:  save_new_subscriber?.paymentIntentId,
                       },
         
-                  }, { multi: true, upsert: true, new: true  });
+                  });
         
                   
             if(updateUser) {
