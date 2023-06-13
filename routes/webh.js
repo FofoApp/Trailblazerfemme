@@ -210,6 +210,7 @@ router.post('/webhook', async (req, res) => {
     const object = data.object
     const eventAction = object?.metadata?.action;
 
+        console.log(data)
 
     switch(eventAction) {
         case 'shop':
