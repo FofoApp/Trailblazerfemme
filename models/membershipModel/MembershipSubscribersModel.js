@@ -9,7 +9,7 @@ const membershipSubscriberSchema = new mongoose.Schema({
     userId: {type: mongoose.Schema.Types.ObjectId, ref: "User"},
     isActive: { type: Boolean, default: false },
     isPaid: { type: Boolean, default: false },
-    // mode: payment mode yearly | monthly
+    // mode = payment mode yearly | monthly
     mode: { type: String, required: true },
     amount: { type: String, required: true },
     

@@ -98,31 +98,6 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
           const save_new_subscriber = await create_new_subscriber.save();
           console.log({create_new_subscriber})
 
-            // const user = await UserModel.findById(membership_data?.userId)
-
-            // if(!user) {
-            //     return
-            // }
-
-            // user.set({
-            //     subscriptionId: save_new_subscriber?.id,
-            //     paid:  save_new_subscriber?.isPaid,
-            //     isActive:  save_new_subscriber?.isActive,
-            //     isMembershipActive:  save_new_subscriber?.isActive,
-            //     membershipName:  save_new_subscriber?.membershipType,
-            //     membershipType:  save_new_subscriber?.membershipType,
-            //     amount:  save_new_subscriber?.amount,
-            //     sub_duration:  save_new_subscriber?.mode,
-            //     subscription_end_date:  save_new_subscriber?.subscription_end_date,
-            //     subscription_start_date:  save_new_subscriber?.subscription_start_date,
-            //     days_between_next_payment:  save_new_subscriber?.days_between_next_payment,
-            //     paymentIntentId:  save_new_subscriber?.paymentIntentId,
-            // });
-
-            // user.membershipSubscriberId.push(save_new_subscriber?.id)
-
-            // await user.save();
-
             try {
                 const updateUser = await UserModel.findByIdAndUpdate( membership_data?.userId,
                     {

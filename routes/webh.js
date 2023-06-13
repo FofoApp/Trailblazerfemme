@@ -49,33 +49,35 @@ router.post('/webhook', async (req, res) => {
 
     }
 
-    const eventAction = data.metadata?.action;
+    const eventAction = data?.metadata?.action;
 
     switch(eventAction) {
         case 'shop':
-            // shop actions
-            console.log("SHOP ACTION:::::::")
-            // Monitor payment_intent.succeeded & payment_intent.payment_failed events.
-            await monitorPaymentIntentSucceed(eventAction, data);
-        
-            // Monitor `source.chargeable` events.
-            await monitorPaymentSourceChargeable(eventAction, data);
-        
-            // Monitor `source.failed` and `source.canceled` events.
-            await monitorFailedPayment(eventAction, data);
+          // shop actions
+          console.log("SHOP ACTION:::::::")
+          // Monitor payment_intent.succeeded & payment_intent.payment_failed events.
+          await monitorPaymentIntentSucceed(eventAction, data);
+      
+          // Monitor `source.chargeable` events.
+          await monitorPaymentSourceChargeable(eventAction, data);
+      
+          // Monitor `source.failed` and `source.canceled` events.
+          await monitorFailedPayment(eventAction, data);
 
         break;
 
         case 'membership':
-            // shop actions
-            // Monitor payment_intent.succeeded & payment_intent.payment_failed events.
-           monitorPaymentIntentSucceed(eventType, data);
+          // shop actions
+
+          // Monitor payment_intent.succeeded & payment_intent.payment_failed events.
+           await monitorPaymentIntentSucceed(eventType, data);
         
             // Monitor `source.chargeable` events.
-           monitorPaymentSourceChargeable(eventType, data);
+          await monitorPaymentSourceChargeable(eventType, data);
         
             // Monitor `source.failed` and `source.canceled` events.
-           monitorFailedPayment(eventType, data);            
+          await monitorFailedPayment(eventType, data);
+
         break;
 
         default:
