@@ -101,6 +101,8 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
             try {
                 const updateUser = await UserModel.findByIdAndUpdate( membership_data?.userId,
                     {
+                      $push: { "membershipSubscriberId": save_new_subscriber?.id },
+
                       $set: {
                           subscriptionId: save_new_subscriber?.id,
                           paid:  save_new_subscriber?.isPaid,
@@ -116,9 +118,7 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
                           paymentIntentId:  save_new_subscriber?.paymentIntentId,
                       },
         
-                      $push: { "membershipSubscriberId": save_new_subscriber?.id },
-      
-                  }, { upsert: true, new: true  });
+                  }, { multi: true, upsert: true, new: true  });
         
                   
                       if(updateUser) {
