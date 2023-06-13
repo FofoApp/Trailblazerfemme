@@ -139,7 +139,7 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
                     paymentIntentId:  save_new_subscriber?.paymentIntentId,
                 },
   
-                $push: {  "membershipSubscriberId": save_new_subscriber?.id,  }
+                // $push: {  "membershipSubscriberId": save_new_subscriber?.id,  }
             }, { upsert: true, new: true  });
   
             
