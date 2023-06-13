@@ -97,30 +97,52 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
           const create_new_subscriber = new MembershipSubscriber(membership_data);
           const save_new_subscriber = await create_new_subscriber.save();
 
+            const user = await UserModel.findByIdAndUpdate(membership_data?.userId)
 
+            if(!user) {
+                return
+            }
 
+            user.set({
+                "subscriptionId": save_new_subscriber?.id,
+                "paid": save_new_subscriber?.isPaid,
+                "isActive": save_new_subscriber?.isActive,
+                "isMembershipActive": save_new_subscriber?.isActive,
+                "membershipName": save_new_subscriber?.membershipType,
+                "membershipType": save_new_subscriber?.membershipType,
+                "amount": save_new_subscriber?.amount,
+                "sub_duration": save_new_subscriber?.mode,
+                "subscription_end_date": save_new_subscriber?.subscription_end_date,
+                "subscription_start_date": save_new_subscriber?.subscription_start_date,
+                "days_between_next_payment": save_new_subscriber?.days_between_next_payment,
+                "paymentIntentId": save_new_subscriber?.paymentIntentId,
+            });
 
-          const updateUser = await UserModel.findByIdAndUpdate(membership_data?.userId,
-              {
-                $set: {
-                    "subscriptionId": save_new_subscriber?.id,
-                    "paid": save_new_subscriber?.isPaid,
-                    "mode": save_new_subscriber?.mode,
-                    "isActive": save_new_subscriber?.isActive,
-                    "isMembershipActive": save_new_subscriber?.isActive,
-                    "membershipName": save_new_subscriber?.membershipType,
-                    "membershipType": save_new_subscriber?.membershipType,
-                    "amount": save_new_subscriber?.amount,
-                    "subscription_end_date": save_new_subscriber?.subscription_end_date,
-                    "subscription_start_date": save_new_subscriber?.subscription_start_date,
-                    "days_between_next_payment": save_new_subscriber?.days_between_next_payment,
-                    "paymentIntentId": save_new_subscriber?.paymentIntentId,
-                },
+            user.membershipSubscriberId.push(save_new_subscriber?.id)
+
+            await user.save();
+
+        //   const updateUser = await UserModel.findByIdAndUpdate(membership_data?.userId,
+        //       {
+        //         $set: {
+        //             "subscriptionId": save_new_subscriber?.id,
+        //             "paid": save_new_subscriber?.isPaid,
+        //             "isActive": save_new_subscriber?.isActive,
+        //             "isMembershipActive": save_new_subscriber?.isActive,
+        //             "membershipName": save_new_subscriber?.membershipType,
+        //             "membershipType": save_new_subscriber?.membershipType,
+        //             "amount": save_new_subscriber?.amount,
+        //             "sub_duration": save_new_subscriber?.mode,
+        //             "subscription_end_date": save_new_subscriber?.subscription_end_date,
+        //             "subscription_start_date": save_new_subscriber?.subscription_start_date,
+        //             "days_between_next_payment": save_new_subscriber?.days_between_next_payment,
+        //             "paymentIntentId": save_new_subscriber?.paymentIntentId,
+        //         },
   
-                $push: {  "membershipSubscriberId": save_new_subscriber?.id,  }
-            }, { new: true  });
+        //         $push: {  "membershipSubscriberId": save_new_subscriber?.id,  }
+        //     }, { new: true  });
   
-            console.log({name: "updateUser collection", updateUser})
+            console.log({name: "updateUser collection", user})
 
 
             }
