@@ -99,7 +99,7 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
           console.log({create_new_subscriber})
 
             try {
-                const updateUser = await UserModel.findByIdAndUpdate( membership_data?.userId,
+                const updateUser = await UserModel.updateOne({ _id: membership_data?.userId },
                     {
                       $push: { "membershipSubscriberId": save_new_subscriber?.id },
 
@@ -110,7 +110,7 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
                           isMembershipActive:  save_new_subscriber?.isActive,
                           membershipName:  save_new_subscriber?.membershipType,
                           membershipType:  save_new_subscriber?.membershipType,
-                          amount:  Number(save_new_subscriber?.amount),
+                          amount: Number(save_new_subscriber?.amount),
                           sub_duration:  save_new_subscriber?.mode,
                           subscription_end_date:  save_new_subscriber?.subscription_end_date,
                           subscription_start_date:  save_new_subscriber?.subscription_start_date,
@@ -121,10 +121,11 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
                   }, { multi: true, upsert: true, new: true  });
         
                   
-                      if(updateUser) {
-                          console.log({name: "updateUser collection", updateUser});
-                      }
-                console.log(`🔔  Webhook received! Payment for PaymentIntent ${object.id} succeeded.`);
+            if(updateUser) {
+                console.log({name: "updateUser collection", updateUser});
+            }
+
+            console.log(`🔔  Webhook received! Payment for PaymentIntent ${object.id} succeeded.`);
 
             } catch(error) {
                 consol.log(error)
