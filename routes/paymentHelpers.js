@@ -97,7 +97,7 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
           const create_new_subscriber = new MembershipSubscriber(membership_data);
           const save_new_subscriber = await create_new_subscriber.save();
 
-            const user = await UserModel.findByIdAndUpdate(membership_data?.userId)
+            const user = await UserModel.findById(membership_data?.userId)
 
             if(!user) {
                 return
