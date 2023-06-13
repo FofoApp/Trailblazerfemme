@@ -242,7 +242,7 @@ exports.membershipSubscription = async (req, res, next) => {
             "receipt_email": email,
             "action": "membership",
             "integration_check": 'accept_a_payment',
-            "payment_date": new Date(),    
+            "payment_date": new Date(Date.now()),    
         };
 
         const customer = await Stripe.customers.create({
@@ -351,6 +351,8 @@ exports.productPayment = async (req, res, next) => {
 
     const { product } = req.body;
     const { id: userId, fullname, email } = req.user;
+
+    console.log(product)
 
     try {
 
