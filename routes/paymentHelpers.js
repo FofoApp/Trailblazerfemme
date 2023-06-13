@@ -131,7 +131,7 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
                     isMembershipActive:  save_new_subscriber?.isActive,
                     membershipName:  save_new_subscriber?.membershipType,
                     membershipType:  save_new_subscriber?.membershipType,
-                    amount:  save_new_subscriber?.amount,
+                    amount:  Number(save_new_subscriber?.amount),
                     sub_duration:  save_new_subscriber?.mode,
                     subscription_end_date:  save_new_subscriber?.subscription_end_date,
                     subscription_start_date:  save_new_subscriber?.subscription_start_date,
