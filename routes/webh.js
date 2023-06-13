@@ -10,7 +10,7 @@ const UserModel = require('./../models/UserModel');
 const Order = require('../models/productModel/orderModel');
 const router = express.Router();
 
-exports.monitorPaymentIntentSucceed = async (object) => {
+const monitorPaymentIntentSucceed = async (object) => {
     
     if (object.object === 'payment_intent') {
 
@@ -136,8 +136,7 @@ exports.monitorPaymentIntentSucceed = async (object) => {
       }
 }
 
-
-  exports.monitorPaymentSourceChargeable = async (object) => {
+  const monitorPaymentSourceChargeable = async (object) => {
     
     if (object.object === 'source' && object.status === 'chargeable' && object.metadata.paymentIntent ) {
       
@@ -161,7 +160,7 @@ exports.monitorPaymentIntentSucceed = async (object) => {
 
 }
 
-  exports.monitorFailedPayment = async (object) => {
+  const monitorFailedPayment = async (object) => {
     
     if ( object.object === 'source' && ['failed', 'canceled'].includes(object.status) && object.metadata.paymentIntent) {
             
