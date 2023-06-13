@@ -233,7 +233,7 @@ exports.membershipSubscription = async (req, res, next) => {
 
 
         const membershipMetadata = {
-            "amount": membership?.amount,
+            "amount": Number(membership?.amount),
             "membershipType": membership?.membershipType,
             "membershipId": membership?.membershipId,
             "mode": membership?.mode,
@@ -350,6 +350,7 @@ exports.membershipSubscription = async (req, res, next) => {
 exports.productPayment = async (req, res, next) => {
 
     const { product } = req.body;
+
     const { id: userId, fullname, email } = req.user;
 
     console.log(product)

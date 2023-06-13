@@ -18,7 +18,6 @@ const membershipSubscriberSchema = new mongoose.Schema({
     days_between_next_payment: { type: Number, default: 0 },
 
     stripeSubscriptionId: { type: String, required: true },
-    amount: { type: String, required: true },
     paymentIntentId: { type: String, required: true }
     
 }, { timestamps: true });

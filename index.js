@@ -71,7 +71,7 @@ app.use(xss());
 // app.use('/api/stripe', express.raw({ type: 'application/json' }));
 app.use(express.json({
       verify: function(req, res, buf) {
-            if (req.originalUrl.startsWith('/api/stripe/webhook')) {
+            if (req.originalUrl.startsWith('/webhook')) {
                   req.rawBody = buf.toString();
             }
       }
@@ -155,7 +155,7 @@ app.get('/', (req, res) => {
 })
 
 
-app.use('/api/stripe', WebhookRoutes2);
+app.use('/', WebhookRoutes2);
 app.use('/api/pay', PaymentRoutes);
 app.use('/api/stripe', StripeRoutes);
 app.use('/api/blog', BlogRoutes);

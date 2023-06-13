@@ -12,13 +12,13 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
     const paymentIntent = object;
     const paymentIntentId = object?.id;
 
-    console.log("Payment:::", object)
 
     if (object.object === 'payment_intent') {
 
         if (eventType === 'payment_intent.succeeded' && object?.status === 'succeeded') {
 
             if(object?.metadata.action === 'shop'){
+                console.log({ SHOP: object.metadata })
                 const {
                     product,
                     shippingAddress, 
@@ -66,7 +66,7 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
               console.log({order})
 
             } else if(object?.metadata.action === 'membership') {
-                console.log({ newObj: object })
+                
                 const { userId, amount, membershipType, mode, membershipId, receipt_email  } = object?.metadata;
                 // Update user records and membership account
                 const subType = mode === 'yearly' ? 'years' : "months";
@@ -97,9 +97,12 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
           const create_new_subscriber = new MembershipSubscriber(membership_data);
           const save_new_subscriber = await create_new_subscriber.save();
 
+
+
+
           const updateUser = await UserModel.findByIdAndUpdate(membership_data?.userId,
               {
-                "$set": {
+                $set: {
                     "subscriptionId": save_new_subscriber?.id,
                     "paid": save_new_subscriber?.isPaid,
                     "mode": save_new_subscriber?.mode,
@@ -114,10 +117,10 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
                     "paymentIntentId": save_new_subscriber?.paymentIntentId,
                 },
   
-                "$addToSet": {  "membershipSubscriberId": save_new_subscriber?.id,  }
+                $push: {  "membershipSubscriberId": save_new_subscriber?.id,  }
             }, { new: true  });
   
-            // console.log({name: "updateUser collection", updateUser})
+            console.log({name: "updateUser collection", updateUser})
 
 
             }
