@@ -11,6 +11,9 @@ const cors = require('cors');
 const createError = require('http-errors');
 const Stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
+const ngrok = process.env.NODE_ENV !== 'production' ? require('ngrok') : null;
+
+
 // const otpGenerate = require('otp-generator');
 // const sdk = require('api')(process.env.SEND_CHAMP_SDK);
 
@@ -154,7 +157,7 @@ app.get('/', (req, res) => {
 })
 
 
-app.use('/', WebhookRoutes2);
+app.use('/api/stripe', WebhookRoutes2);
 app.use('/api/pay', PaymentRoutes);
 app.use('/api/stripe', StripeRoutes);
 app.use('/api/blog', BlogRoutes);
@@ -204,6 +207,34 @@ const startApp = async () => {
       await connectDB();
 
       app.listen(PORT, () => console.log(`App running on port: ${PORT}`));
+
+
+      // if(ngrok) {
+      //       ngrok
+      //       .connect({
+      //         addr: 2000,
+      //         subdomain:  'https://8f82-102-89-32-159.ngrok-free.app',
+      //         authtoken: process.env.NGROK_AUTH_TOKEN,
+      //       })
+      //       .then(url => {
+      //         console.log(`💳  App URL to see the demo in your browser: ${url}/`);
+      //       })
+      //       .catch(err => {
+      //             if (err.code === 'ECONNREFUSED') {
+      //               console.log(`⚠️  Connection refused at ${err.address}:${err.port}`);
+      //             } else {
+      //               console.log(`⚠️ Ngrok error: ${JSON.stringify(err)}`);
+      //             }
+      //             process.exit(1);
+      //       });
+      // }
+
+
+
+
+
+
+
             
       } catch (error) {
             console.log(error)
