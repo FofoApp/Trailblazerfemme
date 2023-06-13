@@ -87,7 +87,7 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
                 receipt_email,
                 isActive: true,
                 isPaid: true,
-                amount: Number(amount),
+                amount: amount,
                 subscription_start_date: start_date,
                 subscription_end_date: end_date,
                 days_between_next_payment: diff,
@@ -96,6 +96,7 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
 
           const create_new_subscriber = new MembershipSubscriber(membership_data);
           const save_new_subscriber = await create_new_subscriber.save();
+          console.log({create_new_subscriber})
 
             // const user = await UserModel.findById(membership_data?.userId)
 
