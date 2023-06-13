@@ -69,13 +69,13 @@ router.post('/webhook', async (req, res) => {
         case 'membership':
             // shop actions
             // Monitor payment_intent.succeeded & payment_intent.payment_failed events.
-            await monitorPaymentIntentSucceed(eventType, data);
+           monitorPaymentIntentSucceed(eventType, data);
         
             // Monitor `source.chargeable` events.
-            await monitorPaymentSourceChargeable(eventType, data);
+           monitorPaymentSourceChargeable(eventType, data);
         
             // Monitor `source.failed` and `source.canceled` events.
-            await monitorFailedPayment(eventType, data);            
+           monitorFailedPayment(eventType, data);            
         break;
 
         default:

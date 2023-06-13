@@ -123,37 +123,41 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
 
             // await user.save();
 
-          const updateUser = await UserModel.findByIdAndUpdate( membership_data?.userId,
-              {
-                $set: {
-                    subscriptionId: save_new_subscriber?.id,
-                    paid:  save_new_subscriber?.isPaid,
-                    isActive:  save_new_subscriber?.isActive,
-                    isMembershipActive:  save_new_subscriber?.isActive,
-                    membershipName:  save_new_subscriber?.membershipType,
-                    membershipType:  save_new_subscriber?.membershipType,
-                    amount:  Number(save_new_subscriber?.amount),
-                    sub_duration:  save_new_subscriber?.mode,
-                    subscription_end_date:  save_new_subscriber?.subscription_end_date,
-                    subscription_start_date:  save_new_subscriber?.subscription_start_date,
-                    days_between_next_payment:  save_new_subscriber?.days_between_next_payment,
-                    paymentIntentId:  save_new_subscriber?.paymentIntentId,
-                },
-  
-                $push: { "membershipSubscriberId": save_new_subscriber?.id },
+            try {
+                const updateUser = await UserModel.findByIdAndUpdate( membership_data?.userId,
+                    {
+                      $set: {
+                          subscriptionId: save_new_subscriber?.id,
+                          paid:  save_new_subscriber?.isPaid,
+                          isActive:  save_new_subscriber?.isActive,
+                          isMembershipActive:  save_new_subscriber?.isActive,
+                          membershipName:  save_new_subscriber?.membershipType,
+                          membershipType:  save_new_subscriber?.membershipType,
+                          amount:  Number(save_new_subscriber?.amount),
+                          sub_duration:  save_new_subscriber?.mode,
+                          subscription_end_date:  save_new_subscriber?.subscription_end_date,
+                          subscription_start_date:  save_new_subscriber?.subscription_start_date,
+                          days_between_next_payment:  save_new_subscriber?.days_between_next_payment,
+                          paymentIntentId:  save_new_subscriber?.paymentIntentId,
+                      },
+        
+                      $push: { "membershipSubscriberId": save_new_subscriber?.id },
+      
+                  }, { upsert: true, new: true  });
+        
+                  
+                      if(updateUser) {
+                          console.log({name: "updateUser collection", updateUser});
+                      }
+                console.log(`🔔  Webhook received! Payment for PaymentIntent ${object.id} succeeded.`);
 
-            }, { upsert: true, new: true  });
+            } catch(error) {
+                consol.log(error)
+            }
 
-            await updateUser.save();
-  
-            
-                if(updateUser) {
-                    console.log({name: "updateUser collection", updateUser});
-                }
 
             }
           
-          console.log(`🔔  Webhook received! Payment for PaymentIntent ${object.id} succeeded.`);
   
         } else if (eventType === 'payment_intent.payment_failed') {
           
