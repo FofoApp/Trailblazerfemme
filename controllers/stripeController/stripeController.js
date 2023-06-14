@@ -11,8 +11,11 @@ const Stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
 exports.stripeCheckout = async (req, res) => {
 
-    const {id: userId, email } = req?.user;
-    const { orderItems, shippingAddress, taxPrice, shippingPrice, itemsPrice, totalPrice } = req.body;
+    const { id: userId, email } = req?.user;
+
+    // console.log(req.body)
+    
+    const { orderItems, shippingAddress, taxPrice, shippingPrice, itemsPrice, totalPrice } = req.body.product;
 
     // const completeUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
     // const success_url = `${req.headers.origin}/?success=true`;
@@ -23,7 +26,7 @@ exports.stripeCheckout = async (req, res) => {
     //         userId: "req.user.id",
     //         membership_details: JSON.stringify(req.body.products)
     //     }
-    // })
+    // });
 
     const line_items = orderItems?.map((item) => {
 
@@ -83,7 +86,6 @@ exports.stripeCheckout = async (req, res) => {
             payment_date: new Date(Date.now()),
         },
 
-
           success_url: `${process.env.CLIENT_URL}/?success=true`,
           cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
 
@@ -92,7 +94,7 @@ exports.stripeCheckout = async (req, res) => {
           
         });
       
-         return res.send({ url: session.url }); 
+         return res.send({ url: session.url });
 
 
     } catch (error) {
@@ -104,10 +106,10 @@ exports.stripeCheckout = async (req, res) => {
 
   exports.membershipPayment = async (req, res) => {
 
-    const { membership: subMembership } = req.body
+    const { membership:  membership_data } = req.body;
     const userId = req?.user?.id;
-    console.log(subMembership)
-    const membershipId = subMembership?.membershipId;
+
+
 
     try {
 
@@ -115,7 +117,7 @@ exports.stripeCheckout = async (req, res) => {
           return res.status(401).send({ error: "Invalid user"});
         }
  
-        if(!mongoose.Types.ObjectId.isValid(membershipId)) {
+        if(!mongoose.Types.ObjectId.isValid(membership_data.membershipId)) {
           return res.status(400).send({ error: "Invalid membership"});
         }
 
@@ -123,7 +125,9 @@ exports.stripeCheckout = async (req, res) => {
         
         if(!user) return res.status(404).send({ error: "Invalid user"});
 
-        let membership = await Membership.findById(membershipId);
+        let membership = await Membership.findById(membership_data.membershipId);
+
+        // console.log("Membership", membership)
         
         if(!membership) {
           return res.status(404).send({ error: "Invalid membership"});
@@ -150,7 +154,7 @@ exports.stripeCheckout = async (req, res) => {
                   name: membership?.name,
                   description: membership?.description,
                 },
-                unit_amount: Number(membership?.amount) * 100,
+                unit_amount: Number(membership_data?.amount) * 100,
               },
               quantity: 1,
             }, 
@@ -159,21 +163,21 @@ exports.stripeCheckout = async (req, res) => {
 
           metadata: {
             userId,
-            membershipId: subMembership?.id,
-            membershipType: subMembership?.membershipType,
-            mode: subMembership?.mode,
-            amount: Number(membership?.amount),
+            membershipId: membership?.id,
+            membershipType: membership?.name,
+            mode: membership_data?.mode,
+            amount: Number(membership_data?.amount),
             action: "membership"
           },
 
-          // success_url: `${process.env.CLIENT_URL}/?success=true`,
-          // cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
+          success_url: `${process.env.CLIENT_URL}/?success=true`,
+          cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
 
           // success_url: `https://calm-lime-goldfish-tutu.cyclic.app/api/stripe/payment_success/?success=true`,
           // cancel_url: `https://calm-lime-goldfish-tutu.cyclic.app/api/stripe/payment_canceled/?canceled=true`,
         
-          success_url: `http://localhost:2000/api/stripe/payment_success/?success=true`,
-          cancel_url: `http://localhost:2000/api/stripe/payment_canceled/?canceled=true`,
+          // success_url: `http://localhost:2000/api/stripe/payment_success/?success=true`,
+          // cancel_url: `http://localhost:2000/api/stripe/payment_canceled/?canceled=true`,
 
         });
 

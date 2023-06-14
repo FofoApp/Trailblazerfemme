@@ -8,25 +8,25 @@ const userSchema = new Schema({
     fullname: { type: String, trim: true, required: true, unique: true },
     email: { type: String, trim: true, required: true, lowercase: true, unique: true },
     location: { type: String, trim: true, default: "Location" },
-    jobTitle: { type: String, trim: true, default: null },
+    jobTitle: { type: String, trim: true, default: "" },
     phonenumber: { type: String, trim: true, required: true },
-    field: { type: String,  },
-    city: { type: String,  },
-    state: { type: String,  },
+    field: { type: String, default: "" },
+    city: { type: String, default: ""   },
+    state: { type: String, default: ""  },
     blocked: { type: Boolean, default: false }, // block / unblock users
 
-    chargeId: { type: String },
+    chargeId: { type: String, default: ""  },
 
     membershipSubscriberId: [{ type: mongoose.Schema.Types.ObjectId, ref: "MembershipSubscriber" }],
     isMembershipActive: { type: Boolean, default: false },
 
-    membershipName: { type: String, default: null },
+    membershipName: { type: String, default: "" },
     membershipId: { type: mongoose.Schema.Types.ObjectId, ref: "Membership"},
     communityId: { type: mongoose.Schema.Types.ObjectId, ref: "Membership"},
 
-    subscription_end_date: { type: Date,  },
-    subscription_start_date: { type: Date,   },
-    days_between_next_payment: { type: Number, },
+    subscription_end_date: { type: Date, default: Date.now()   },
+    subscription_start_date: { type: Date, default: Date.now()  },
+    days_between_next_payment: { type: Number, default: 0 },
 
     stripeCustomerId:  { type: String, trim: true },
 
@@ -37,8 +37,8 @@ const userSchema = new Schema({
     // paymentType2: { type: String },                      //monthly | yearly
     // amount: { type: Number },                           //$25
 
-    subscriptionId: {type: mongoose.Schema.Types.ObjectId, ref: "MembershipSubscriber", default: null},
-    membershipType: { type: String, default: "Free" },
+    subscriptionId: {type: mongoose.Schema.Types.ObjectId, ref: "MembershipSubscriber", },
+    membershipType: { type: String, default: "" },
     sub_duration: { type: String },
     isActive: { type: Boolean, default: false  },
     paid: { type: Boolean, default: false },
@@ -46,16 +46,16 @@ const userSchema = new Schema({
     password: { type: String, trim: true, required: true },
     accountVerified: { type: Boolean, default: false },
 
-    about: { type: String, default: null },
-    cityState: { type: String, default: null },
+    about: { type: String, default: ""  },
+    cityState: { type: String, default: ""  },
 
-    socialLinks: { type: [String] },
+    socialLinks: { type: [String], default: [] },
     roles: { type: [String], enum: ["user", "admin", "superAdmin"], default: "user"},
     isAdmin: { type: Boolean, default: false },
 
     profileId: { type: mongoose.Schema.Types.ObjectId, ref: "Profile" },
-    profileImageCloudinaryPublicId: { type: String  },
-    profileImage: { type: String },
+    profileImageCloudinaryPublicId: { type: String, default: ""  },
+    profileImage: { type: String, default: ""  },
     
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],

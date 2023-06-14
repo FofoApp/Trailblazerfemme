@@ -7,10 +7,49 @@ const MembershipSubscriber = require('./../models/membershipModel/MembershipSubs
 const UserModel = require('./../models/UserModel');
 const Order = require('../models/productModel/orderModel');
 
+
+const updateUserRecordAfterSuccessfulPayment = async (userId, dataToUpload) => {
+
+    try {
+
+      const user =  await UserModel.findByIdAndUpdate(userId, 
+        { 
+          $push: { membershipSubscriberId: dataToUpload?.membershipId },
+          $set: {
+                  subscriptionId: dataToUpload?.membershipId,
+                  paid:  dataToUpload?.isPaid,
+                  isActive:  dataToUpload?.isActive,
+                  isMembershipActive:  dataToUpload?.isActive,
+                  membershipName:  dataToUpload?.membershipType,
+                  membershipType:  dataToUpload?.membershipType,
+                  amount: Number(dataToUpload?.amount),
+                  sub_duration:  dataToUpload?.mode,
+                  subscription_end_date:  dataToUpload?.subscription_end_date,
+                  subscription_start_date:  dataToUpload?.subscription_start_date,
+                  days_between_next_payment:  dataToUpload?.days_between_next_payment,
+                  // paymentIntentId:  dataToUpload?.paymentIntentId,
+          },
+          // 
+        }, {  upsert: true, new: true }).exec();
+ 
+      if(!user) {
+        console.log("User not found")
+        return false;
+      }
+
+      return user;
+
+    } catch (error) {
+      console.log(error?.message)
+    }
+}
+
 exports.monitorPaymentIntentSucceed = async (eventType, object) => {
 
     const paymentIntent = object;
     const paymentIntentId = object?.id;
+
+    // console.log(object)
 
 
     if (object.object === 'payment_intent') {
@@ -67,8 +106,15 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
 
             } else if(object?.metadata.action === 'membership') {
                 
-                const { userId, amount, membershipType, mode, membershipId, receipt_email  } = object?.metadata;
-                // Update user records and membership account
+                const {
+                  userId,
+                  amount,
+                  membershipType,
+                  mode,
+                  membershipId,
+                  receipt_email
+                } = object?.metadata;
+               
                 const subType = mode === 'yearly' ? 'years' : "months";
                 const days = 'days';
                 const start_date = moment();
@@ -97,41 +143,78 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
             
             try {
               
-                    const create_new_subscriber = new MembershipSubscriber(membership_data);
-                    const save_new_subscriber = await create_new_subscriber.save();
-                    console.log({create_new_subscriber});
+                  const create_new_subscriber = new MembershipSubscriber({ ...membership_data });
+                  const save_new_subscriber = await create_new_subscriber.save();
 
+                  if(!save_new_subscriber) {
+                    return;
+                  }
 
-                    const updateUser = await UserModel.findByIdAndUpdate(membership_data?.userId,
-                    {
-                      $push: { "membershipSubscriberId": save_new_subscriber?._id },
+            // const user = await UserModel.findById(membership_data?.userId);
 
-                      $set: {
-                          subscriptionId: save_new_subscriber?._id,
-                          paid:  save_new_subscriber?.isPaid,
-                          isActive:  save_new_subscriber?.isActive,
-                          isMembershipActive:  save_new_subscriber?.isActive,
-                          membershipName:  save_new_subscriber?.membershipType,
-                          membershipType:  save_new_subscriber?.membershipType,
-                          amount: Number(save_new_subscriber?.amount),
-                          sub_duration:  save_new_subscriber?.mode,
-                          subscription_end_date:  save_new_subscriber?.subscription_end_date,
-                          subscription_start_date:  save_new_subscriber?.subscription_start_date,
-                          days_between_next_payment:  save_new_subscriber?.days_between_next_payment,
-                          paymentIntentId:  save_new_subscriber?.paymentIntentId,
-                      },
-        
-                  }, { new: true });
-        
-                  
-            if(updateUser) {
-                console.log({name: "updateUser collection", updateUser});
+            // if(!user) {
+            //   return;
+            // }
+
+            // user.fullname = user.fullname;
+            // user.email = user.email;
+            // user.location = user.location;
+            // user.jobTitle = user.jobTitle;
+            // user.phonenumber = user.phonenumber;
+            // user.field = user.field;
+            // user.city = user.city;
+            // user.state = user.state;
+            // user.blocked = user.blocked;
+            // user.chargeId = user.chargeId;
+            // user.chargeId = user.chargeId;
+            // user.membershipId = user.membershipId;
+            // user.communityId = user.communityId;
+            // user.stripeCustomerId = user.stripeCustomerId;
+            // user.password = user.password;
+            // user.accountVerified = user.accountVerified;
+            // user.about = user.about;
+            // user.cityState = user.cityState;
+            // user.socialLinks = user.socialLinks;
+            // user.roles = user.roles;
+            // user.isAdmin = user.isAdmin;
+            // user.profileId = user.profileId;
+            // user.profileImage = user.profileImage;
+            // user.followers = user.followers;
+            // user.following = user.following;
+            // user.books = user.books;
+            // user.booksRead = user.booksRead;
+            // user.trending = user.trending;
+            // user.library = user.library;
+            // user.recentlySearchedBook = user.recentlySearchedBook;
+            // user.profileImageCloudinaryPublicId = user.profileImageCloudinaryPublicId;
+            
+            
+            // user.isMembershipActive = save_new_subscriber?.isActive || user.isMembershipActive;
+            // user.membershipName =  save_new_subscriber?.membershipTyp || user.membershipName;
+            // // user.membershipSubscriberId = user.membershipSubscriberId.push(save_new_subscriber?.membershipSubscriberId) || user.membershipSubscriberId;
+            // user.subscription_end_date = save_new_subscriber?.subscription_end_date || user.subscription_end_date;
+            // user.subscription_start_date = save_new_subscriber?.subscription_start_date || user.subscription_start_date;
+            // user.days_between_next_payment = save_new_subscriber?.days_between_next_payment || user.days_between_next_payment;
+            // user.subscriptionId = save_new_subscriber?._id || user.subscriptionId;
+            // user.membershipType = save_new_subscriber?.membershipType || user.membershipType;
+            // user.sub_duration = save_new_subscriber?.mode || user.sub_duration;
+            // user.isActive = save_new_subscriber?.isActive || user.isActive;
+            // user.paid = save_new_subscriber?.isPaid || user.paid;
+            // user.amount =  Number(save_new_subscriber?.amount) || Number(user.amount);
+
+            // await user.save();
+            // paymentIntentId:  save_new_subscriber?.paymentIntentId,
+
+            const updateUser  = await updateUserRecordAfterSuccessfulPayment(userId, save_new_subscriber._doc);
+
+              if(updateUser) {
+                // console.log({name: "updateUser collection", updateUser });
+                console.log(`🔔  Webhook received! Payment for PaymentIntent ${object.id} succeeded.`);
+            
             }
 
-            console.log(`🔔  Webhook received! Payment for PaymentIntent ${object.id} succeeded.`);
-
             } catch(error) {
-                consol.log(error)
+                console.log(error)
             }
 
 

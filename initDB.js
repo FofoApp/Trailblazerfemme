@@ -4,8 +4,7 @@ const mongoose = require('mongoose');
 dotenv.config();
 
 // const MONGO_URI = process.env.NODE_ENV === 'development' ?  process.env.MONGODB_URI_DEV : process.env.MONGODB_URI_PROD
-
-
+mongoose.set("strictQuery", false);
 module.exports = () => {
 
       let MONGO_URI = process.env.MONGODB_URI_PROD;
@@ -22,11 +21,12 @@ module.exports = () => {
             try {
                   
             if(MONGO_URI) {
-                  await mongoose.connect(MONGO_URI);
+                  await mongoose.connect(MONGO_URI, {
+                        useNewUrlParser: true,
+                        useUnifiedTopology: true
+                  });
                   console.log("Database connection established");
-            }
-
-            // await mongoose.disconnect()                 
+            }            
 
             } catch (error) {
                   reject(error)
