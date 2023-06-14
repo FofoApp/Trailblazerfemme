@@ -94,17 +94,20 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
                 paymentIntentId: paymentIntentId,
             }
 
-          const create_new_subscriber = new MembershipSubscriber(membership_data);
-          const save_new_subscriber = await create_new_subscriber.save();
-          console.log({create_new_subscriber})
-
+            
             try {
-                const updateUser = await UserModel.updateOne({ _id: membership_data?.userId },
+              
+                    const create_new_subscriber = new MembershipSubscriber(membership_data);
+                    const save_new_subscriber = await create_new_subscriber.save();
+                    console.log({create_new_subscriber});
+
+
+                    const updateUser = await UserModel.findByIdAndUpdate(membership_data?.userId,
                     {
-                      $push: { "membershipSubscriberId": save_new_subscriber?.id },
+                      $push: { "membershipSubscriberId": save_new_subscriber?._id },
 
                       $set: {
-                          subscriptionId: save_new_subscriber?.id,
+                          subscriptionId: save_new_subscriber?._id,
                           paid:  save_new_subscriber?.isPaid,
                           isActive:  save_new_subscriber?.isActive,
                           isMembershipActive:  save_new_subscriber?.isActive,
@@ -118,7 +121,7 @@ exports.monitorPaymentIntentSucceed = async (eventType, object) => {
                           paymentIntentId:  save_new_subscriber?.paymentIntentId,
                       },
         
-                  });
+                  }, { new: true });
         
                   
             if(updateUser) {
