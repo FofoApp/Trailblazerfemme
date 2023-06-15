@@ -11,22 +11,24 @@ const Stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
 
 exports.testUpdate = async (req, res) => {
+
   console.log("Test")
+
   try {
 
-      const dateNow = new Date();
+    const dateNow = new Date();
 
-    const user =  await UserModel.findByIdAndUpdate("6481a9e7d432065af004ecf9",
+    const user =  await User.findByIdAndUpdate("6481a9e7d432065af004ecf9",
       { 
         // $push: { membershipSubscriberId: membershipId },
         $set: {
-                subscriptionId: "64847d6927e77dbcdff213b6",
+                subscriptionId: "64847d4727e77dbcdff2139b",
                 paid:  true,
                 isActive:  true,
                 isMembershipActive:  true,
-                membershipName: "Bronze",
-                membershipType:  "Bronze",
-                amount: 6000,
+                membershipName: "Dia",
+                membershipType:  "Dia",
+                amount: 2000,
                 sub_duration:  "yearly",
                 subscription_end_date:  dateNow,
                 subscription_start_date:  dateNow,
@@ -39,7 +41,7 @@ exports.testUpdate = async (req, res) => {
       return res.status(200).json({ user })
 
   } catch (error) {
-    
+    console.log(error)
   }
 }
 
@@ -142,8 +144,9 @@ exports.stripeCheckout = async (req, res) => {
 
     const { membership:  membership_data } = req.body;
     const userId = req?.user?.id;
+    const userEmail = req?.user?.email;
 
-    console.log(membership_data)
+    // console.log(membership_data)
 
 
     try {
@@ -178,6 +181,19 @@ exports.stripeCheckout = async (req, res) => {
       
         //     return res.status(400).send({ error: "You still have an active plan"});
         // }
+      
+        const customer = await Stripe.customers.create({
+         metadata: {
+          userId,
+          userEmail,
+          membershipId: membership_data?.membershipId,
+          membershipType: membership_data?.membershipType,
+          mode: membership_data?.mode,
+          amount: Number(membership_data?.amount),
+          action: "membership"
+         }
+
+        })
 
           const session = await Stripe.checkout.sessions.create({
           payment_method_types: ["card"],
@@ -195,16 +211,7 @@ exports.stripeCheckout = async (req, res) => {
             }, 
           ],
           mode: "payment",
-
-          metadata: {
-            userId,
-            membershipId: membership_data?.membershipId,
-            membershipType: membership_data?.membershipType,
-            mode: membership_data?.mode,
-            amount: Number(membership_data?.amount),
-            action: "membership"
-          },
-
+          customer: customer.id,
           success_url: `${process.env.CLIENT_URL}/?success=true`,
           cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
 

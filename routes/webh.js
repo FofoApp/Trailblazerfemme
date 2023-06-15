@@ -1,4 +1,7 @@
 const express = require('express')
+const moment = require('moment');
+const MembershipSubscriber = require('./../models/membershipModel/MembershipSubscribersModel')
+const User = require('./../models/UserModel');
 
 const Stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY, {
     apiVersion: process.env.STRIPE_API_VERSION,
@@ -51,81 +54,43 @@ router.post('/webhook', async (req, res) => {
 
     }
 
+    // console.log(data)
+
     const eventAction = data?.metadata?.action;
+    const paymentIntentId = data?.id;
 
 
-    if(eventAction === 'shop') {
-      await shopWebhookFunction(eventType, data);
-    } else if(eventAction === 'membership') {
-      await membershipWebhookFunction(eventType, data);
+    if(eventType === 'checkout.session.completed') {
+
+        try {
+
+          const customer = await  Stripe.customers.retrieve(data?.customer);
+          
+          await membershipWebhookFunction(eventType, customer, data);
+
+        } catch (error) {
+          console.log(error)
+        }
+
+
     }
 
 
+    // if(eventAction === 'shop') {
 
+    //   if (data.payment_status === 'paid') {
+    //     console.log("Shop Paid")
+    //     await shopWebhookFunction(eventType, data);
+    //   }
 
+    // } else if(eventAction === 'membership') {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    console.log(eventType)
-
-    // switch(eventAction) {
-    //     case 'shop':
-          // shop actions
-          // console.log("SHOP ACTION:::::::")
-          // Monitor payment_intent.succeeded & payment_intent.payment_failed events.
-          //  monitorPaymentIntentSucceed(eventAction, data);
-      
-          // Monitor `source.chargeable` events.
-          //  monitorPaymentSourceChargeable(eventAction, data);
-      
-          // Monitor `source.failed` and `source.canceled` events.
-          //  monitorFailedPayment(eventAction, data);
-
-        // break;
-
-        // case 'membership':
-          // shop actions
-
-          // Monitor payment_intent.succeeded & payment_intent.payment_failed events.
-            // monitorPaymentIntentSucceed(eventType, data);
-        
-            // Monitor `source.chargeable` events.
-          //  monitorPaymentSourceChargeable(eventType, data);
-        
-            // Monitor `source.failed` and `source.canceled` events.
-          //  monitorFailedPayment(eventType, data);
-
-    //     break;
-
-    //     default:
-
-    //         console.log(`Unhandled event type ${ eventType }`);
+    //   membershipWebhookFunction(eventType, data)
     // }
 
-    // Return a 200 success code to Stripe.
-    res.sendStatus(200);
+    console.log(eventType);
+
+    res.end(); 
 
 });
 

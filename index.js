@@ -126,7 +126,6 @@ app.use(hpp());
 app.get('/', (req, res) => {
 
       // CALCULATE NEXT PAYMENT
-
       /**
        *  const { isAfter, isFuture, addMinutes,addHours,addDays,addMonths,addYears,format} = require('date-fns');
        *  
@@ -146,13 +145,8 @@ app.get('/', (req, res) => {
        * 
        */
 
-      
-
-      
-
-
-      return res.status(200).json({ message: 'WELCOME TO FOFO APP...' })
-})
+      return res.status(200).json({ message: 'WELCOME TO FOFO APP...' });
+});
 
 
 app.use('/', WebhookRoutes2);
@@ -205,34 +199,6 @@ const startApp = async () => {
       await connectDB();
 
       app.listen(PORT, () => console.log(`App running on port: ${PORT}`));
-
-
-      // if(ngrok) {
-      //       ngrok
-      //       .connect({
-      //         addr: 2000,
-      //         subdomain:  'https://8f82-102-89-32-159.ngrok-free.app',
-      //         authtoken: process.env.NGROK_AUTH_TOKEN,
-      //       })
-      //       .then(url => {
-      //         console.log(`💳  App URL to see the demo in your browser: ${url}/`);
-      //       })
-      //       .catch(err => {
-      //             if (err.code === 'ECONNREFUSED') {
-      //               console.log(`⚠️  Connection refused at ${err.address}:${err.port}`);
-      //             } else {
-      //               console.log(`⚠️ Ngrok error: ${JSON.stringify(err)}`);
-      //             }
-      //             process.exit(1);
-      //       });
-      // }
-
-
-
-
-
-
-
             
       } catch (error) {
             console.log(error)
