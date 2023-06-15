@@ -5,6 +5,7 @@ const router = express.Router()
 const { 
       stripeCheckout, 
       membershipPayment,
+      testUpdate
 } = require('../controllers/stripeController/stripeController');
 
 const { 
@@ -17,6 +18,8 @@ const { verifyAccessToken } = require('./../helpers/jwtHelper');
 
 const { permissions } = require('./../middlewares/permissionsMiddleware');
 
+router.route('/update')
+      .post(testUpdate);
 
 router.route('/order-checkout')
       .post(verifyAccessToken, permissions(["user","admin"]), stripeCheckout);

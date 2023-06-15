@@ -271,7 +271,7 @@ exports.login = async (req, res, next) => {
         }
      */
     
-    try {
+    try {       
 
         const result = await loginValidation(req.body);
         

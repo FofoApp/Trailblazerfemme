@@ -69,20 +69,22 @@ exports.membershipWebhookFunction = async (eventType, object) => {
 
                 // Update user data for membership subscription
                 const dateNow = new Date();
-                console.log({ 
-                  subscriptionId: membershipId,
-                  paid:  true,
-                  isActive:  true,
-                  isMembershipActive:  true,
-                  membershipName: membershipType,
-                  membershipType:  membershipType,
-                  amount: Number(amount),
-                  sub_duration:  mode,
-                  subscription_end_date:  dateNow,
-                  subscription_start_date:  dateNow,
-                  days_between_next_payment:  30,
+                // console.log({ 
+                //   subscriptionId: membershipId,
+                //   paid:  true,
+                //   isActive:  true,
+                //   isMembershipActive:  true,
+                //   membershipName: membershipType,
+                //   membershipType:  membershipType,
+                //   amount: Number(amount),
+                //   sub_duration:  mode,
+                //   subscription_end_date:  dateNow,
+                //   subscription_start_date:  dateNow,
+                //   days_between_next_payment:  30,
 
-                  });
+                //   });
+
+                  console.log({ metadata: object?.metadata })
 
                 const user =  await UserModel.findByIdAndUpdate(userId,
                   { 
@@ -109,7 +111,7 @@ exports.membershipWebhookFunction = async (eventType, object) => {
                   return false;
                 }
 
-              // console.log({ user });
+              console.log({ user });
 
 
              } catch (error) {

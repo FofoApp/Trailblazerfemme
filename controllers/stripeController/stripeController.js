@@ -9,6 +9,40 @@ const User = require('../../models/UserModel');
 
 const Stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY)
 
+
+exports.testUpdate = async (req, res) => {
+  console.log("Test")
+  try {
+
+      const dateNow = new Date();
+
+    const user =  await UserModel.findByIdAndUpdate("6481a9e7d432065af004ecf9",
+      { 
+        // $push: { membershipSubscriberId: membershipId },
+        $set: {
+                subscriptionId: "64847d6927e77dbcdff213b6",
+                paid:  true,
+                isActive:  true,
+                isMembershipActive:  true,
+                membershipName: "Bronze",
+                membershipType:  "Bronze",
+                amount: 6000,
+                sub_duration:  "yearly",
+                subscription_end_date:  dateNow,
+                subscription_start_date:  dateNow,
+                days_between_next_payment:  30,
+                // paymentIntentId:  dataToUpload?.paymentIntentId,
+        },
+        // 
+      }, { new: true }).exec();
+
+      return res.status(200).json({ user })
+
+  } catch (error) {
+    
+  }
+}
+
 exports.stripeCheckout = async (req, res) => {
 
     const { id: userId, email } = req?.user;
@@ -109,6 +143,7 @@ exports.stripeCheckout = async (req, res) => {
     const { membership:  membership_data } = req.body;
     const userId = req?.user?.id;
 
+    console.log(membership_data)
 
 
     try {
@@ -151,7 +186,7 @@ exports.stripeCheckout = async (req, res) => {
               price_data: { 
                 currency: "usd",
                 product_data: {
-                  name: membership?.name,
+                  name: membership_data?.membershipType,
                   description: membership?.description,
                 },
                 unit_amount: Number(membership_data?.amount) * 100,
@@ -163,8 +198,8 @@ exports.stripeCheckout = async (req, res) => {
 
           metadata: {
             userId,
-            membershipId: membership?.id,
-            membershipType: membership?.name,
+            membershipId: membership_data?.membershipId,
+            membershipType: membership_data?.membershipType,
             mode: membership_data?.mode,
             amount: Number(membership_data?.amount),
             action: "membership"
