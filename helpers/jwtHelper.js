@@ -175,7 +175,7 @@ exports.verifyAccessToken =  async (req, res, next) => {
     
     const payload  = JWT.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
-    // console.log(payload)
+
 
     if (!isValidObjectId(payload.id)) {
         return next(createError.BadRequest("Invalid request"));
@@ -184,7 +184,7 @@ exports.verifyAccessToken =  async (req, res, next) => {
     if(payload) {
         user = await UserModel.findById(payload?.id);
     }
-
+    console.log({user})
     if(!user) {
         return next(createError.BadRequest("Bad request, user not found"));
     }
