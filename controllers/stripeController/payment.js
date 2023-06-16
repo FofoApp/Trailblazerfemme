@@ -392,7 +392,7 @@ exports.productPayment = async (req, res, next) => {
 
 
         const shopMetadata = {
-            "product": JSON.stringify(orders),
+            "product": JSON.stringify(orderItems),
             "shippingAddress": JSON.stringify(shippingAddress),
             "taxPrice": taxPrice,
             "shippingPrice": shippingPrice,

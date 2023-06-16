@@ -13,7 +13,7 @@ const orderSchema = new mongoose.Schema({
             size: { type: String, required: true },
             color: { type: String, required: true },
             price: { type: Number, required: true },
-            product: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Product', }
+            productId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Product', }
           },
         ],
         shippingAddress: {
