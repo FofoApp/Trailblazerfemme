@@ -419,7 +419,7 @@ exports.productPayment = async (req, res, next) => {
             payment_method_types: ["card"], 
             line_items, 
             mode: "payment",
-            metadata, 
+            metadata: shopMetadata, 
             success_url: `${process.env.CLIENT_URL}/?success=true`,
             cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
         }); 
