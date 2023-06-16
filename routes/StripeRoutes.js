@@ -2,15 +2,15 @@
 const express = require('express')
 const router = express.Router()
 
-const { 
+const {
       stripeCheckout, 
       membershipPayment,
       testUpdate
 } = require('../controllers/stripeController/stripeController');
 
-const { 
-      membershipSubscription, 
-      productPayment 
+const {
+      membershipSubscription,
+      productPayment
 } = require('../controllers/stripeController/payment');
 
 

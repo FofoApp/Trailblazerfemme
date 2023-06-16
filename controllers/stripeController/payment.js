@@ -348,25 +348,27 @@ exports.membershipSubscription = async (req, res, next) => {
 
 exports.productPayment = async (req, res, next) => {
 
-    const { product } = req.body;
+    // const { product } = req.body;
+
+    const { orderItems, shippingAddress, taxPrice, shippingPrice, itemsPrice, totalPrice } = req.body.product;
 
     const { id: userId, fullname, email } = req.user;
 
-    console.log(product)
+    console.log(req.body)
 
     try {
 
-        if(product?.orderItems?.length === 0) {
+        if(orderItems?.length === 0) {
             return res.status(400).json({ status: "failed", error: "Order item(s) cannot be empty" })
         }
 
 
 
-        let totalPrice = product?.orderItems.reduce((acc, curr) => {
+        let totalPrice = orderItems.reduce((acc, curr) => {
             return acc + (curr.price * curr.qty);
         }, 0);
 
-        const line_items = product?.orderItems?.map((order) => {
+        const line_items = orderItems?.map((order) => {
             return  { 
                 price_data: { 
                   currency: "usd", 
@@ -382,11 +384,11 @@ exports.productPayment = async (req, res, next) => {
 
 
         const shopMetadata = {
-            "product": JSON.stringify(product?.orderItems),
-            "shippingAddress": JSON.stringify(product?.shippingAddress),
-            "taxPrice": product?.taxPrice,
-            "shippingPrice": product?.shippingPrice,
-            "itemsPrice": Number(product?.itemsPrice),
+            "product": JSON.stringify(orderItems),
+            "shippingAddress": JSON.stringify(shippingAddress),
+            "taxPrice": taxPrice,
+            "shippingPrice": shippingPrice,
+            "itemsPrice": Number(itemsPrice),
             "totalPrice": Number(totalPrice),
             userId,
             action: "shop",
@@ -447,7 +449,7 @@ exports.productPayment = async (req, res, next) => {
         //     customer: customer?.id,
         //     amount: Number(totalPrice) * 100,
         //     currency: 'usd',
-        //     receipt_email: product?.receipt_email,
+        //     receipt_email: receipt_email,
             
         //     automatic_payment_methods: { enabled: true, },
         //     metadata: {
