@@ -73,9 +73,9 @@ exports.membershipWebhookFunction = async (eventType, customer, object) => {
                       subscription_start_date:  dateNow,
                       days_between_next_payment:  '30',
                     },
-            }, { multi: true, new: true });
+            }, { new: true });
 
-            await User.save();
+            await user.save();
           
         } catch (error) {
           console.log(error);
