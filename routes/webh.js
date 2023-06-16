@@ -59,7 +59,7 @@ router.post('/webhook', async (req, res) => {
     const eventAction = data?.metadata?.action;
     const paymentIntentId = data?.id;
 
-    console.log({eventAction})
+    console.log({ data })
 
     // payment_intent.succeeded
     // checkout.session.completed

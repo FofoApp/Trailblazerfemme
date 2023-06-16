@@ -349,12 +349,12 @@ exports.membershipSubscription = async (req, res, next) => {
 exports.productPayment = async (req, res, next) => {
 
     // const { product } = req.body;
+    // console.log(req.body)
 
-    const { orderItems, shippingAddress, taxPrice, shippingPrice, itemsPrice, totalPrice } = req.body.product;
+    const { orderItems, shippingAddress, taxPrice, shippingPrice, itemsPrice } = req.body.product;
 
     const { id: userId, fullname, email } = req.user;
 
-    console.log(req.body)
 
     try {
 
@@ -426,7 +426,7 @@ exports.productPayment = async (req, res, next) => {
             cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
         }); 
 
-        console.log({ customer, ephemeralKey, paymentIntent  });
+        // console.log({ customer, ephemeralKey, paymentIntent  });
 
         return res.status(200).json({
           paymentIntent: paymentIntent?.client_secret,
