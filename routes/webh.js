@@ -59,6 +59,8 @@ router.post('/webhook', async (req, res) => {
     const eventAction = data?.metadata?.action;
     const paymentIntentId = data?.id;
 
+    console.log({eventAction})
+
     // payment_intent.succeeded
     // checkout.session.completed
     if(eventType === 'payment_intent.succeeded') {
@@ -67,11 +69,11 @@ router.post('/webhook', async (req, res) => {
           
           const customer = await  Stripe.customers.retrieve(data?.customer);
 
-          if(eventAction.toLowerCase() === 'membership') {
+          if(eventAction?.toLowerCase() === 'membership') {
 
             await membershipWebhookFunction(eventType, customer, data);
 
-          } else if(eventAction.toLowerCase() === 'shop'){
+          } else if(eventAction?.toLowerCase() === 'shop'){
 
             await shopWebhookFunction(eventType, customer, data);
 

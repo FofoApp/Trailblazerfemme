@@ -149,6 +149,8 @@ exports.stripeCheckout = async (req, res) => {
     const userId = req?.user?.id;
     const userEmail = req?.user?.email;
 
+    console.log({membership_data})
+
     try {
 
         if(!mongoose.Types.ObjectId.isValid(userId)) {
