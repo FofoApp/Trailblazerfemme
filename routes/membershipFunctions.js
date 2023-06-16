@@ -2,9 +2,6 @@
 const moment = require('moment');
 const MembershipSubscriber = require('./../models/membershipModel/MembershipSubscribersModel')
 const User = require('./../models/UserModel');
-const Stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: process.env.STRIPE_API_VERSION,
-});
 
 
 exports.membershipWebhookFunction = async (eventType, customer, object) => {
@@ -14,7 +11,7 @@ exports.membershipWebhookFunction = async (eventType, customer, object) => {
 
         console.log({ metadata: customer?.metadata })
 
-        const { userId, membershipId, membershipType, mode, amount, userEmail, action  } = customer.metadata;
+        const { userId, membershipId, membershipType, mode, amount, userEmail  } = customer.metadata;
         
         const receipt_email = userEmail;
 
@@ -77,13 +74,11 @@ exports.membershipWebhookFunction = async (eventType, customer, object) => {
                       days_between_next_payment:  '30',
                     },
             }, { multi: true, new: true });
+
+            await User.save();
           
         } catch (error) {
           console.log(error);
         }
-
-
-
-
 
 }

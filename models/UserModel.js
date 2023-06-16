@@ -75,13 +75,6 @@ const userSchema = new Schema({
 },  { timestamps: true });
 
 
-// schema.method("toJSON", function() {
-//     const { __v, _id, ...ret } = this.toObject();
-//     ret.id = _id;
-//     return ret;
-//   });
-
-
 userSchema.options.toJSON = {
     transform: function(doc, ret, options) {
         ret.id = ret?._id
