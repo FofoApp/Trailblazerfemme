@@ -46,32 +46,44 @@ exports.membershipWebhookFunction = async (eventType, customer, object) => {
             paymentIntentId: paymentIntentId,
         }
 
+        const dateNow = new Date();
 
         const create_new_subscriber = new MembershipSubscriber(membership_data);
-        const save_new_subscriber = await create_new_subscriber.save();
-      
-        if(!save_new_subscriber) {
-          return;
+
+        try {
+
+            const save_new_subscriber = await create_new_subscriber.save();
+
+            console.log({ save_new_subscriber })
+          
+            if(!save_new_subscriber) {
+              return;
+            }
+            
+          
+            const user = await User.findByIdAndUpdate(userId, {
+                  "$push": { membershipSubscriberId: membershipId  },
+                  "$set": { 
+                      subscriptionId: membershipId,
+                      paid:  true,
+                      isActive:  true,
+                      isMembershipActive:  true,
+                      membershipName: membershipType,
+                      membershipType:  membershipType,
+                      amount: Number(amount),
+                      sub_duration:  mode,
+                      subscription_end_date:  dateNow,
+                      subscription_start_date:  dateNow,
+                      days_between_next_payment:  '30',
+                    },
+            }, { multi: true, new: true });
+          
+        } catch (error) {
+          console.log(error);
         }
 
-        const dateNow = new Date();
-      
-        const user = await User.findByIdAndUpdate(userId, {
-              "$push": { membershipSubscriberId: membershipId  },
-              "$set": { 
-                  subscriptionId: membershipId,
-                  paid:  true,
-                  isActive:  true,
-                  isMembershipActive:  true,
-                  membershipName: membershipType,
-                  membershipType:  membershipType,
-                  amount: Number(amount),
-                  sub_duration:  mode,
-                  subscription_end_date:  dateNow,
-                  subscription_start_date:  dateNow,
-                  days_between_next_payment:  30,
-                },
-        }, { multi: true, new: true });
+
+
 
 
 }
