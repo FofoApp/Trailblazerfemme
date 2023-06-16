@@ -90,7 +90,7 @@ router.post('/webhook', async (req, res) => {
 
     console.log(eventType);
 
-    res.send().end(); 
+    res.status(200).end(); 
 
 });
 

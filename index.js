@@ -22,7 +22,7 @@ const PORT = process.env.PORT || 2000;
 global.publicPath = `${__dirname}/public`;
 
 //INITIALIZE DATABASE
-const connectDB = require('./initDB');
+const connectToDb = require('./initDB');
 
 
 const CommunityRoutes = require('./routes/CommunityRoutes');
@@ -43,10 +43,6 @@ const CourseRoutes = require('./routes/CourseRoutes');
 const StripeRoutes = require('./routes/StripeRoutes');
 const WebhookRoutes = require('./routes/webhook');
 const WebhookRoutes2 = require('./routes/webh');
-
-// const { recurrentPaymentMiddleware } = require('./middlewares/recurrentPaymentMiddleware');
-// const databaseLoader = require('./connection');
-// const { hooks } = require('./controllers/stripeController/stripeController');
 
 const app = express();
 app.use(morgan('dev'));
@@ -196,7 +192,7 @@ const startApp = async () => {
 
       try {
 
-      await connectDB();
+      await connectToDb();
 
       app.listen(PORT, () => console.log(`App running on port: ${PORT}`));
             

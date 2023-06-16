@@ -17,6 +17,8 @@ exports.membershipWebhookFunction = async (eventType, customer, object) => {
         // const paymentIntent = event.data.object;
         console.log('PaymentIntent was successful!');
 
+        console.log({ metadata: customer?.metadata })
+
         const { userId, membershipId, membershipType, mode, amount, userEmail, action  } = customer.metadata;
         const receipt_email = userEmail;
 
@@ -49,7 +51,7 @@ exports.membershipWebhookFunction = async (eventType, customer, object) => {
         }
 
 
-        const create_new_subscriber = new MembershipSubscriber({ ...membership_data });
+        const create_new_subscriber = new MembershipSubscriber(membership_data);
         const save_new_subscriber = await create_new_subscriber.save();
       
         if(!save_new_subscriber) {
@@ -61,7 +63,7 @@ exports.membershipWebhookFunction = async (eventType, customer, object) => {
         // Update user data for membership subscription
 
         const dateNow = new Date();
-
+      
         const user = await User.findByIdAndUpdate(userId, {
               "$push": { membershipSubscriberId: membershipId  },
               "$set": { 
@@ -80,7 +82,7 @@ exports.membershipWebhookFunction = async (eventType, customer, object) => {
         }, { multi: true, new: true });
 
 
-        console.log({ user });
+        // console.log({ user });
 
 
 }

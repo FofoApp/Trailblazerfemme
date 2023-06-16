@@ -1,42 +1,38 @@
-const dotenv = require('dotenv');
+
 const mongoose = require('mongoose');
 
-dotenv.config();
 
-// const MONGO_URI = process.env.NODE_ENV === 'development' ?  process.env.MONGODB_URI_DEV : process.env.MONGODB_URI_PROD
-mongoose.set("strictQuery", false);
+const connectToDb = async () => {
 
-
-module.exports = () => {
+      mongoose.set("strictQuery", false);
 
       let MONGO_URI = process.env.MONGODB_URI_PROD;
-
+     
       // let MONGO_URI =  process.env.MONGODB_URI_DEV;
 
-      return new Promise(async(resolve, reject) => {
+      try {
 
-            mongoose.connection
-            .on('error', (error) => reject(error) )
-            .on('close', () => console.log("Database connection closed") )
-            .once('open', () => resolve(mongoose.connections[0]) )
-
-            try {
-                  
-            if(MONGO_URI) {
-                  await mongoose.connect(MONGO_URI, {
-                        useNewUrlParser: true,
-                        useUnifiedTopology: true
-                  });
-                  console.log("Database connection established");
-            }            
-
-            } catch (error) {
-                  reject(error)
+            if(!MONGO_URI) {
+                  console.error("Database URI not found");
+                  return;
             }
+
+            await mongoose.connect(MONGO_URI);
+            console.log("Connection to database established!");
             
-            process.on("SIGINT", () => mongoose.connection.close(() => process.exit(0) ))
-  
-      })
-   
+      } catch (error) {
+            console.error(error);
+            process.exit(0);
+      }
+
+      process.on('SIGINT', function() {
+            console.log("Gracefull shutdown");
+            process.exit(0);
+
+      });
+
 
 }
+
+
+module.exports = connectToDb;
