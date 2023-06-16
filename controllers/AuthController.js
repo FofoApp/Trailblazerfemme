@@ -43,8 +43,9 @@ exports.createDefaultAdmin = async (req, res, next) => {
 
     try {
 
-        const users = await User.updateOne({_id: "6481a9e7d432065af004ecf9" }, {
+        const users = await User.updateOne({_id: "648cd8d742f06646f0e8277a" }, {
             $set: {
+                "_id": "648cd8d742f06646f0e8277a",
                 "fullname": "Olawumi Olusegun",
                 "email": "olawumi.olusegun@gmail.com",
                 "phonenumber": "23465066382",
