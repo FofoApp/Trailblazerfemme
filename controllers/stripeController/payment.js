@@ -349,7 +349,7 @@ exports.productPayment = async (req, res, next) => {
     // const { product } = req.body;
     // console.log(req.body)
 
-    const { orderItems, shippingAddress, taxPrice, shippingPrice, itemsPrice } = req.body.product;
+    const { productId, orderItems, shippingAddress, taxPrice, shippingPrice, itemsPrice } = req.body.product;
 
     const { id: userId, fullname, email } = req.user;
 
@@ -360,6 +360,16 @@ exports.productPayment = async (req, res, next) => {
             return res.status(400).json({ status: "failed", error: "Order item(s) cannot be empty" })
         }
 
+        let orders = orderItems?.map((order) => {
+          return {
+            name: order?.name,
+            qty: order?.qty,
+            size: order?.size,
+            color: order?.color,
+            price: order?.price,
+            product: order?.productId
+          }
+        });
 
 
         let totalPrice = orderItems.reduce((acc, curr) => {
@@ -382,7 +392,7 @@ exports.productPayment = async (req, res, next) => {
 
 
         const shopMetadata = {
-            "product": JSON.stringify(orderItems),
+            "product": JSON.stringify(orders),
             "shippingAddress": JSON.stringify(shippingAddress),
             "taxPrice": taxPrice,
             "shippingPrice": shippingPrice,
