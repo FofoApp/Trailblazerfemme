@@ -7,7 +7,8 @@ exports.shopWebhookFunction = async (eventType, customer, object) => {
   const paymentIntent = object;
   const paymentIntentId = object?.id;
 
-  console.log({ metadata: customer?.metadata })
+  console.log({ eventType })
+  // console.log({ metadata: customer?.metadata })
     
   console.log('PaymentIntent was successful!');
 
@@ -21,7 +22,7 @@ exports.shopWebhookFunction = async (eventType, customer, object) => {
             payment_date,
             userEmail,
             userId,
-            
+
         } = object?.metadata;
 
         const newOrderItems = JSON.parse(product)
@@ -61,7 +62,7 @@ exports.shopWebhookFunction = async (eventType, customer, object) => {
                 return res.status(400)
               }
 
-              console.log({ order });
+              // console.log({ order });
 
           } catch (error) {
             console.log(error);
