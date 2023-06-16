@@ -15,6 +15,7 @@ exports.membershipWebhookFunction = async (eventType, customer, object) => {
         console.log({ metadata: customer?.metadata })
 
         const { userId, membershipId, membershipType, mode, amount, userEmail, action  } = customer.metadata;
+        
         const receipt_email = userEmail;
 
         const subType = mode === 'yearly' ? 'years' : "months";

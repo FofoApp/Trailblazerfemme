@@ -272,9 +272,7 @@ exports.membershipSubscription = async (req, res, next) => {
               customer: customer?.id,
               line_items: [memData],
               mode: 'payment',
-            //   customer_email: email,    
-            metadata: subscriptionParams,   
-    
+            //   customer_email: email,     
             success_url: `${process.env.CLIENT_URL}/?success=true`,
             cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
             
@@ -398,8 +396,7 @@ exports.productPayment = async (req, res, next) => {
 
         const customer = await Stripe.customers.create({
             name: fullname,
-            email: email,
-            metadata: shopMetadata
+            email: email
         });
 
 
@@ -415,6 +412,7 @@ exports.productPayment = async (req, res, next) => {
             automatic_payment_methods: {
               enabled: true,
             },
+            metadata: shopMetadata, 
           });
 
         const session = await Stripe.checkout.sessions.create({ 
