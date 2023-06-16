@@ -247,7 +247,8 @@ exports.membershipSubscription = async (req, res, next) => {
 
         const customer = await Stripe.customers.create({
             name: fullname,
-            email: email
+            email: email,
+            metadata: membershipMetadata
         });
 
         const ephemeralKey = await Stripe.ephemeralKeys.create(
@@ -359,17 +360,6 @@ exports.productPayment = async (req, res, next) => {
         if(orderItems?.length === 0) {
             return res.status(400).json({ status: "failed", error: "Order item(s) cannot be empty" })
         }
-
-        let orders = orderItems?.map((order) => {
-          return {
-            name: order?.name,
-            qty: order?.qty,
-            size: order?.size,
-            color: order?.color,
-            price: order?.price,
-            product: order?.productId
-          }
-        });
 
 
         let totalPrice = orderItems.reduce((acc, curr) => {
