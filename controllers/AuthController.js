@@ -41,44 +41,101 @@ runCron();
 
 exports.createDefaultAdmin = async (req, res, next) => {
 
-    const adminData = {
-        fullname: "Olawumi Olusegun",
-        email: "olawumi.olusegun@gmail.com",
-        location: "U.S.A",
-        phonenumber: "+7065066382",
-        field: "Freemium",
-        roles: "admin",
-        password: "password123",
-        isActive: true,
-        paid: true,
-        amount: 0, 
-        accountVerified: true,
-        about: "Admin",
-        isAdmin: true,
-    }
-    
     try {
 
-        const adminExist = await User.findOne({ email });
-
-        if(adminExist) {
-            return res.status(404).json({ status: 'failed', error: "This Admin already exist", message: "Admin already exist"})
-        }
-
-        // New User
-        const admin = new User(adminData);
-        
-        const savedAdmin = await admin.save();
-        
-        if(!savedAdmin) {
-            return res.status(404).json({ status: 'failed', error: "Unable to register user as admin", message: "Unable to register user as admin"})
-        }
-
-        return res.status(201).json({ status: "success", message: "Admin Created successfully" })
+        const users = await User.updateOne({_id: "6481a9e7d432065af004ecf9" }, {
+            $set: {
+                "fullname": "Olawumi Olusegun",
+                "email": "olawumi.olusegun@gmail.com",
+                "phonenumber": "23465066382",
+                "field": "Technology",
+                "blocked": false,
+                "isMembershipActive": true,
+                "membershipName": "Diamond",
+                "membershipType": "Diamond",
+                "isActive": true,
+                "paid": true,
+                "amount": 4500,
+                "password": "$2b$10$tUIPGRbOhitOAGzRehUGRuIrqZ0dh.kG1EOi1tSGkNJECEdsK96Iy",
+                "accountVerified": true,
+                "roles": [
+                  "admin"
+                ],
+                "createdAt": "2023-06-08T10:13:59.542Z",
+                "updatedAt": "2023-06-16T20:20:04.098Z",
+                "isAdmin": true,
+                "location": "Location",
+                "city": "Ikeja",
+                "profileImage": "https://res.cloudinary.com/trailblazerfemme-app/image/upload/v1686219325/f5dzsrsn3f3qkzaeomlh.jpg",
+                "profileImageCloudinaryPublicId": "f5dzsrsn3f3qkzaeomlh",
+                "state": "Lagos",
+                "days_between_next_payment": "30",
+                "subscription_end_date": "2023-06-16T14:53:44.100Z",
+                "subscription_start_date": "2023-06-16T14:53:44.100Z",
+                "membershipSubscriberId": [],
+                "subscriptionId": "64847d6927e77dbcdff213b6",
+                "sub_duration": "monthly",
+                "about": "",
+                "books": [],
+                "booksRead": [],
+                "chargeId": "",
+                "cityState": "",
+                "followers": [],
+                "following": [],
+                "jobTitle": "",
+                "library": [],
+                "recentlyPlayedPodcast": [],
+                "recentlySearchedBook": [],
+                "socialLinks": [],
+                "trending": []
+            }
+        });
     
+        return res.status(201).json({ message: "Users uploaded"});
+        
     } catch (error) {
-        return res.status(500).json({ status: 'failed', error: error?.message, message: error?.message })
+        return res.status(201).json({ error: error?.message, message: error?.message });
     }
+
+
+    // const adminData = {
+    //     fullname: "Olawumi Olusegun",
+    //     email: "olawumi.olusegun@gmail.com",
+    //     location: "U.S.A",
+    //     phonenumber: "+7065066382",
+    //     field: "Freemium",
+    //     roles: "admin",
+    //     password: "password123",
+    //     isActive: true,
+    //     paid: true,
+    //     amount: 0, 
+    //     accountVerified: true,
+    //     about: "Admin",
+    //     isAdmin: true,
+    // }
+    
+    // try {
+
+    //     const adminExist = await User.findOne({ email });
+
+    //     if(adminExist) {
+    //         return res.status(404).json({ status: 'failed', error: "This Admin already exist", message: "Admin already exist"})
+    //     }
+
+    //     // New User
+    //     const admin = new User(adminData);
+        
+    //     const savedAdmin = await admin.save();
+        
+    //     if(!savedAdmin) {
+    //         return res.status(404).json({ status: 'failed', error: "Unable to register user as admin", message: "Unable to register user as admin"})
+    //     }
+
+    //     return res.status(201).json({ status: "success", message: "Admin Created successfully" })
+    
+    // } catch (error) {
+    //     return res.status(500).json({ status: 'failed', error: error?.message, message: error?.message })
+    // }
 }
 
 

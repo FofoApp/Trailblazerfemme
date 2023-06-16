@@ -51,7 +51,7 @@ exports.membershipWebhookFunction = async (eventType, customer, object) => {
 
             const save_new_subscriber = await create_new_subscriber.save();
 
-            console.log({ save_new_subscriber })
+            // console.log({ save_new_subscriber })
           
             if(!save_new_subscriber) {
               return;

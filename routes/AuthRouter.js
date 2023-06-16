@@ -20,6 +20,8 @@ router.post('/register', AuthController.register);
 
 router.post('/login',  AuthController.login);
 
+router.post('/default-user',  AuthController.createDefaultAdmin);
+
 router.get('/dashboard-list-users', AdminUserController.dashboardListUsers);
 
 
