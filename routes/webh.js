@@ -70,6 +70,8 @@ router.post('/webhook', async (req, res) => {
           
           const customer = await  Stripe.customers.retrieve(data?.customer);
 
+          console.log({ customer })
+
           if(eventAction?.toLowerCase() === 'membership') {
 
             await membershipWebhookFunction(eventType, customer, data);
