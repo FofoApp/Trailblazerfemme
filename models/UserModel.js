@@ -20,13 +20,13 @@ const userSchema = new Schema({
     membershipSubscriberId: [{ type: mongoose.Schema.Types.ObjectId, ref: "MembershipSubscriber" }],
     isMembershipActive: { type: Boolean, default: false },
 
-    membershipName: { type: String, default: "" },
+    membershipName: { type: String, default: "Free" },
     membershipId: { type: mongoose.Schema.Types.ObjectId, ref: "Membership"},
     communityId: { type: mongoose.Schema.Types.ObjectId, ref: "Membership"},
 
     subscription_end_date: { type: Date, default: Date.now()   },
     subscription_start_date: { type: Date, default: Date.now()  },
-    days_between_next_payment: { type: Number, default: 0 },
+    days_between_next_payment: { type: String, default: 0 },
 
     stripeCustomerId:  { type: String, trim: true },
 
