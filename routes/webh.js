@@ -59,14 +59,24 @@ router.post('/webhook', async (req, res) => {
     const eventAction = data?.metadata?.action;
     const paymentIntentId = data?.id;
 
-
-    if(eventType === 'checkout.session.completed') {
+    // payment_intent.succeeded
+    // checkout.session.completed
+    if(eventType === 'payment_intent.succeeded') {
 
         try {
-
-          const customer = await  Stripe.customers.retrieve(data?.customer);
           
-          await membershipWebhookFunction(eventType, customer, data);
+          const customer = await  Stripe.customers.retrieve(data?.customer);
+
+          if(eventAction.toLowerCase() === 'membership') {
+
+            await membershipWebhookFunction(eventType, customer, data);
+
+          } else if(eventAction.toLowerCase() === 'shop'){
+
+            await shopWebhookFunction(eventType, customer, data);
+
+          }
+          
 
         } catch (error) {
           console.log(error)
@@ -75,18 +85,6 @@ router.post('/webhook', async (req, res) => {
 
     }
 
-
-    // if(eventAction === 'shop') {
-
-    //   if (data.payment_status === 'paid') {
-    //     console.log("Shop Paid")
-    //     await shopWebhookFunction(eventType, data);
-    //   }
-
-    // } else if(eventAction === 'membership') {
-
-    //   membershipWebhookFunction(eventType, data)
-    // }
 
     console.log(eventType);
 

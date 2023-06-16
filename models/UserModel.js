@@ -10,12 +10,12 @@ const userSchema = new Schema({
     location: { type: String, trim: true, default: "Location" },
     jobTitle: { type: String, trim: true, default: "" },
     phonenumber: { type: String, trim: true, required: true },
-    field: { type: String, default: "" },
-    city: { type: String, default: ""   },
-    state: { type: String, default: ""  },
+    field: { type: String, trim: true, default: "" },
+    city: { type: String, trim: true, default: ""   },
+    state: { type: String, trim: true, default: ""  },
     blocked: { type: Boolean, default: false }, // block / unblock users
 
-    chargeId: { type: String, default: ""  },
+    chargeId: { type: String, trim: true, default: ""  },
 
     membershipSubscriberId: [{ type: mongoose.Schema.Types.ObjectId, ref: "MembershipSubscriber" }],
     isMembershipActive: { type: Boolean, default: false },
@@ -26,7 +26,7 @@ const userSchema = new Schema({
 
     subscription_end_date: { type: Date, default: Date.now()   },
     subscription_start_date: { type: Date, default: Date.now()  },
-    days_between_next_payment: { type: String, default: 0 },
+    days_between_next_payment: { type: String, trim: true, default: "0" },
 
     stripeCustomerId:  { type: String, trim: true },
 
@@ -39,15 +39,15 @@ const userSchema = new Schema({
 
     subscriptionId: {type: mongoose.Schema.Types.ObjectId, ref: "MembershipSubscriber", },
     membershipType: { type: String, default: "" },
-    sub_duration: { type: String },
+    sub_duration: { type: String, trim: true, },
     isActive: { type: Boolean, default: false  },
     paid: { type: Boolean, default: false },
     amount: { type: Number,  default: 0 }, 
     password: { type: String, trim: true, required: true },
     accountVerified: { type: Boolean, default: false },
 
-    about: { type: String, default: ""  },
-    cityState: { type: String, default: ""  },
+    about: { type: String, trim: true, default: ""  },
+    cityState: { type: String, trim: true, default: ""  },
 
     socialLinks: { type: [String], default: [] },
     roles: { type: [String], enum: ["user", "admin", "superAdmin"], default: "user"},
@@ -55,7 +55,7 @@ const userSchema = new Schema({
 
     profileId: { type: mongoose.Schema.Types.ObjectId, ref: "Profile" },
     profileImageCloudinaryPublicId: { type: String, default: ""  },
-    profileImage: { type: String, default: ""  },
+    profileImage: { type: String, trim: true, default: ""  },
     
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],

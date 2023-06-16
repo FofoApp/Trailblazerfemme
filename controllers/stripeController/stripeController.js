@@ -49,6 +49,8 @@ exports.stripeCheckout = async (req, res) => {
 
     const { id: userId, email } = req?.user;
 
+    const userEmail = req?.user?.email;
+
     // console.log(req.body)
     
     const { orderItems, shippingAddress, taxPrice, shippingPrice, itemsPrice, totalPrice } = req.body.product;
@@ -117,9 +119,10 @@ exports.stripeCheckout = async (req, res) => {
             "itemsPrice": itemsPrice,
             "totalPrice": totalPrice,
             userId,
+            userEmail,
             action: "shop",
             integration_check: 'accept_a_payment',
-            payment_date: new Date(Date.now()),
+            payment_date: new Date(),
         },
 
           success_url: `${process.env.CLIENT_URL}/?success=true`,
@@ -135,7 +138,7 @@ exports.stripeCheckout = async (req, res) => {
 
     } catch (error) {
         console.log(error)
-        return res.status(500).json({ error: error })
+        return res.status(500).json({ error: error });
     }
   }
 
@@ -145,9 +148,6 @@ exports.stripeCheckout = async (req, res) => {
     const { membership:  membership_data } = req.body;
     const userId = req?.user?.id;
     const userEmail = req?.user?.email;
-
-    // console.log(membership_data)
-
 
     try {
 
@@ -181,6 +181,7 @@ exports.stripeCheckout = async (req, res) => {
       
         //     return res.status(400).send({ error: "You still have an active plan"});
         // }
+
       
         const customer = await Stripe.customers.create({
          metadata: {

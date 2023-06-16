@@ -5,6 +5,7 @@ const mongoosePaginate = require('mongoose-paginate-v2');
 const orderSchema = new mongoose.Schema({
     
         user: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User', },
+        userEmail: { type: String, trim: true, default: "" },
         orderItems: [
           {
             name: { type: String, required: true },
@@ -18,7 +19,7 @@ const orderSchema = new mongoose.Schema({
         shippingAddress: {
           address: { type: String, required: true },
           city: { type: String, required: true },
-          postalCode: { type: String, },
+          postalCode: { type: String, default: "" },
           country: { type: String, required: true },
         },
 
@@ -26,9 +27,9 @@ const orderSchema = new mongoose.Schema({
         paymentIntentId: { type: String, default: "" },
 
         paymentResult: {
-          paymentIntentId: { type: String },
-          status: { type: String },
-          update_time: { type: String },
+          paymentIntentId: { type: String, default: "" },
+          status: { type: String, default: "" },
+          update_time: { type: String, default: "" },
         },
 
         taxPrice: { type: Number, required: true, default: 0 },
@@ -36,11 +37,11 @@ const orderSchema = new mongoose.Schema({
         itemsPrice: { type: Number, required: true, default: 0 },
         totalPrice: { type: Number, required: true, default: 0 },
         isPaid: { type: Boolean, default: false, },
-        paidAt: { type: Date,  },
+        paidAt: { type: Date, default: Date.now() },
         isDelivered: { type: Boolean,  default: false, },
         deliveryStatus: { type: String,  default: "pending" },
         deliveredAt: { type: Date, },
-        orderId: { type: String, },
+        orderId: { type: String,  default: "" },
 
       }, { timestamps: true, });
 

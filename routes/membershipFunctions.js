@@ -9,13 +9,8 @@ const Stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY, {
 
 exports.membershipWebhookFunction = async (eventType, customer, object) => {
 
-  // console.log({ eventType, object })
-
     const paymentIntent = object;
     const paymentIntentId = object?.id;
-
-        // const paymentIntent = event.data.object;
-        console.log('PaymentIntent was successful!');
 
         console.log({ metadata: customer?.metadata })
 
@@ -58,10 +53,6 @@ exports.membershipWebhookFunction = async (eventType, customer, object) => {
           return;
         }
 
-        // const dataToUpload = save_new_subscriber?._doc;
-
-        // Update user data for membership subscription
-
         const dateNow = new Date();
       
         const user = await User.findByIdAndUpdate(userId, {
@@ -80,9 +71,6 @@ exports.membershipWebhookFunction = async (eventType, customer, object) => {
                   days_between_next_payment:  30,
                 },
         }, { multi: true, new: true });
-
-
-        // console.log({ user });
 
 
 }
