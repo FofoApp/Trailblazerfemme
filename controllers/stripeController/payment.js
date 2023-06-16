@@ -396,7 +396,8 @@ exports.productPayment = async (req, res, next) => {
 
         const customer = await Stripe.customers.create({
             name: fullname,
-            email: email
+            email: email,
+            metadata: shopMetadata, 
         });
 
 
