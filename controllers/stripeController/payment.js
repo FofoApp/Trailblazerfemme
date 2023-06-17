@@ -255,6 +255,7 @@ exports.membershipSubscription = async (req, res, next) => {
             cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
             
         });
+        
         // success_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?success=true`,
         // cancel_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?canceled=true`,
 
