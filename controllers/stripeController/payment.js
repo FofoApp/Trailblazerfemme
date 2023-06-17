@@ -169,6 +169,8 @@ exports.membershipSubscription = async (req, res, next) => {
         // const user = await UserModel.findOne({ email });
 
         let user = await User.findById(userId);
+
+        console.log(user)
         
         if(!user) return res.status(404).send({ error: "Invalid user"});
 

@@ -69,8 +69,8 @@ exports.membershipWebhookFunction = async (eventType, customer, object) => {
                       membershipType:  membershipType,
                       amount: Number(amount),
                       sub_duration:  mode,
-                      subscription_end_date:  start_date,
-                      subscription_start_date:  end_date,
+                      subscription_end_date: end_date,
+                      subscription_start_date:  start_date,
                       days_between_next_payment:  diff,
                     },
             }, { new: true });
