@@ -143,6 +143,8 @@ exports.membershipSubscription = async (req, res, next) => {
     const email = req?.user?.email;
     const fullname = req?.user?.fullname;
 
+    // console.log(membership)
+
     try {
 
         if(!membership?.amount) {
@@ -182,7 +184,7 @@ exports.membershipSubscription = async (req, res, next) => {
 
         console.log({ isBefore})
            
-        if(user?.userId.toString() === userId.toString() && user?.membershipName?.toLowerCase() !== 'Free' && isBefore && user?.isActive === true ) {
+        if(user?.id.toString() === userId.toString() && user?.membershipName?.toLowerCase() !== 'Free' && isBefore && user?.isActive === true ) {
           console.log("You still have an active plan")
             return res.status(400).json({ status: "failed", error: "You still have an active plan"});
         }
