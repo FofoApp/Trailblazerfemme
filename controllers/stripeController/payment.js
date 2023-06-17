@@ -139,9 +139,7 @@ exports.membershipSubscription = async (req, res, next) => {
 
     const { membership } = req.body;
 
-    const userId = req?.user?.id;
-    const email = req?.user?.email;
-    const fullname = req?.user?.fullname;
+    const { id: userId, fullname, email } = req.user;
 
     // console.log(membership)
 
@@ -312,6 +310,7 @@ exports.productPayment = async (req, res, next) => {
             "itemsPrice": Number(itemsPrice),
             "totalPrice": Number(totalPrice),
             userId,
+            userEmail: email,
             action: "shop",
             integration_check: 'accept_a_payment',
             payment_date: new Date(),
