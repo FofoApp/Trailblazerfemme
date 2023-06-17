@@ -184,7 +184,7 @@ exports.verifyAccessToken =  async (req, res, next) => {
     if(payload) {
         user = await UserModel.findById(payload?.id);
     }
-    console.log({user})
+
     if(!user) {
         return next(createError.BadRequest("Bad request, user not found"));
     }
