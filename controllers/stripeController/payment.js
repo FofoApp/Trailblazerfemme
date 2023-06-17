@@ -174,17 +174,16 @@ exports.membershipSubscription = async (req, res, next) => {
         
         if(!user) return res.status(404).send({ error: "Invalid user"});
 
-        // let membership = await Membership.findById(membership.membershipId);
-        
+        // let membership = await Membership.findById(membership.membershipId);        
         // if(!membership) {
         //   return res.status(404).json({ status: "failed",  error: "Invalid membership"});
         // }
-
         // const subscriber = await MembershipSubscriber.findOne({ userId: userId, isActive: true });
 
-        const isBefore = moment().isBefore(user?.subscription_end_date);
 
-        console.log({ isBefore})
+        
+
+        const isBefore = moment().isBefore(user?.subscription_end_date);
            
         if(user?.id.toString() === userId.toString() && user?.membershipName?.toLowerCase() !== 'free' && isBefore && user?.isActive === true ) {
           console.log("You still have an active plan")
