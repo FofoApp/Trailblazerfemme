@@ -169,8 +169,6 @@ exports.membershipSubscription = async (req, res, next) => {
         // const user = await UserModel.findOne({ email });
 
         let user = await User.findById(userId);
-
-        // console.log(user)
         
         if(!user) return res.status(404).send({ error: "Invalid user"});
 
@@ -181,12 +179,11 @@ exports.membershipSubscription = async (req, res, next) => {
         // const subscriber = await MembershipSubscriber.findOne({ userId: userId, isActive: true });
 
 
-        
+
 
         const isBefore = moment().isBefore(user?.subscription_end_date);
            
         if(user?.id.toString() === userId.toString() && user?.membershipName?.toLowerCase() !== 'free' && isBefore && user?.isActive === true ) {
-          console.log("You still have an active plan")
             return res.status(400).json({ status: "failed", error: "You still have an active plan"});
         }
 
