@@ -164,9 +164,9 @@ exports.membershipSubscription = async (req, res, next) => {
         }
 
         // action: "membership"
-        if(membership?.action !== "membership") {
-            return res.status(400).json({ status: "failed", error: "Invalid action type" });
-        }
+        // if(membership?.action !== "membership") {
+        //     return res.status(400).json({ status: "failed", error: "Invalid action type" });
+        // }
 
         // const user = await UserModel.findOne({ email });
 
