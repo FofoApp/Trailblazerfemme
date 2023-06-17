@@ -143,7 +143,7 @@ exports.membershipSubscription = async (req, res, next) => {
     const email = req?.user?.email;
     const fullname = req?.user?.fullname;
 
-    // console.log(membership)
+    console.log(membership)
 
     try {
 
@@ -156,6 +156,8 @@ exports.membershipSubscription = async (req, res, next) => {
         }
 
         let isExist = await Membership.findById(membership?.membershipId);
+
+        console.log({ isExist })
 
         if(!isExist) {
             return res.status(400).json({ status: "failed", error: "Invalid membership ID"});
@@ -242,9 +244,6 @@ exports.membershipSubscription = async (req, res, next) => {
             metadata: membershipMetadata
           });
 
-
-
-
         const session = await Stripe.checkout.sessions.create({
             payment_method_types: ['card'],
               customer: customer?.id,
@@ -255,7 +254,7 @@ exports.membershipSubscription = async (req, res, next) => {
             cancel_url: `${process.env.CLIENT_URL}/?canceled=true`,
             
         });
-        
+
         // success_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?success=true`,
         // cancel_url: `https://6469ec122631c1598c5d449c--leafy-paprenjak-6ddfe1.netlify.app/?canceled=true`,
 
