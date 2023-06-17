@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
 
-    fullname: { type: String, trim: true, required: true, unique: true },
+    fullname: { type: String, trim: true, required: true },
     email: { type: String, trim: true, required: true, lowercase: true, unique: true },
     location: { type: String, trim: true, default: "Location" },
     jobTitle: { type: String, trim: true, default: "" },

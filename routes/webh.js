@@ -1,7 +1,4 @@
-const express = require('express')
-const moment = require('moment');
-const MembershipSubscriber = require('./../models/membershipModel/MembershipSubscribersModel')
-const User = require('./../models/UserModel');
+const express = require('express');
 
 const Stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY, {
     apiVersion: process.env.STRIPE_API_VERSION,
@@ -88,7 +85,7 @@ router.post('/webhook', async (req, res) => {
     }
 
 
-    console.log(eventType);
+    // console.log(eventType);
 
     res.status(200).end(); 
 

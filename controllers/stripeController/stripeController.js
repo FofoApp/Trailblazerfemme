@@ -179,10 +179,10 @@ exports.stripeCheckout = async (req, res) => {
 
         const isBefore = moment().isBefore(subscriber?.subscription_end_date);
            
-        // if(subscriber?.userId.toString() === userId.toString() && !isIncludesFreeMembership && isBefore && subscriber?.isActive === true ) {
+        if(subscriber?.userId.toString() === userId.toString() && !isIncludesFreeMembership && isBefore && subscriber?.isActive === true ) {
       
-        //     return res.status(400).send({ error: "You still have an active plan"});
-        // }
+            return res.status(400).send({ error: "You still have an active plan"});
+        }
 
       
         const customer = await Stripe.customers.create({

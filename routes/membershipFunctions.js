@@ -9,7 +9,7 @@ exports.membershipWebhookFunction = async (eventType, customer, object) => {
     const paymentIntent = object;
     const paymentIntentId = object?.id;
 
-        console.log({ metadata: customer?.metadata })
+        // console.log({ metadata: customer?.metadata })
 
         const { userId, membershipId, membershipType, mode, amount, userEmail  } = customer.metadata;
         
@@ -69,9 +69,9 @@ exports.membershipWebhookFunction = async (eventType, customer, object) => {
                       membershipType:  membershipType,
                       amount: Number(amount),
                       sub_duration:  mode,
-                      subscription_end_date:  dateNow,
-                      subscription_start_date:  dateNow,
-                      days_between_next_payment:  '30',
+                      subscription_end_date:  start_date,
+                      subscription_start_date:  end_date,
+                      days_between_next_payment:  diff,
                     },
             }, { new: true });
 
