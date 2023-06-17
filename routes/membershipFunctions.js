@@ -9,7 +9,7 @@ exports.membershipWebhookFunction = async (eventType, customer, object) => {
     const paymentIntent = object;
     const paymentIntentId = object?.id;
 
-        // console.log({ metadata: customer?.metadata })
+        console.log({ metadata: customer?.metadata })
 
         const { userId, membershipId, membershipType, mode, amount, userEmail  } = customer.metadata;
         
