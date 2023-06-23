@@ -190,9 +190,10 @@ exports.uploadProfileImage = async (req, res, next) => {
 
 exports.updateProfileImage = async (req, res, next) => {
     
-    const { id } = req.params; 
+    const { id } = req.params;
 
     try {
+
         //Check if userId is a valid mongoose id, if not reject the request
         if(!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ status: "failed", message: "Invalid user id!" });
@@ -255,9 +256,15 @@ exports.updateProfileImage = async (req, res, next) => {
 
 exports.updateProfileInfo = async (req, res, next) => {
 
-    const { id } = req.user; 
+    //http://localhost:2000/api/profile/update-profile-info
+    
+    const { id } = req.user;
     
     try {
+
+        if(Object.keys(req.body).length === 0) {
+            return res.status(400).json({ status: 'failed', message: "Update data required"});
+        }
 
         //Check if userId is a valid mongoose id, if not reject the request
         if(!mongoose.Types.ObjectId.isValid(id)) {
@@ -267,50 +274,50 @@ exports.updateProfileInfo = async (req, res, next) => {
         let userExist = await UserModel.findById(id);
 
         if(!userExist) {
-            return res.status(404).json({ status: 'failed', message: "User not found"})
+            return res.status(404).json({ status: 'failed', message: "User not found"});
         }
 
-        let acceptFields = ["fullname", "phonenumber", "email", "city", "state", "jobTitle", "field", "socialLinks"]
+        let acceptFields = ["fullname", "phonenumber", "location", "email", "city", "state", "jobTitle", "field", "socialLinks"];
 
-       
         const data =  Object.entries(req.body).map(([key, value]) => {
 
-            if(!acceptFields.includes(key) || key == undefined) {
-                delete req.body[key]
+            if(!acceptFields.includes(key) || key == undefined || key == null) {
+                delete req.body[key];
             }
-
 
             if(value.trim() === '' ) {
-                delete req.body[key]
+                delete req.body[key];
             }
 
-            
-        })
-
+        });
 
         let updatedInfo = await UserModel.findByIdAndUpdate(id, { $set: req.body }, { new: true });
-
     
         if(!updatedInfo) {
-            return res.status(400).json({ status: 'failed', message: "Unable to update user image"})
+            return res.status(400).json({ status: 'failed', message: "Unable to update user image"});
         }
 
-        return res.status(200).json({ status: 'success', message: "Profile updated"})
+        return res.status(200).json({ status: 'success', message: "Profile updated"});
 
     } catch (error) {
-        return res.status(500).json({ status: 'failed', message: "Server error updating profile info"})
+        return res.status(500).json({ status: 'failed', message: "Server error updating profile info"});
     }
 }
 
 exports.addFollowing = async (req, res, next) => {
+    
     //http://localhost:2000/api/profile/user/628696153cf50a6e1a34e2c5/follow
 
     const currentUser = req?.user?.id;
     const followId = req?.params?.userId;
 
     try {
+
         const addFollowing = await Profile.findByIdAndUpdate(currentUser, {$addToSet: {following: followId }}, { new: true });
-        if(!addFollowing)  return res.status(400).json({ status: "failed", error: "Unable to follow user"});
+        
+        if(!addFollowing) {
+            return res.status(400).json({ status: "failed", error: "Unable to follow user"});
+        }
 
         next();
 

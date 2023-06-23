@@ -1,8 +1,7 @@
-const JWT = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const mongoose = require("mongoose");
 const moment = require('moment')
 const createError = require('http-errors');
-// const client = require('./../helpers/initRedis');
 const UserModel = require('./../models/UserModel');
 
 const isValidObjectId  = mongoose.Types.ObjectId;
@@ -20,7 +19,6 @@ exports.isFirstDateBeforeSecondDate = (prevDate, todayDate = Date.now()) => {
 }
 
 
-
 exports.signInAccessToken = (userData) => {
     return new Promise((resolve, reject) => {
         const payload = {
@@ -28,7 +26,7 @@ exports.signInAccessToken = (userData) => {
             username: userData?.fullname,
             email: userData?.email,
             roles: userData?.roles,
-            profileImagePath: userData?.profileImagePath || null,
+            profileImage: userData?.profileImage || null,
             roles: userData?.roles[0],
             // iss: "yourwebsitename.com"
         }
@@ -41,7 +39,7 @@ exports.signInAccessToken = (userData) => {
                         audience: userData?.id?.toString(),
                     };
     
-        JWT.sign(payload, secret, option, (error, data) => {
+        jwt.sign(payload, secret, option, (error, data) => {
             if(error) {
                 reject({ error: "Token error"})
             }
@@ -60,7 +58,7 @@ exports.signInRefreshToken = (userData) => {
             username: userData.fullname,
             email: userData.email,
             roles: userData.roles,
-            profileImagePath: userData.profileImagePath || null,
+            profileImage: userData.profileImage || null,
             roles: userData.roles[0],
             // iss: "yourwebsitename.com"
         }
@@ -72,7 +70,7 @@ exports.signInRefreshToken = (userData) => {
             audience: userData?.id?.toString(),
     };
 
-    JWT.sign(payload, secret, option, (error, data) => {
+    jwt.sign(payload, secret, option, (error, data) => {
         if(error) {
             reject({ error: "Token error"})
         }
@@ -82,7 +80,7 @@ exports.signInRefreshToken = (userData) => {
 
     });
 
-        // JWT.sign(payload, secret, option, (err, token) => {
+        // jwt.sign(payload, secret, option, (err, token) => {
         //     if(err){
         //         return reject(createError.InternalServerError());
         //     }
@@ -97,35 +95,6 @@ exports.signInRefreshToken = (userData) => {
 
         // });
 
-}
-
-exports.verifyRefreshToken = (refreshToken) => {
-    return new Promise((resolve, reject) => {
-
-        JWT.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, payload) => {
-            if(err) {
-                // console.log(err)
-                return reject(createError.Unauthorized());
-            }
-
-            const userId = payload?.aud;
-
-            resolve(userId);
-
-            // client.GET(userId, (err, result) => {
-            //     if(err) {
-            //         reject(createError.InternalServerError());
-            //         return;
-            //     }
-            //     if(refreshToken === result) {
-            //         return resolve(userId);
-            //     } else {
-            //         reject(createError.Unauthorized());
-            //     }
-            // });
-
-        })
-    })
 }
 
 exports.resetPasswordToken = (user) => {
@@ -143,7 +112,7 @@ exports.resetPasswordToken = (user) => {
             audience: user?.id
     };
 
-        JWT.sign(payload, secret, option, (err, token) => {
+        jwt.sign(payload, secret, option, (err, token) => {
             if(err){
                 return reject(createError.InternalServerError());
             }
@@ -152,6 +121,78 @@ exports.resetPasswordToken = (user) => {
     })
 }
 
+
+exports.verifyRefreshToken = async (req, res, next) =>  {
+
+    let user;
+
+    try {
+        
+    if(!req.headers['authorization']) {
+        return res.status(401).json({ status: "failed", error: "Invalid token", message: "Invalid token" });
+    }
+
+    const authHeader = req.headers['authorization'];
+    
+    const bearerToken = authHeader.split(' ');
+    
+    const token = bearerToken[1];
+
+    if (!token.trim()) {
+        return res.status(401).json({ status: "failed", error: "Invalid request", message: "Invalid request" });
+    }
+    
+    const payload  = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+
+    if (!isValidObjectId(payload?.id)) {
+
+        return res.status(401).json({ status: "failed", error: "Invalid request", message: "Invalid request" });
+   
+    }
+
+    if(payload) {
+
+        user = await UserModel.findById(payload?.id);
+
+    }
+
+    if(!user) {
+
+        return res.status(401).json({ status: "failed", error: "Bad request, user not found", message: "Bad request, user not found" });
+        
+    }
+    
+    const user_data = {
+        id: user?.id,
+        email: user?.email,
+        fullname: user?.fullname,
+        role: user?.roles[0],
+        iat: payload?.iat,
+        exp: payload?.exp,
+        aud: payload?.aud,
+        iss: payload?.iss
+    }
+
+    req.user = user_data;
+    
+    next();
+
+    } catch (error) {
+
+        if(error instanceof jwt.TokenExpiredError) {
+            
+            return res.status(401).json({ status: "failed", error: "Expired session", message: "Expired session" });
+        
+        } else if(error instanceof jwt.JsonWebTokenError) {
+            console.log("Heere")
+            return res.status(401).json({ status: "failed", error: "Invalid token", message: "Invalid token" });
+
+        } else {
+           
+            return res.status(401).json({ status: "failed", error: "Unauthorized", message: "Unauthorized" });
+        
+        }
+    }}
 
 exports.verifyAccessToken =  async (req, res, next) => {
 
@@ -170,15 +211,16 @@ exports.verifyAccessToken =  async (req, res, next) => {
     const token = bearerToken[1];
 
     if (!token.trim()) {
-        return next(createError.BadRequest("Invalid request"));
+        return res.status(401).json({ status: "failed", error: "Invalid token", message: "Invalid token" })
     }
     
-    const payload  = JWT.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    const payload  = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
 
 
     if (!isValidObjectId(payload.id)) {
-        return next(createError.BadRequest("Invalid request"));
+        return res.status(401).json({ status: "failed", error: "Invalid token", message: "Invalid token" })
+
     }
 
     if(payload) {
@@ -186,7 +228,8 @@ exports.verifyAccessToken =  async (req, res, next) => {
     }
 
     if(!user) {
-        return next(createError.BadRequest("Bad request, user not found"));
+        return res.status(401).json({ status: "failed", error: "Invalid token", message: "Invalid token" })
+
     }
 
 
@@ -207,22 +250,20 @@ exports.verifyAccessToken =  async (req, res, next) => {
 
     } catch (error) {
 
-        if(error?.name === 'JsonWebTokenError') {
-
-            return next(createError.Unauthorized());
-
-        } else if(error?.message === "jwt expired") {
-
-            return next(createError.Unauthorized("Access Timeout!"));
+        if(error instanceof jwt.TokenExpiredError) {
+            
+            return res.status(401).json({ status: "failed", error: "Session expired", message: "Session expired" });
+        
+        } else if(error instanceof jwt.JsonWebTokenError) {
+            
+            return res.status(401).json({ status: "failed", error: "Invalid token", message: "Invalid token" })
 
         } else {
            
-            return next(createError.Unauthorized(error?.message));
-
+            return res.status(401).json({ status: "failed", error: "Unauthorized", message: "Unauthorized" })
+        
         }
 
-      
-        // return next(createError.Unauthorized());
     }
 
 }

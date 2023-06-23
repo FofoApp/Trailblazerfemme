@@ -16,9 +16,9 @@ const uploadCv = require('./../helpers/multerCVupload');
 
 
 //JOB ROUTES
-router.get('/alljobs', JobController.jobs);
-router.get('/lists', JobController.listJobs);
-router.post('/search', JobController.searchJob);
+router.get('/alljobs', verifyAccessToken, permissions(["user", "admin"]), JobController.jobs);
+router.get('/lists', verifyAccessToken, permissions(["user", "admin"]), JobController.listJobs);
+router.post('/search', verifyAccessToken, permissions(["user", "admin"]), JobController.searchJob);
 router.post('/:jobId/apply', verifyAccessToken, permissions(["user", "admin"]), JobController.jobApplication);
 router.post('/:jobId/application/upload', verifyAccessToken, permissions(["user", "admin"]), uploadCv.array('doc_uploads'), JobController.uploadCoverLetterAndResumee);
 router.post('/:jobId/application/update', verifyAccessToken, permissions(["user", "admin"]), uploadCv.array('doc_uploads'), JobController.updateCoverLetterAndResumee);
@@ -26,7 +26,7 @@ router.post('/:jobId/application/update', verifyAccessToken, permissions(["user"
 
 //ADMIN JOB ROUTES
 // router.get('/',  verifyAccessToken, permissions(["admin"]), AdminJobController.jobs);
-router.patch('/:jobId/update',  verifyAccessToken, permissions(["admin"]), upload.single('jobImage'), AdminJobController.updateJobById);
+router.patch('/:jobId/update', verifyAccessToken, permissions(["admin"]), upload.single('jobImage'), AdminJobController.updateJobById);
 
 // TEST JOB ROUTE
 const jobImageFields = [{name: 'jobImages', maxCount: 1 }, {name: 'authorImages', maxCount: 1},];

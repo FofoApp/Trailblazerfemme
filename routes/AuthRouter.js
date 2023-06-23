@@ -8,7 +8,7 @@ const AdminUserController = require('./../controllers/adminController/AdminUserC
 
 const { permissions } = require('./../middlewares/permissionsMiddleware');
  
-const { verifyAccessToken } = require('./../helpers/jwtHelper');
+const { verifyAccessToken, verifyRefreshToken } = require('./../helpers/jwtHelper');
 
 const upload = require('./../helpers/multer');
 
@@ -41,7 +41,7 @@ router.patch('/make-admin', verifyAccessToken, permissions(["admin"]), AdminUser
 router.get('/users', verifyAccessToken, permissions(["admin"]), AdminUserController.allUsers);
 router.get('/user/find', verifyAccessToken, permissions(["admin"]), AdminUserController.findUser);
 
-router.post('/refresh-token', verifyAccessToken, AuthController.refreshToken);
+router.post('/refresh-token', verifyRefreshToken, AuthController.refreshToken);
 
 // router.post('/reset-password', AuthController.resetPassword);
 // router.post('/reset-password/:id/:token', AuthController.getResetPasswordToken);
@@ -50,7 +50,7 @@ router.post('/refresh-token', verifyAccessToken, AuthController.refreshToken);
 
 router.patch('/reset-password/:id/:token', AuthController.postResetPasswordToken);
 
-router.post('/logout',  AuthController.logout);
+router.post('/logout', verifyRefreshToken, AuthController.logout);
 
 // router.get('/verifyotp/:id', AuthController.otpPage);
 

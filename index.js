@@ -9,24 +9,16 @@ const morgan = require('morgan');
 const cors = require('cors');
 // const limitter = require('express-rate-limiter');
 const createError = require('http-errors');
-const Stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
-const ngrok = process.env.NODE_ENV !== 'production' ? require('ngrok') : null;
-
-
-// const otpGenerate = require('otp-generator');
-// const sdk = require('api')(process.env.SEND_CHAMP_SDK);
 
 const PORT = process.env.PORT || 2000;
 
 global.publicPath = `${__dirname}/public`;
 
 //INITIALIZE DATABASE
-const connectToDb = require('./initDB');
+const connectToDb = require('./dbConnection');
 
 
 const CommunityRoutes = require('./routes/CommunityRoutes');
-const PlanRoute = require('./routes/PlanRoutes');
 const ProfileRoutes = require('./routes/ProfileRoutes');
 const AuthRoute = require('./routes/AuthRouter');
 const BlogRoutes = require('./routes/BlogRoutes');
@@ -38,14 +30,16 @@ const ProductRoutes = require('./routes/ProductRoutes');
 const JobRoutes = require('./routes/jobRoutes');
 const MembershipRoutes = require('./routes/membershipRoutes');
 const AdminDashboardRoutes = require('./routes/AdminDashboardRoutes');
-const PaymentRoutes = require('./routes/paymentRoutes');
 const CourseRoutes = require('./routes/CourseRoutes');
 const StripeRoutes = require('./routes/StripeRoutes');
 const WebhookRoutes = require('./routes/webhook');
 const WebhookRoutes2 = require('./routes/webh');
 
 const app = express();
-app.use(morgan('dev'));
+
+if(process.env.NODE_ENV === 'development') {
+      app.use(morgan('dev'));
+}
 
 app.use(
       cors({
@@ -63,8 +57,7 @@ app.use(
 app.use(cors())
 app.use(mongoSanitize());
 app.use(xss());
-// app.use('/api/stripe/webhook2', express.raw({type: "*/*"}));
-// app.use('/api/stripe', express.raw({ type: 'application/json' }));
+
 app.use(express.json({
       verify: function(req, res, buf) {
             if (req.originalUrl.startsWith('/webhook')) {
@@ -90,33 +83,6 @@ app.use(hpp());
 // });
 
 
-
-// app.post('/api/payment', async (req, res, next) => {
-
-//       const { product, stripToken: token } = req.body;
-//       const price = product.price;
-    
-//       try {
-//             const customer =  await stripe.customers.create({
-//                   source:token.id,
-//                   email: token.email,
-//                   });
-                  
-//             const charge = await stripe.charges.create({
-//                   amount: Number(price) * 100,
-//                   currency: "usd",
-//                   customer: customer.id,
-//                   receipt_email: token.email,
-//                   description: `Purchased the ${product.description}`,
-//             });
-
-//             return res.status(200).send({customer:customer, charge: charge})
-//       } catch (error) {
-//             console.log("Error:::", error.message)
-//             return res.status(200).send({error})
-//       }
-      
-// });
 
 
 app.get('/', (req, res) => {
@@ -146,7 +112,6 @@ app.get('/', (req, res) => {
 
 
 app.use('/', WebhookRoutes2);
-app.use('/api/pay', PaymentRoutes);
 app.use('/api/stripe', StripeRoutes);
 app.use('/api/blog', BlogRoutes);
 app.use('/api/library', MyLibraryRoutes);
@@ -159,7 +124,6 @@ app.use('/api/jobs', JobRoutes);
 app.use('/api/membership', MembershipRoutes);
 app.use('/api/dashboard', AdminDashboardRoutes);
 app.use('/api/community', CommunityRoutes);
-app.use('/api/plan', PlanRoute);
 app.use('/api/profile', ProfileRoutes);
 app.use('/api/auth', AuthRoute);
 

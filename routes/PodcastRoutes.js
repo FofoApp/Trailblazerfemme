@@ -13,8 +13,6 @@ const upload = require('./../helpers/multer');
 
 router.post("/files", upload.array("avatar", 2), (req, res) => {
 
-    console.log({ images: req.files })
-
     try {
 
 
@@ -24,13 +22,7 @@ router.post("/files", upload.array("avatar", 2), (req, res) => {
         console.log(error)
         return res.json({ error: error });
     }
-
-    // if (res.status(200)) {
-    //     console.log("Your file has been uploaded successfully.");
-    //     console.log(req.files);
-    //     res.json({ message: "Successfully uploaded files" });
-    //     res.end();
-    // }
+ 
 });
 
 

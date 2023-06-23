@@ -56,7 +56,7 @@ exports.allOrders = async (req, res, next) => {
                     select: 'id fullname profileImage createdAt',
                     },
                     {
-                        path: 'orderItems.product',
+                        path: 'orderItems.productId',
                         model: 'Product',
                         select: 'name product_images createdAt',
                     }

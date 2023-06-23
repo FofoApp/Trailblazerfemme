@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const MembershipSubscriber = require('../../models/membershipModel/MembershipSubscribersModel');
-const User = require('../../models/UserModel');
 const Membership = require('./../../models/adminModel/AdminMembershipModel');
 
 exports.createUserMembership = async (req, res, next) => {

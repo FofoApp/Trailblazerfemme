@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const _ = require('lodash');
-//const User = require('./../models/UserModel');
 const UserModel = require('./../../models/UserModel');
 
 

@@ -4,13 +4,9 @@ const Stripe  = require('stripe')(process.env.STRIPE_SECRET_KEY, {
     apiVersion: process.env.STRIPE_API_VERSION,
 });
 
-// const { 
-//     monitorPaymentIntentSucceed, 
-//     monitorPaymentSourceChargeable, 
-//     monitorFailedPayment 
-// } = require('./paymentHelpers');
 const { shopWebhookFunction } = require('./shopFunctions');
 const { membershipWebhookFunction } = require('./membershipFunctions');
+
 const router = express.Router();
 
 
@@ -64,8 +60,6 @@ router.post('/webhook', async (req, res) => {
           
           const customer = await  Stripe.customers.retrieve(data?.customer);
 
-          // console.log({ customer })
-
           if(eventAction?.toLowerCase() === 'membership') {
 
             await membershipWebhookFunction(eventType, customer, data);
@@ -83,7 +77,6 @@ router.post('/webhook', async (req, res) => {
 
 
     }
-
 
     // console.log(eventType);
 

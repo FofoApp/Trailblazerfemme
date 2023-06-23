@@ -7,13 +7,14 @@ const userSchema = new Schema({
 
     fullname: { type: String, trim: true, required: true },
     email: { type: String, trim: true, required: true, lowercase: true, unique: true },
-    location: { type: String, trim: true, default: "Location" },
+    location: { type: String, trim: true, default: "unknown" },
     jobTitle: { type: String, trim: true, default: "" },
     phonenumber: { type: String, trim: true, required: true },
     field: { type: String, trim: true, default: "" },
     city: { type: String, trim: true, default: ""   },
     state: { type: String, trim: true, default: ""  },
-    blocked: { type: Boolean, default: false }, // block / unblock users
+    blocked: { type: Boolean, default: false },
+    // block / unblock users
 
     chargeId: { type: String, trim: true, default: ""  },
 
@@ -24,8 +25,8 @@ const userSchema = new Schema({
     membershipId: { type: mongoose.Schema.Types.ObjectId, ref: "Membership"},
     communityId: { type: mongoose.Schema.Types.ObjectId, ref: "Membership"},
 
-    subscription_end_date: { type: Date, default: Date.now()   },
-    subscription_start_date: { type: Date, default: Date.now()  },
+    subscription_end_date: { type: Date, default: Date.now() },
+    subscription_start_date: { type: Date, default: Date.now() },
     days_between_next_payment: { type: String, trim: true, default: "0" },
 
     stripeCustomerId:  { type: String, trim: true },
@@ -77,13 +78,14 @@ const userSchema = new Schema({
 
 userSchema.options.toJSON = {
     transform: function(doc, ret, options) {
-        ret.id = ret?._id
-        delete ret?._id
-        delete ret?.__v
+        ret.id = ret?._id;
+        delete ret?._id;
+        delete ret?.__v;
         delete ret?.password;
         return ret;
      }
 };
+
 
 userSchema.pre('save', async function(next) {
 

@@ -1187,15 +1187,14 @@ exports.login = async (req, res, next) => {
 
         if(!user?.accountVerified) {
             const msg = "Your account is not yet verified";
-             res.status(400).json({ status: "failed", error: msg, message: msg })
-             return
+             res.status(400).json({ status: "failed", error: msg, message: msg });
+             return;
         }
 
         // Check if password is correct
         const isMatch = await user.isValidPassword(result?.password);
 
         if(!isMatch) {
-            // throw createError.Unauthorized('Username/password not valid');
             return res.status(403).json({ status: "failed", message: "Invalid login credentials" });
         }
 
@@ -1212,14 +1211,13 @@ exports.login = async (req, res, next) => {
 
 
         // IF user?.membershipType: MEANS MEMBERSHIP IS ACTIVE, UPDATE NUMBER OF DAYS FOR NEXT ACTIVATION OR RETURN TO FREE MEMBERSHIP
-        // 
-
+        //
 
         let membership_details = {
             // subscriptionId: user?.subscriptionId,
              paid: user?.paid,
-             membershipType: user?.membershipType, 
-             isActive: user?.isActive, 
+             membershipType: user?.membershipType,
+             isActive: user?.isActive,
         //  amount: user?.amount,
         }
     
@@ -1228,7 +1226,7 @@ exports.login = async (req, res, next) => {
         const refreshToken = await signInRefreshToken(user);
 
         //if Refresh tokenn is set
-        const isRefreshTokenSet = await RefreshAccessToken.findOne({userId: user?.id});
+        const isRefreshTokenSet = await RefreshAccessToken.findOne({ userId: user?.id });
        
         if(isRefreshTokenSet) {
             await RefreshAccessToken.deleteMany({ userId: user?.id });
@@ -1236,14 +1234,89 @@ exports.login = async (req, res, next) => {
         
         const refreshAccessToken = new RefreshAccessToken(
             {
-            userId: user?.id,
-            accessToken:accessToken,
-            refreshToken:refreshToken
+                userId: user?.id,
+                accessToken: accessToken,
+                refreshToken: refreshToken
             });
 
         const savedRefreshAccessToken = await refreshAccessToken.save();
         
         return res.status(200).json({
+            status: "success",
+            userId: user?.id,
+            accessToken, 
+            refreshToken, 
+            membership_details,
+
+            fullname: user?.fullname,
+            profileImage: user?.profileImage,
+            location: user?.location,
+            jobTitle: user?.jobTitle,
+            city: user?.city,
+            socialLinks: user?.socialLinks,
+            phonenumber: user?.phonenumber,
+            role: user?.roles[0],
+
+            email: user.email,
+
+            // field: user.field,
+            // city:  user.cityState
+
+        });
+
+    } catch (error) {
+
+        if(error.isJoi === true) {
+            const msg = "Invalid parameters";
+            return res.status(422).send({ status:"failed", error: msg, message: msg});
+        }
+
+        return res.status(500).send({ status:"failed", error: error?.message, message: error?.message,})
+    
+    }
+}
+
+
+exports.refreshToken = async (req, res, next) => {
+
+    const userId = req?.user?.id;
+    
+    try {
+
+        const user = await User.findById(userId);
+        
+        if(!user) {
+            return res.status(404).json({ status: "failed", message: "User not found" });
+        }
+
+        const accessToken = await signInAccessToken(user);
+        const refreshToken = await signInRefreshToken(user);
+
+        const isRefreshTokenSet = await RefreshAccessToken.findOne({ userId});
+       
+        if(isRefreshTokenSet) {
+            await RefreshAccessToken.deleteMany({ userId });
+        }
+        
+        const refreshAccessToken = new RefreshAccessToken(
+            {
+                userId: user?.id,
+                accessToken: accessToken,
+                refreshToken: refreshToken
+            });
+
+        const savedRefreshAccessToken = await refreshAccessToken.save();
+
+        let membership_details = {
+            // subscriptionId: user?.subscriptionId,
+             paid: user?.paid,
+             membershipType: user?.membershipType,
+             isActive: user?.isActive,
+        //  amount: user?.amount,
+        }
+
+        return res.status(200).json({ 
+            status:"success", 
             userId: user?.id,
             accessToken, 
             refreshToken, 
@@ -1265,62 +1338,27 @@ exports.login = async (req, res, next) => {
         });
 
     } catch (error) {
-        console.log(error)
-        if(error.isJoi === true) {      
-            const msg = "Invalid parameters"     
-            return res.status(422).send({ status:"failed", error: msg, message: msg})
-        }
-
-        return res.status(500).send({ status:"failed", error: error?.message, message: error?.message,})
-    }
-}
-
-
-exports.refreshToken = async (req, res, next) => {
-    
-    try {
-        const { refreshToken } = req.body;
-
-        if(!refreshToken) {
-            return res.status(400).send({ status:"failed", message: 'Invalid token'})
-        }
-
-        const userId = await verifyRefreshToken(refreshToken);
-        const accessToken = await signInAccessToken(userId);
-        const refToken = await signInRefreshToken(userId);
-
-        return res.status(200).json({ status:"success", accessToken: accessToken, refreshToken: refToken });
-
-    } catch (error) {
         return res.status(500).send({ status:"failed", error: error?.message, message: error?.message,})
     }
 }
 
 exports.logout = async (req, res, next) => {
-    //DELETE REQUEST
-    //http://localhost:2000/api/auth/delete-user/userId
-    //http://localhost:2000/api/auth/delete-user/627fbadbc81d6b5315941f67
+
+    //DELETE REQUEST::
+    //http://localhost:2000/api/auth/logout/userId
+    //http://localhost:2000/api/auth/logout/627fbadbc81d6b5315941f67
+    
+    const userId = req?.user?.id;
 
     try {
-        const  refreshToken = req.headers.authorization.split(" ")[1];
-      
-        if(!refreshToken) {
-            return res.status(400).send({ status:"failed", message: "Invalid token"})
-        }
 
-        const userId = await verifyRefreshToken(refreshToken);
-               
-        //if Refresh tokenn is set
-        const isRefreshTokenSet = await RefreshAccessToken.findOne({ userId: userId });
+        const isRefreshTokenSet = await RefreshAccessToken.findOne({ userId });
        
         if(!isRefreshTokenSet) {
-            return res.status(404).send({ status:"failed", message: "Unable to logout user"})
+            await RefreshAccessToken.deleteMany({ userId });
         }
 
-        await RefreshAccessToken.findByIdAndDelete({userId: userId});
-
-        return res.status(404).send({ status:"failed", message: "You are now logged out"})
-
+        return res.status(200).json({ status:"success", error: "You are now logged out", message: "You are now logged out"});
 
     } catch (error) {
         next(error);
@@ -1411,7 +1449,7 @@ exports.updateUser = async (req, res, next) => {
 
     try {
 
-        let user  = await User.findById(req?.user?.aud).select('-socialLinks -isPaid');
+        let user  = await User.findById(userId).select('-socialLinks -isPaid');
     
         if(!user) {
             return res.status(400).json({status: "failed", message:`User with ${user?.email} does not exist`});
@@ -1422,7 +1460,7 @@ exports.updateUser = async (req, res, next) => {
         const result = await registerValidation(userData, true);
 
         if(!result) {
-            return res.status(200).send({status: "failed", message: 'Unable to update user'});
+            return res.status(200).json({ status: "failed", message: 'Unable to update user' });
         }
 
         if(req?.file) {
@@ -1467,7 +1505,7 @@ exports.updateUser = async (req, res, next) => {
         return res.status(200).json({status: "success", message: 'Updated successfully'});
 
     } catch (error) {
-        next(error);
+        return res.status(500).json({ status: "failed", error: error?.message, message: error?.message });
     }
        
 }
